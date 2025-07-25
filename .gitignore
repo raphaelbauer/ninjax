@@ -1,0 +1,24 @@
+target
+bin
+.DS_Store
+.DS_Store?
+.classpath
+.project
+.settings
+.metadata
+*.iml
+.idea
+*~
+nbactions.xml
+nb-configuration.xml
+nbproject
+
+# when developing it is cool linking
+# the ninja framework in the main demo application
+# but - we don't want that link in git
+ninja-demo-application/src/main/java/ninja
+ninja-demo-application/src/main/java/ninjaModuleDemo
+
+#maven-shade-plugin auto-generated files
+dependency-reduced-pom.xml
+
