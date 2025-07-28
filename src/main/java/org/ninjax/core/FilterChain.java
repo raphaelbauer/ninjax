@@ -1,0 +1,24 @@
+
+package org.ninjax.core;
+
+import java.util.List;
+
+public class FilterChain {
+    private final List<NinjaFilter> filters;
+    private final int index;
+    private final Router.ControllerMethod controller;
+
+    public FilterChain(List<NinjaFilter> filters, int index, Router.ControllerMethod controller) {
+        this.filters = filters;
+        this.index = index;
+        this.controller = controller;
+    }
+
+    public Result doFilter(Context context) {
+        if (index < filters.size()) {
+            return filters.get(index).doFilter(context, new FilterChain(filters, index + 1, controller));
+        } else {
+            return controller.executeMethod(context);
+        }
+    }
+}

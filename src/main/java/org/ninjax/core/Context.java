@@ -1,26 +1,78 @@
 package org.ninjax.core;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.collect.Maps;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Context {
+    
+        private final static Logger logger = LoggerFactory
+            .getLogger(Context.class);
 
     private final Router.Route route;
 
     private final Map<String, String> pathParameters;
+    
+    private final String requestPath;
+    
+    private final InputStream inputStream;
+    
+    private final List<NinjaCookie> ninjaCookies;
+    
+    private final Map<String, Object> payload;
 
-    public Context(Router.Route route) {
+    public Context(
+            Router.Route route,
+            String requestPath,
+            InputStream inputStream,
+            List<NinjaCookie> ninjaCookies) {
         this.route = route;
-        this.pathParameters = getPathParametersEncoded(route.path());
+        this.requestPath = requestPath;
+        // Performance improvement: Only call when we need path params...
+        this.pathParameters = getPathParametersEncoded(requestPath);
+        this.inputStream = inputStream;
+        
+        this.ninjaCookies = ninjaCookies;
+        
+        payload = new HashMap<>();
+    }
+    
+    public String getRequestPath() {
+        return this.requestPath;
+    }
+    
+    // Maybe a stupid API. We likely want to get a certain cookue by name...
+    public List<NinjaCookie> getNinjaCookies() {
+        return ninjaCookies;
+    }
+    
+    public <A> Optional<A> getJsonBody() {
+        try {
+            return Optional.of(Json.objectMapper.readValue(inputStream, new TypeReference<A>() {}));
+        } catch (IOException ex) {
+            logger.error("Opsi", ex);
+            return Optional.empty();
+        }
+    }
+    
+    public NinjaSession getNinjaSession() {
+        return new NinjaSession();
     }
     
     public Router.Route route() {
         return this.route;
     }
 
-    public Optional<String> getPathParam(String parameterName) {
+    public Optional<String> getPathParameterEncoded(String parameterName) {
         return Optional.ofNullable(pathParameters.get(parameterName));
     }
 
@@ -35,19 +87,34 @@ public class Context {
      * @param path The whole encoded uri.
      * @return A map with all parameters of that uri. Encoded in => encoded out.
      */
-    private Map<String, String> getPathParametersEncoded(String path) {
-        Map<String, String> pathParamNameAndValue = new HashMap<>();
+    private Map<String, String> getPathParametersEncoded(String uri) {
+        Map<String, String> map = Maps.newHashMap();
 
-        Matcher matcher = this.route.pathRegex().matcher(path);
+        Matcher m = route.pathRegex().matcher(uri);
 
-        if (matcher.matches()) {
-            var namedGroupsWithIndex = matcher.namedGroups();
-            for (var k : namedGroupsWithIndex.entrySet()) {
-                pathParamNameAndValue.put(k.getKey(), matcher.group(k.getValue()));
+        if (m.matches()) {
+            Iterator<String> it = this.route.parameters.keySet().iterator();
+            for (int i = 1; i < m.groupCount() + 1; i++) {
+                String parameterName = it.next();
+                map.put(parameterName, m.group(i));
             }
         }
-
-        return pathParamNameAndValue;
+        
+        return map;
     }
+
+    public void putPayload(String key, Object o) {
+            payload.put(key, o);
+    }
+    
+    // not sure if this is ok with optinal...
+    public <U> Optional<U> getPayload(String key, Class<U> clazz) {
+        Object object = payload.get(key);
+        if (clazz.isInstance(object)) {
+            return Optional.of(clazz.cast(object));
+        } else {
+            return Optional.empty(); // or throw an exception
+    }
+}
 
 }

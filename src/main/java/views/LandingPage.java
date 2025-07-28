@@ -10,7 +10,7 @@ public class LandingPage {
         LayoutHtml layoutHtml = new LayoutHtml();
         
         JuckulaCompositionTemplate juckula2Template = new JuckulaCompositionTemplate();
-        juckula2Template.html("<div class='main'><p>a message</p></div>");
+        juckula2Template.html("<div class='main'><p>",title,"</p></div>");
         
         return layoutHtml.render(title, juckula2Template);   
     }

@@ -1,24 +1,34 @@
 package org.ninjax.core;
 
-import jakarta.servlet.Filter;
-import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 import org.eclipse.jetty.servlet.FilterHolder;
+import org.ninjax.core.properties.NinjaProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class NinjaJetty {
 
-    public final RouteFinder routeFinder;
+    private static Logger logger = LoggerFactory.getLogger(NinjaJetty.class);
 
-    public NinjaJetty(Router router) throws RuntimeException {
+    public final RouteFinder routeFinder;
+    public final NinjaProperties ninjaProperties;
+
+    public NinjaJetty(Router router, NinjaProperties ninjaProperties) throws RuntimeException {
         this.routeFinder = new RouteFinder(router);
+        this.ninjaProperties = ninjaProperties;
 
         try {
             start();
@@ -57,37 +67,49 @@ public class NinjaJetty {
         server.join();
     }
 
-    public class HelloServletFilter implements Filter {
+    public class HelloServletFilter implements jakarta.servlet.Filter {
 
         @Override
-        public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain fc) throws IOException, ServletException {
+        public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, jakarta.servlet.FilterChain fc) throws IOException, ServletException {
             HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
             HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
 
             var httpMethod = httpServletRequest.getMethod();
-            var path = httpServletRequest.getRequestURI();
-            var routingResult = routeFinder.getRouteFor(httpMethod, path);
+            var requestURI = httpServletRequest.getRequestURI();
+            var routingResult = routeFinder.getRouteFor(httpMethod, requestURI);
 
             if (routingResult.isPresent()) {
-                
+
                 var route = routingResult.get();
-                var context = new Context(route);
-                
-                
-                var result = routingResult.get().controllerMethod().executeMethod(context);
-                
+
+                List<NinjaCookie> ninjaCookies = httpServletRequest.getCookies() == null
+                        ? List.of()
+                        : Arrays.stream(httpServletRequest.getCookies())
+                                .map(c -> convertServletCookieToNinjaCookie(c))
+                                .toList();
+
+                var context = new Context(
+                        route,
+                        requestURI,
+                        httpServletRequest.getInputStream(),
+                        ninjaCookies);
+
+                FilterChain chain = new FilterChain(route.filters, 0, routingResult.get().controllerMethod());
+                var result = chain.doFilter(context);
+
                 var status = result.status;
                 var contentType = result.contentType;
 
-                //////// OR => 
-                // result.outputStreamRenderer.resultCreatorMethod(httpServletResponse.getOutputStream());
-           
-
-
                 httpServletResponse.setContentType(contentType);
                 httpServletResponse.setStatus(status);
-                httpServletResponse.getWriter().println(result.content);
-                
+
+                for (var ninjaCookie : result.cookies) {
+                    httpServletResponse.addCookie(convertNinjaCookieToServletCookue(ninjaCookie));
+                }
+
+                if (result.outputStreamRenderer.isPresent()) {
+                    result.outputStreamRenderer.get().streamTo(httpServletResponse.getOutputStream());
+                }
 
             } else {
                 var text = "Opsi. Not found";
@@ -102,13 +124,31 @@ public class NinjaJetty {
         }
     }
 
-//    public static class HelloServlet extends HttpServlet {
-//
-//        @Override
-//        protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-//            resp.setContentType("text/plain");
-//            resp.setStatus(HttpServletResponse.SC_OK);
-//            resp.getWriter().println("Hello, World!");
-//        }
-//    }
+    public static org.ninjax.core.NinjaCookie convertServletCookieToNinjaCookie(Cookie cookie) {
+
+        return new org.ninjax.core.NinjaCookie(
+                cookie.getName(),
+                cookie.getValue(),
+                Optional.ofNullable(cookie.getComment()),
+                Optional.ofNullable(cookie.getDomain()),
+                cookie.getMaxAge(),
+                Optional.ofNullable(cookie.getPath()),
+                cookie.getSecure(),
+                cookie.isHttpOnly());
+    }
+
+    public static Cookie convertNinjaCookieToServletCookue(NinjaCookie ninjaCookie) {
+
+        var cookie = new Cookie(ninjaCookie.name(), ninjaCookie.value());
+
+        ninjaCookie.comment().ifPresent(c -> cookie.setComment(c));
+        ninjaCookie.domain().ifPresent(d -> cookie.setDomain(d));
+        cookie.setMaxAge(ninjaCookie.maxAge());
+        ninjaCookie.path().ifPresent(p -> cookie.setPath(p));
+        cookie.setSecure(ninjaCookie.secure());
+        cookie.setHttpOnly(ninjaCookie.httpOnly());
+
+        return cookie;
+    }
+
 }

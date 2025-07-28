@@ -7,44 +7,56 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Router {
+
     private final List<Route> routes = new ArrayList();
-    
+
     public RouteTmp GET(String path) {
         return new RouteTmp("GET", path);
     }
+    
+    public RouteTmp POST(String path) {
+        return new RouteTmp("POST", path);
+    }
 
     public class RouteTmp {
+
         private final String httpMethod;
         private final String path;
+        
+        private final List<NinjaFilter> filters = new ArrayList();
 
         public RouteTmp(String httpMethod, String path) {
             this.httpMethod = httpMethod;
             this.path = path;
         }
+        
+        public RouteTmp filter(NinjaFilter ninjaFilter) {
+            filters.add(ninjaFilter);
+            return this;
+        }
 
         public void with(ControllerMethod controllerMethod) {
-            routes.add(new Route(httpMethod, path, controllerMethod));
+            routes.add(new Route(httpMethod, path, controllerMethod, filters));
         }
-        
+
     }
-    
+
     //public record Route(String httpMethod, String path, ControllerMethod controllerMethod) {}
-    
     protected List<Route> getRoutes() {
         return routes;
     }
-    
+
     public static interface ControllerMethod {
+
         Result executeMethod(Context context);
     }
-    
-    
+
     public class Route {
+
         //Matches: {id} AND {id: .*?}
         // group(1) extracts the name of the group (in that case "id").
         // group(3) extracts the regex if defined
-
-        private final static Pattern PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE
+        public final static Pattern PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE
                 = Pattern.compile("\\{(.*?)(:\\s(.*?))?\\}");
 
         /**
@@ -52,36 +64,43 @@ public class Router {
          */
         private final static String VARIABLE_ROUTES_DEFAULT_REGEX = "([^/]*)";
 
-        
         private final String httpMethod;
         private final String path;
         private final ControllerMethod controllerMethod;
-        
+
         private final Pattern pathRegex;
 
-        public Route(String httpMethod, String path, ControllerMethod controllerMethod) {
+        public final Map<String, RouteParameter> parameters;
+        
+        public List<NinjaFilter> filters;
+
+        public Route(String httpMethod, String path, ControllerMethod controllerMethod, List<NinjaFilter> filters) {
             this.httpMethod = httpMethod;
             this.path = path;
             this.controllerMethod = controllerMethod;
             this.pathRegex = Pattern.compile(convertRawUriToRegex(path));
+            this.parameters = RouteParameter.parse(path);
+            this.filters = filters;
         }
 
         public Pattern pathRegex() {
             return pathRegex;
         }
-        
+
         public ControllerMethod controllerMethod() {
             return controllerMethod;
         }
-        
+
+        /**
+         * @return The path as given in the router. For instance: /home/{id}
+         */
         public String path() {
             return path;
         }
-        
+
         public String httpMethod() {
             return httpMethod;
         }
-
 
         private static String convertRawUriToRegex(String rawUri) {
 

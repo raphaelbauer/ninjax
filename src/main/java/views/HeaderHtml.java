@@ -10,7 +10,7 @@ public class HeaderHtml {
         juckula2Template.html(
                 """
                 <header>
-                <p>That's the funky header, dude!</p>
+                <p>That's the funky header, duderino!</p>
                 </header>
                 """
         );
