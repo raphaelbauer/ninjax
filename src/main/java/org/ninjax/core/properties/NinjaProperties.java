@@ -24,16 +24,6 @@ public class NinjaProperties {
         return Optional.ofNullable(properties.getProperty(propertyName));
     }
 
-    public String getOrDie(String propertyName) {
-        var value = properties.getProperty(propertyName);
-
-        if (value == null) {
-            throw new RuntimeException("Cannot find value in application.conf. Omg. Dying as requested. " + propertyName);
-        }
-
-        return value;
-    }
-
     private Properties loadProperties() {
 
         Properties properties = new Properties();

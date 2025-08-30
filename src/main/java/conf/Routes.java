@@ -15,6 +15,8 @@ public class Routes {
         router.GET("/hello/{user}").filter(myCustomFilter).with(basicController::helloWorld);
         router.GET("/anotherpath").with(basicController::helloWorld);
         
+        router.GET("/session-test").with(basicController::sessionTest);
+        
         router.GET("/person").with(basicController::personJson);
         router.POST("/person").with(basicController::parsePerson);
         

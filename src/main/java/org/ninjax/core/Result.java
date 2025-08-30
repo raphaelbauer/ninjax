@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +28,8 @@ public class Result {
     Optional<OutputStreamRenderer> outputStreamRenderer = Optional.empty();
     List<NinjaCookie> cookies = new ArrayList();
     
+    Map<String, List<String>> headers = new HashMap();
+
     
     public Result() {
         //this.outputStream = outputStream;
@@ -45,6 +49,11 @@ public class Result {
     
     public Result addCookie(NinjaCookie cookie) {
         cookies.add(cookie);
+        return this;
+    }
+    
+    public Result addHeader(String key, String value) {
+        headers.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
         return this;
     }
 

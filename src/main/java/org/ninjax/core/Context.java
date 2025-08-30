@@ -28,13 +28,19 @@ public class Context {
     
     private final List<NinjaCookie> ninjaCookies;
     
+    private final Map<String, List<String>> headers;
+    
     private final Map<String, Object> payload;
+    
+    private final NinjaSession ninjaSession;
 
     public Context(
             Router.Route route,
             String requestPath,
             InputStream inputStream,
-            List<NinjaCookie> ninjaCookies) {
+            List<NinjaCookie> ninjaCookies,
+            Map<String, List<String>> headers,
+            NinjaSession ninjaSession) {
         this.route = route;
         this.requestPath = requestPath;
         // Performance improvement: Only call when we need path params...
@@ -43,7 +49,9 @@ public class Context {
         
         this.ninjaCookies = ninjaCookies;
         
-        payload = new HashMap<>();
+        this.payload = new HashMap<>();
+        this.headers = headers;
+        this.ninjaSession = ninjaSession;
     }
     
     public String getRequestPath() {
@@ -65,7 +73,7 @@ public class Context {
     }
     
     public NinjaSession getNinjaSession() {
-        return new NinjaSession();
+        return this.ninjaSession;
     }
     
     public Router.Route route() {
