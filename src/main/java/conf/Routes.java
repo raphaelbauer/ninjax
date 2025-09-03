@@ -1,6 +1,7 @@
 package conf;
 
 import controller.BasicController;
+import controller.GuestbookController;
 import org.ninjax.core.AssetsController;
 import org.ninjax.core.Router;
 
@@ -9,6 +10,7 @@ public class Routes {
     public Routes(
             Router router,
             BasicController basicController,
+            GuestbookController guestbookController,
             AssetsController assetsController,
             MyCustomFilter myCustomFilter) {
 
@@ -19,6 +21,9 @@ public class Routes {
         
         router.GET("/person").with(basicController::personJson);
         router.POST("/person").with(basicController::parsePerson);
+        
+        router.GET("/").with(guestbookController::index);
+        router.POST("/post").with(guestbookController::post);
         
         router.GET("/files/{fileName}").with(assetsController::serveStatic);
     }

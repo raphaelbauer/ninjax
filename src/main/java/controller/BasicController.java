@@ -1,6 +1,7 @@
 package controller;
 
-import org.ninjax.core.Context;
+import com.google.common.collect.ImmutableMap;
+import org.ninjax.core.Request;
 import org.ninjax.core.Result;
 import org.ninjax.core.properties.NinjaProperties;
 import services.BasicService;
@@ -19,32 +20,35 @@ public class BasicController {
         this.ninjaProperties = ninjaProperties;
     } 
     
-    public Result sessionTest(Context context) {
-        var ninjaSession = context.getNinjaSession();
+    public Result sessionTest(Request request) {
+        var ninjaSession = request.getNinjaSession().orElseThrow();
         var time = ninjaSession.get("my-custome-time");
         
-        ninjaSession.put("my-custome-time", System.currentTimeMillis() + "");
+        var newNinjaSession = ninjaSession.withValue("my-custome-time", System.currentTimeMillis() + "");
         
-        return Result.ok().text("ok - time in session is " + time);
+        return Result
+                .ok()
+                .withNinjaSession(newNinjaSession)
+                .text("ok - time in session is " + time);
     }
  
-    public Result helloWorld(Context context) {
+    public Result helloWorld(Request request) {
         String appName = ninjaProperties.get("appname").orElseThrow();
         
-        String userName = context.getPathParameterEncoded("user").orElse("default");
+        String userName = request.getParameter("user").orElse("default");
         String landingPageHtml = LandingPage.render("Hello World " + userName + " running on " + appName).toString();
         
         return Result.ok().addHeader("testheader", "testvalue").html(landingPageHtml);
     }
     
-    public Result personJson(Context context) {
+    public Result personJson(Request request) {
         var person = new Person("a name", 12);
         return Result.ok().json(person);
     }
     
     
-    public Result parsePerson(Context context) {
-        var personOpt = context.<Person>getJsonBody();
+    public Result parsePerson(Request request) {
+        var personOpt = request.<Person>getJsonBody();
         
         if (personOpt.isPresent()) {
             return Result.ok().json(personOpt.get());

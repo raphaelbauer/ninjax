@@ -14,11 +14,11 @@ public class FilterChain {
         this.controller = controller;
     }
 
-    public Result doFilter(Context context) {
+    public Result doFilter(Request request) {
         if (index < filters.size()) {
-            return filters.get(index).doFilter(context, new FilterChain(filters, index + 1, controller));
+            return filters.get(index).doFilter(request, new FilterChain(filters, index + 1, controller));
         } else {
-            return controller.executeMethod(context);
+            return controller.executeMethod(request);
         }
     }
 }

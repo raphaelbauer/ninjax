@@ -48,7 +48,7 @@ public class Router {
 
     public static interface ControllerMethod {
 
-        Result executeMethod(Context context);
+        Result executeMethod(Request request);
     }
 
     public class Route {

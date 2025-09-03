@@ -1,27 +1,26 @@
 package org.ninjax.core;
 
-import java.util.HashMap;
+import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class NinjaSession {
-    
-    public Map<String, String> keyValueStore = new HashMap();
-    
-    
-    protected final String NINJA_SESSION_NAME = "NINJA_SESSION";
-    
-    public NinjaSession() {
-    
+public record NinjaSession(ImmutableMap<String, String> keyValueStore) {
+
+    public static final String NINJA_SESSION_NAME = "NINJA_SESSION";
+
+    public NinjaSession(Map<String, String> keyValueStore) {
+        this(ImmutableMap.copyOf(keyValueStore));
     }
-    
+
     public Optional<String> get(String key) {
         return Optional.ofNullable(keyValueStore.get(key));
     }
 
-    
-    public void put(String key, String value) {
-        keyValueStore.put(key, value);
+    public NinjaSession withValue(String key, String value) {
+        ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+        builder.putAll(keyValueStore);
+        builder.put(key, value);
+        return new NinjaSession(builder.build());
     }
-    
+
 }

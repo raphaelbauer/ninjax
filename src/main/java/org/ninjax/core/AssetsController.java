@@ -3,16 +3,13 @@ package org.ninjax.core;
 import com.google.common.io.ByteStreams;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLConnection;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- *
- * @author ra
- */
 public class AssetsController {
 
     private final static Logger logger = LoggerFactory
@@ -21,16 +18,20 @@ public class AssetsController {
     private final static String FILENAME_PATH_PARAM = "fileName";
     private static final String BASE_DIR = "/assets/";
     
-    public Result serveStatic(Context context) {
+    public Result serveStatic(Request request) {
         
         // Get the requested file path
-        Optional<String> requestedFileOpt = context.getPathParameterEncoded(FILENAME_PATH_PARAM);
+        Optional<String> requestedFileOpt = 
+                request.getPathParameter(FILENAME_PATH_PARAM)
+                // or... to serve '/favicon.ico' for instance
+                .or(() -> Optional.of(request.getRequestPath()));
         
         
         if (requestedFileOpt.isEmpty()) {
-            throw new RuntimeException("opsi");
+            throw new RuntimeException("opsi. Not able to find: " + requestedFileOpt + " - based on param " + FILENAME_PATH_PARAM);
         //            response.sendError(HttpServletResponse.SC_NOT_FOUND); // 404.
 //            return;
+
         }
 
 
@@ -54,8 +55,7 @@ public class AssetsController {
         }
 
         // Determine MIME type
-        //String mimeType = getServletContext().getMimeType(requestedFile);
-        String mimeType = null;
+        String mimeType = URLConnection.guessContentTypeFromName(resourcePath.getFileName().toString());
         if (mimeType == null) {
             mimeType = "application/octet-stream";
         }

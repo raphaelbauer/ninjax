@@ -2,5 +2,5 @@ package org.ninjax.core;
 
 
 public interface NinjaFilter {
-    Result doFilter(Context context, FilterChain chain);
+    Result doFilter(Request request, FilterChain chain);
 }

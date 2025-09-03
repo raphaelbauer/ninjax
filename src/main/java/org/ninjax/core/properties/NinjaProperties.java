@@ -1,5 +1,6 @@
 package org.ninjax.core.properties;
 
+import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -10,9 +11,9 @@ import org.slf4j.LoggerFactory;
 
 public class NinjaProperties {
 
-    private static Logger logger = LoggerFactory.getLogger(NinjaProperties.class);
+    private static final Logger logger = LoggerFactory.getLogger(NinjaProperties.class);
 
-    private final Properties properties;
+    private final ImmutableMap<String, String> properties;
 
     private static final String DEFAULT_LOCATION_OF_APPLICATION_CONF = "conf/application.conf";
 
@@ -21,29 +22,36 @@ public class NinjaProperties {
     }
 
     public Optional<String> get(String propertyName) {
-        return Optional.ofNullable(properties.getProperty(propertyName));
+        return Optional.ofNullable(properties.get(propertyName));
     }
 
-    private Properties loadProperties() {
+    public ImmutableMap<String, String> getAllProperties() {
+        return this.properties;
+    }
+
+    private ImmutableMap loadProperties() {
 
         Properties properties = new Properties();
 
-        // Use the current thread's context class loader
+        ////////////////////////////////////////////////////////////////////////
+        // Load Default properties
+        ////////////////////////////////////////////////////////////////////////
         try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(DEFAULT_LOCATION_OF_APPLICATION_CONF)) {
             if (inputStream == null) {
                 logger.error("Sorry, unable to find " + DEFAULT_LOCATION_OF_APPLICATION_CONF);
-                return properties;
+            } else {
+                properties.load(new java.io.InputStreamReader(inputStream, StandardCharsets.UTF_8));
             }
-
-            // Load the properties file with UTF-8 encoding
-            properties.load(new java.io.InputStreamReader(inputStream, StandardCharsets.UTF_8));
-            logger.info("loaded!");
-
         } catch (IOException e) {
-            logger.error("Opsi", e);
+            logger.error("Opsi. Failure loading " + DEFAULT_LOCATION_OF_APPLICATION_CONF, e);
         }
 
-        return properties;
+        ////////////////////////////////////////////////////////////////////////
+        // Add all properties '-Dmy.property=...'
+        // This overrides existing properties
+        ////////////////////////////////////////////////////////////////////////
+        properties.putAll(System.getProperties());
 
+        return ImmutableMap.copyOf(properties);
     }
 }
