@@ -44,33 +44,30 @@ public class AssetsController {
         }
 
         // Load the resource as a stream
-        try (InputStream resourceStream = getClass().getResourceAsStream(resourcePath.toString())) {
+        InputStream resourceStream = getClass().getResourceAsStream(resourcePath.toString());
 
-            if (resourceStream == null) {
-                logger.debug("Not able to find resource {}. Returning 404.", resourcePath.toString());
-                return Result.notFound();
-            }
-
-            // Determine MIME type
-            String mimeType = URLConnection.guessContentTypeFromName(resourcePath.getFileName().toString());
-            if (mimeType == null) {
-                mimeType = "application/octet-stream";
-            }
-
-            var result = Result.ok().contentType(mimeType).stream(outputStream -> {
-                try {
-                    ByteStreams.copy(resourceStream, outputStream);
-                } catch (IOException e) {
-                    throw new RuntimeException("Opsi. An error occurred while reading resource and sending to user.", e);
-                }
-            });
-
-            return result;
-
-        } catch (IOException ex) {
-            logger.error("Error serving resource '{}': {}", resourcePath, ex.getMessage());
+        if (resourceStream == null) {
+            logger.debug("Not able to find resource {}. Returning 404.", resourcePath.toString());
             return Result.notFound();
         }
+
+        // Determine MIME type
+        String mimeType = URLConnection.guessContentTypeFromName(resourcePath.getFileName().toString());
+        if (mimeType == null) {
+            mimeType = "application/octet-stream";
+        }
+
+        var result = Result.ok().contentType(mimeType).stream(outputStream -> {
+            try {
+                ByteStreams.copy(resourceStream, outputStream);
+                resourceStream.close();
+            } catch (IOException e) {
+                throw new RuntimeException("Opsi. An error occurred while reading resource and sending to user.", e);
+            }
+        });
+
+        return result;
+
     }
 
 }
