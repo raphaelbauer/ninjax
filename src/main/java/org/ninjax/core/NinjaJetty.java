@@ -2,7 +2,7 @@ package org.ninjax.core;
 
 import com.google.common.collect.ImmutableMap;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.SignatureException;
+import io.jsonwebtoken.io.Encoders;
 import jakarta.servlet.MultipartConfigElement;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -15,6 +15,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import org.eclipse.jetty.server.ServerConnector;
@@ -47,24 +49,47 @@ public class NinjaJetty {
     //private final Optional<Long> sessionisSecure;
     //private final Optional<Long> sessionisHttpOnly;
 
+    public static final String NINJA_APPLICATION_SECRET_KEY = "application.secret";
+
     public static final String NINJA_SESSION_COOKIE_NAME = "NINJA_SESSION";
-    
+
     private static final String NINJA_SESSION_PATH = "/";
 
+    private final int jettyServerPort;
+
     private final SecretKey secretKeyForSessionEncryption;
+
+    private static final String NINJA_LOGO
+            = """
+                     _______  .___ _______        ____.  _____   
+                     \\      \\ |   |\\      \\      |    | /  _  \\  
+                     /   |   \\|   |/   |   \\     |    |/  /_\\  \\ 
+                    /    |    \\   /    |    \\/\\__|    /    |    \\
+                    \\____|__  /___\\____|__  /\\________\\____|__  /
+                            \\/            \\/                  \\/
+                """;
 
     public NinjaJetty(Router router, NinjaProperties ninjaProperties) throws RuntimeException {
         this.routeFinder = new RouteFinder(router);
         this.ninjaProperties = ninjaProperties;
 
-        String encodedSecret = ninjaProperties.get("application.secret").orElseThrow();
+        this.jettyServerPort = Integer.parseInt(ninjaProperties.get("ninja.port").orElse("8080"));
+
+        String encodedSecret = ninjaProperties.get(NINJA_APPLICATION_SECRET_KEY).orElseThrow(() -> {
+            SecretKey key = Jwts.SIG.HS256.key().build();
+            String secretString = Encoders.BASE64.encode(key.getEncoded());
+
+            logger.error("Key {} is missing in your application.conf.Either add it or use -D{}=... to add it during startup.", NINJA_APPLICATION_SECRET_KEY, NINJA_APPLICATION_SECRET_KEY);
+            logger.error("I just randomly generated the following key that you could use: {}={}", NINJA_APPLICATION_SECRET_KEY, secretString);
+
+            return new RuntimeException(NINJA_LOGO);
+        });
+
         byte[] decodedKey = Base64.getDecoder().decode(encodedSecret);
         secretKeyForSessionEncryption = new SecretKeySpec(decodedKey, 0, decodedKey.length, "HmacSHA256");
 
         this.sessionExpiryTimeInSeconds = ninjaProperties.get("application.session.expire_time_in_seconds").map(v -> Long.valueOf(v));
 
-        
-        
         try {
             start();
         } catch (Exception exception) {
@@ -73,22 +98,13 @@ public class NinjaJetty {
     }
 
     public final void start() throws Exception {
-        System.out.println(
-                """
-                     _______  .___ _______        ____.  _____   
-                     \\      \\ |   |\\      \\      |    | /  _  \\  
-                     /   |   \\|   |/   |   \\     |    |/  /_\\  \\ 
-                    /    |    \\   /    |    \\/\\__|    /    |    \\
-                    \\____|__  /___\\____|__  /\\________\\____|__  /
-                            \\/            \\/                  \\/ 
-                """);
+        System.out.println(NINJA_LOGO);
 
-        // Create a basic Jetty server object that will listen on port 8080
         QueuedThreadPool threadPool = new QueuedThreadPool(200, 8);
         Server server = new Server(threadPool);
 
         ServerConnector connector = new ServerConnector(server);
-        connector.setPort(8080);
+        connector.setPort(this.jettyServerPort);
         server.addConnector(connector);
 
         //GzipHandler gzipHandler = new GzipHandler();
@@ -136,7 +152,7 @@ public class NinjaJetty {
                     var headers = NinjaJettyHelper.extractHeaders(httpServletRequest);
 
                     Optional<NinjaSession> ninjaSessionInRequest = NinjaJettyHelper.getSession(
-                            ninjaCookies, 
+                            ninjaCookies,
                             secretKeyForSessionEncryption);
 
                     Request.InputStreamGetter inputStreamGetter = () -> {
@@ -163,7 +179,7 @@ public class NinjaJetty {
                         }
                         return Optional.empty();
                     };
-                    
+
                     // Config multpart requests... (params, files etc)
                     if (httpServletRequest.getContentType() != null
                             && httpServletRequest.getContentType().startsWith("multipart/")) {
@@ -188,11 +204,10 @@ public class NinjaJetty {
                                 }
                             }
                         } catch (Exception e) {
-                           logger.error("Opsi", e);
+                            logger.error("Opsi", e);
                         }
                         return result;
                     };
-   
 
                     var request = new Request(
                             route,
@@ -206,7 +221,7 @@ public class NinjaJetty {
                             httpServletRequest.getParameterMap(),
                             ninjaSessionInRequest,
                             httpServletRequest.getLocale() /* TODO local can also be set by a lang cookie to override headers of accept... */
-                    );  
+                    );
 
                     FilterChain chain = new FilterChain(route.filters, 0, routingResult.get().controllerMethod());
                     var result = chain.doFilter(request);
@@ -237,15 +252,10 @@ public class NinjaJetty {
                             // Intntionally don't do anything
                         }
                     }
-                    
 
                     for (var ninjaCookie : result.cookies) {
                         httpServletResponse.addCookie(NinjaJettyHelper.convertNinjaCookieToServletCookue(ninjaCookie));
                     }
-                    
-                    
-                    
-                    
 
                     if (result.outputStreamRenderer.isPresent()) {
                         result.outputStreamRenderer.get().streamTo(httpServletResponse.getOutputStream());
@@ -388,11 +398,11 @@ public class NinjaJetty {
                 return Optional.empty();
             }
         }
-    
+
         public static NinjaCookie removeNinjaSession() {
             int REMOVE_SESSION_MAX_AGE = 0;
             var cookie = new NinjaCookie(
-                    NINJA_SESSION_COOKIE_NAME, 
+                    NINJA_SESSION_COOKIE_NAME,
                     "",
                     Optional.empty(),
                     Optional.empty(),
@@ -400,8 +410,7 @@ public class NinjaJetty {
                     Optional.of(NINJA_SESSION_PATH),
                     false,
                     false);
-                        
-            
+
             return cookie;
         }
 
@@ -438,10 +447,10 @@ public class NinjaJetty {
 
             var maxAge = expiryInstant.map(i -> (int) Duration.between(now, i).getSeconds())
                     .orElse(0); // 0 is a session cookie
-            
+
             //build cookie from jwt
             var cookie = new NinjaCookie(
-                    NINJA_SESSION_COOKIE_NAME, 
+                    NINJA_SESSION_COOKIE_NAME,
                     jws,
                     Optional.empty(),
                     Optional.empty(),
@@ -452,6 +461,7 @@ public class NinjaJetty {
 
             return cookie;
         }
+
     }
 
 }
