@@ -15,25 +15,21 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import static org.ninjax.core.NinjaSessionConverter.NINJA_SESSION_COOKIE_NAME;
 import org.ninjax.core.properties.NinjaProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,10 +46,6 @@ public class NinjaJetty {
     //private final Optional<Long> sessionisHttpOnly;
 
     public static final String NINJA_APPLICATION_SECRET_KEY = "application.secret";
-
-    public static final String NINJA_SESSION_COOKIE_NAME = "NINJA_SESSION";
-
-    private static final String NINJA_SESSION_PATH = "/";
 
     private final int jettyServerPort;
 
@@ -86,7 +78,7 @@ public class NinjaJetty {
         });
 
         byte[] decodedKey = Base64.getDecoder().decode(encodedSecret);
-        secretKeyForSessionEncryption = new SecretKeySpec(decodedKey, 0, decodedKey.length, "HmacSHA256");
+        this.secretKeyForSessionEncryption = new SecretKeySpec(decodedKey, 0, decodedKey.length, "HmacSHA256");
 
         this.sessionExpiryTimeInSeconds = ninjaProperties.get("application.session.expire_time_in_seconds").map(v -> Long.valueOf(v));
 
@@ -151,9 +143,13 @@ public class NinjaJetty {
 
                     var headers = NinjaJettyHelper.extractHeaders(httpServletRequest);
 
-                    Optional<NinjaSession> ninjaSessionInRequest = NinjaJettyHelper.getSession(
-                            ninjaCookies,
-                            secretKeyForSessionEncryption);
+                    var ninjaSessionCookie = ninjaCookies.stream()
+                            .filter(c -> c.name().equals(NINJA_SESSION_COOKIE_NAME))
+                            .findFirst();
+
+                    Optional<NinjaSession> ninjaSessionInRequest = ninjaSessionCookie
+                            .map(c -> NinjaSessionConverter.extractSessionFromCookie(c, secretKeyForSessionEncryption))
+                            .orElseGet(() -> Optional.empty());
 
                     Request.InputStreamGetter inputStreamGetter = () -> {
                         try {
@@ -238,15 +234,15 @@ public class NinjaJetty {
                     switch (result.ninjaSessionState) {
                         case Result.Exists exists -> {
                             NinjaSession ninjaSessionForResponse = exists.getSession();
-                            var cookie = NinjaJettyHelper.saveSession(
+                            var cookie = NinjaSessionConverter.createCookieWithInformationOfNinjaSession(
                                     ninjaSessionForResponse,
                                     secretKeyForSessionEncryption,
                                     sessionExpiryTimeInSeconds);
-                            httpServletResponse.addCookie(NinjaJettyHelper.convertNinjaCookieToServletCookue(cookie));
+                            httpServletResponse.addCookie(NinjaJettyHelper.convertNinjaCookieToServletCookie(cookie));
                         }
                         case Result.Remove remove -> {
-                            var cookie = NinjaJettyHelper.removeNinjaSession();
-                            httpServletResponse.addCookie(NinjaJettyHelper.convertNinjaCookieToServletCookue(cookie));
+                            var cookie = NinjaSessionConverter.createCookieToRemoveNinjaSession();
+                            httpServletResponse.addCookie(NinjaJettyHelper.convertNinjaCookieToServletCookie(cookie));
                         }
                         case Result.UnknownButDontTouch unknown -> {
                             // Intntionally don't do anything
@@ -254,7 +250,7 @@ public class NinjaJetty {
                     }
 
                     for (var ninjaCookie : result.cookies) {
-                        httpServletResponse.addCookie(NinjaJettyHelper.convertNinjaCookieToServletCookue(ninjaCookie));
+                        httpServletResponse.addCookie(NinjaJettyHelper.convertNinjaCookieToServletCookie(ninjaCookie));
                     }
 
                     if (result.outputStreamRenderer.isPresent()) {
@@ -305,7 +301,7 @@ public class NinjaJetty {
                     cookie.isHttpOnly());
         }
 
-        public static Cookie convertNinjaCookieToServletCookue(NinjaCookie ninjaCookie) {
+        public static Cookie convertNinjaCookieToServletCookie(NinjaCookie ninjaCookie) {
 
             var cookie = new Cookie(ninjaCookie.name(), ninjaCookie.value());
 
@@ -348,120 +344,6 @@ public class NinjaJetty {
                 }
             }
         }
-
-        ////////////////////////////////////////////////////////////////////////////
-    ///// Session
-    ////////////////////////////////////////////////////////////////////////////
-    
-    
-    public static Optional<NinjaSession> getSession(
-                List<NinjaCookie> ninjaCookies,
-                SecretKey secretKeyForSessionEncryption) {
-            var ninjaCookie = ninjaCookies.stream()
-                    .filter(c -> c.name().equals(NINJA_SESSION_COOKIE_NAME))
-                    .findFirst();
-
-            if (ninjaCookie.isPresent()) {
-                var ninjaSessionCookie = ninjaCookie.get();
-
-                var now = System.currentTimeMillis();
-
-                try {
-                    var claims = Jwts.parser()
-                            .verifyWith(secretKeyForSessionEncryption)
-                            .build()
-                            .parseSignedClaims(ninjaSessionCookie.value())
-                            .getPayload();
-
-                    if (claims.getNotBefore() != null /* Not our Api. We have to do a null check :( */
-                            && now < claims.getNotBefore().getTime()) {
-                        return Optional.empty();
-                    }
-
-                    if (claims.getExpiration() != null /* Not our Api. We have to do a null check :( */
-                            && now > claims.getExpiration().getTime()) {
-                        return Optional.empty();
-                    }
-
-                    var mapBuilder = ImmutableMap.<String, String>builder();
-                    for (var e : claims.entrySet()) {
-                        mapBuilder.put(e.getKey(), e.getValue().toString());
-                    }
-                    var ninjaSession = new NinjaSession(mapBuilder.build());
-
-                    return Optional.of(ninjaSession);
-                } catch (Exception e) {
-                    logger.debug("Opsi. Error parsing Ninja Session. I am ignoring this session.", e);
-                    return Optional.empty();
-                }
-            } else {
-                return Optional.empty();
-            }
-        }
-
-        public static NinjaCookie removeNinjaSession() {
-            int REMOVE_SESSION_MAX_AGE = 0;
-            var cookie = new NinjaCookie(
-                    NINJA_SESSION_COOKIE_NAME,
-                    "",
-                    Optional.empty(),
-                    Optional.empty(),
-                    REMOVE_SESSION_MAX_AGE,
-                    Optional.of(NINJA_SESSION_PATH),
-                    false,
-                    false);
-
-            return cookie;
-        }
-
-        public static NinjaCookie saveSession(
-                NinjaSession ninjaSession,
-                SecretKey secretKeyForSessionEncryption,
-                Optional<Long> sessionExpiryTimeInSeconds) {
-
-            // some setup
-            Instant now = Instant.now();
-
-            Optional<Instant> expiryInstant = Optional.empty();
-
-            if (ninjaSession.get("exp").isPresent()) {
-                expiryInstant = Optional.of(Instant.ofEpochSecond(Long.parseLong(ninjaSession.get("exp").get())));
-            }
-
-            if (expiryInstant.isEmpty() && sessionExpiryTimeInSeconds.isPresent()) {
-                expiryInstant = Optional.of(now.plusSeconds(sessionExpiryTimeInSeconds.get()));
-            }
-
-            // build jwt
-            var nowDate = Date.from(now);
-            var jwsBuilder = Jwts.builder()
-                    .notBefore(nowDate)
-                    .issuedAt(nowDate);
-
-            expiryInstant.ifPresent(i -> jwsBuilder.expiration(Date.from(i)));
-
-            String jws = jwsBuilder
-                    .claims(ninjaSession.keyValueStore())
-                    .signWith(secretKeyForSessionEncryption)
-                    .compact();
-
-            var maxAge = expiryInstant.map(i -> (int) Duration.between(now, i).getSeconds())
-                    .orElse(0); // 0 is a session cookie
-
-            //build cookie from jwt
-            var cookie = new NinjaCookie(
-                    NINJA_SESSION_COOKIE_NAME,
-                    jws,
-                    Optional.empty(),
-                    Optional.empty(),
-                    maxAge,
-                    Optional.of(NINJA_SESSION_PATH),
-                    false,
-                    false);
-
-            return cookie;
-        }
-
     }
 
 }
