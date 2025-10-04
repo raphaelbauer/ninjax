@@ -76,8 +76,11 @@ v1 Alpha TODO:
 
 - DONE Datenabnkmodul mit evolutions
 
-- Proof of concept => Migrate team climate over
+- DONE Proof of concept => Migrate team climate over
                             httpServletRequest.getLocale() /* TODO local can also be set by a lang cookie to override headers of accept... */
+DONE - TO BE DISCUSSED => remove ninjasession when it is valid in request, but not set in result (-1)
+- WON'T DO get rid of guava as dependency
+
 
 - session => Secret / httponly add flags
 
@@ -88,8 +91,7 @@ v1 Alpha TODO:
 - juckula.replacePlaceholders ... tests + hwat if I want to render ${...}?
 - juckula add escaping by default and special record to render raw
 
-- TO BE DISCUSSED => remove ninjasession when it is valid in request, but not set in result (-1)
-- get rid of guava as dependency
+
 - json und request jackson parsen mit inject bauen
 - umbenennen in setAttribute (nicht payload bei request)
 - assetscontroller review und test
