@@ -35,7 +35,7 @@ public class BasicController {
     public Result helloWorld(Request request) {
         String appName = ninjaProperties.get("appname").orElseThrow();
         
-        String userName = request.getParameter("user").orElse("default");
+        String userName = request.getParameter("user").stream().findFirst().orElse("default");
         String landingPageHtml = LandingPage.render("Hello World " + userName + " running on " + appName).toString();
         
         return Result.ok().addHeader("testheader", "testvalue").html(landingPageHtml);

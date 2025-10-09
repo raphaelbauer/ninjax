@@ -130,18 +130,18 @@ public class Request {
                 .map(p -> URLDecoder.decode(p, StandardCharsets.UTF_8));
     }
 
-    public Optional<String> getParameter(String parameterName) {
+    public ImmutableList<String> getParameter(String parameterName) {
         var value = parameters.get(parameterName);
 
         if (value == null) {
-            return Optional.empty();
+            return ImmutableList.of();
         }
 
         if (value.length == 0) {
-            return Optional.empty();
+            return ImmutableList.of();
         }
-
-        return Optional.ofNullable(value[0]);
+        
+        return ImmutableList.copyOf(value);
     }
 
     /**

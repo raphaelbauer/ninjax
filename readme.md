@@ -51,36 +51,9 @@ When we started in 2012 the Java world was differnt - it was Java 7 at that time
 
 v1 Alpha TODO:
 =========
-- DONE router with placeholders
-- DONE Config reader (simplified)
-- DONE Logging slf4j
-- DONE parse paramters into request
-- DONE Jukula
-- DONE Assetscontroller
--- DONE clarify how write into an outputstream from result... (better than in original ninja)
-- DONE json
--- DONE parsing and 
--- DONE rendering
-- DONE Cookies => parser and writer...
-- DONE request setXYZ
-- DONE Filter + filterchain
-- DONE header handling
-
-- DONE session handling (jwt?) https://github.com/jwtk/jjwt
--- DONE efficient loading of secret key
--- DONE create secret class only once
--- DONE add support for session validity
--- DONE reject sessions that are too old
-
--- DONE do not send session for e.g.
-
-- DONE Datenabnkmodul mit evolutions
-
-- DONE Proof of concept => Migrate team climate over
-                            httpServletRequest.getLocale() /* TODO local can also be set by a lang cookie to override headers of accept... */
+DONE httpServletRequest.getLocale() /* TODO local can also be set by a lang cookie to override headers of accept... */
 DONE - TO BE DISCUSSED => remove ninjasession when it is valid in request, but not set in result (-1)
 - WON'T DO get rid of guava as dependency
-
 
 - session => Secret / httponly add flags
 
@@ -90,6 +63,7 @@ DONE - TO BE DISCUSSED => remove ninjasession when it is valid in request, but n
 
 - juckula.replacePlaceholders ... tests + hwat if I want to render ${...}?
 - juckula add escaping by default and special record to render raw
+- compiled templates without regex...
 
 
 - json und request jackson parsen mit inject bauen
@@ -100,18 +74,13 @@ DONE - TO BE DISCUSSED => remove ninjasession when it is valid in request, but n
 - remove secret in conf - maybe
 -- request vs result and what to do where? (keep immutable) or request
 
-- move conf to resourcs
-- session HTTP-only  + Secure
-
 - add tests to db module
 -- hikari
 -- jdbi
 -- flyway
 -- jdbc
-
 -- big fat try catch to wrap java exceptions with a 500
-
-
+- move conf to resourcs
 
 v1 BETA TODO:
 =============

@@ -33,8 +33,8 @@ public class GuestbookController {
     }
 
     public Result post(Request request) { 
-        String email = request.getParameter("email").orElseThrow();
-        String content = request.getParameter("content").orElseThrow();
+        String email = request.getParameter("email").stream().findFirst().orElseThrow();
+        String content = request.getParameter("content").stream().findFirst().orElseThrow();
         
         Guestbook guestbook = new Guestbook(email, content);
         
