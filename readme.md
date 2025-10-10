@@ -147,7 +147,7 @@ In code you can use
 
 
     # Make sure gpg is set up properly
-    mvn deploy
+    mvn deploy -Prelease
 
 Log in to https://central.sonatype.com/ to release things.
     
