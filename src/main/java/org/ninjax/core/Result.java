@@ -85,6 +85,10 @@ public class Result {
     public static Result badRequest() {
         return new Result().status(400);
     }
+    
+    public static Result internalServerError() {
+        return new Result().status(500);
+    }
 
     public static Result redirect(String url) {
         Result result = new Result().status(303);

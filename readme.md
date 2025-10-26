@@ -48,6 +48,14 @@ When we started in 2012 the Java world was differnt - it was Java 7 at that time
 - No exception based error handling to generate results
 - Ability to change server is not a goal for v1. Usung Jetty for now.
 
+## Deployment
+
+
+    # Make sure gpg is set up properly
+    mvn deploy -Prelease
+
+Log in to https://central.sonatype.com/ to release things.
+
 
 v1 Alpha TODO:
 =========
@@ -143,13 +151,7 @@ In code you can use
 
 
 
-## Deployment
 
-
-    # Make sure gpg is set up properly
-    mvn deploy -Prelease
-
-Log in to https://central.sonatype.com/ to release things.
     
 
 
