@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.r10r</groupId>
     <artifactId>ninjax</artifactId>
-    <version>0.1.10</version>
+    <version>0.1.11</version>
     <packaging>jar</packaging>
 
     <url>https://github.com/raphaelbauer/ninjax</url>

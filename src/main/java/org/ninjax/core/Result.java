@@ -130,11 +130,10 @@ public final class Result {
         return builder().status(SC_500_INTERNAL_SERVER_ERROR);
     }
 
-    public static Result redirect(String url) {
+    public static Builder redirect(String url) {
         return builder()
                 .status(SC_303_SEE_OTHER)
-                .addHeader(LOCATION, url)
-                .build();
+                .addHeader(LOCATION, url);
     }
         
         

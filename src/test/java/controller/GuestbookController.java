@@ -39,7 +39,7 @@ public class GuestbookController {
         Guestbook guestbook = new Guestbook(email, content);
         
         guestbooksService.createGuestbook(guestbook);
-        return Result.redirect("/");
+        return Result.redirect("/").build();
     }
 
 }
