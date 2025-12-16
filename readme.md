@@ -6,36 +6,37 @@
 
 This is an experiment on how a Java web framework in 2026 would look like.
 
-
 ## Thoughts on how we started with the Ninja Web Framework in 2012
 
 When we started in 2012 the Java world was differnt - it was Java 7 at that time.
 
-- Java was recovering from EJB and EE Servers
-- War and enterprise java was still a thing
+- EJBs, WAR and Enterprise Java was still a thing
+- Spring Boot did not exist back then.
 - Servlets were important
-- Null was used widely / Optoinal did not exist
+- Optional did not exist and Null was used widely in code. 
 - Mutability was the norm
 - The stream Api did not exist back then.
-- Easy to use Lambdas did not exist back then
+- Easy-to-use Lambdas did not exist back then
 - Records did not exist
 - Messages did not support utf8 leading to complex code
+- Even multiline strings did not exist
 
+Huhu. But times have changed. And a web Java webframework for 2026 will look very much different to anything that
+has been created in 2012.
 
 ## Goals and Non-Goals for NinjaX 
+- No annotations and hidden logic (aspects)
 - Immutability wherever possible
 - Never use nulls
 - As as few libraries and external dependencies as possible (no mockito? no matcher library?)
 - No dependency injection
-- Composition over inheritance for clarity
+- Composition over inheritance for most cases. It's just easier to understand than inheritance.
 - No exposure of servlet api whatsoever
-- No annotations and hidden logic.
 - Only one way to do things (e.g. not routing file AND annotations)
 - Trading a bit of boilerplate for clarity (easyof usafe / debugging) is ok
   - eg validation
   - controller methods all look the same
-  - manual "di"
-
+  - manual "Dependency Injection" (more boilerplate, but faster startup and obvious code usage).
 
 ## Things we won't do or support:
 - Guice or injector. We just assemble everything on top level...
@@ -48,19 +49,18 @@ When we started in 2012 the Java world was differnt - it was Java 7 at that time
 - No exception based error handling to generate results
 - Ability to change server is not a goal for v1. Usung Jetty for now.
 
-## Deployment
-
+## Deployment to Maven Central
 
     # Make sure gpg is set up properly
     mvn deploy -Prelease
 
 Log in to https://central.sonatype.com/ to release things.
 
-
 v1 Alpha TODO:
 =========
 DONE httpServletRequest.getLocale() /* TODO local can also be set by a lang cookie to override headers of accept... */
 DONE - TO BE DISCUSSED => remove ninjasession when it is valid in request, but not set in result (-1)
+DONE -- request vs result and what to do where? (keep immutable) or request
 - WON'T DO get rid of guava as dependency
 
 - session => Secret / httponly add flags
@@ -72,6 +72,7 @@ DONE - TO BE DISCUSSED => remove ninjasession when it is valid in request, but n
 - juckula.replacePlaceholders ... tests + hwat if I want to render ${...}?
 - juckula add escaping by default and special record to render raw
 - compiled templates without regex...
+- stream to x and not toString
 
 
 - json und request jackson parsen mit inject bauen
@@ -80,7 +81,7 @@ DONE - TO BE DISCUSSED => remove ninjasession when it is valid in request, but n
 - assetscontroller - do not update session / flash (race condition?)
 - test of sessioncookie code
 - remove secret in conf - maybe
--- request vs result and what to do where? (keep immutable) or request
+
 
 - add tests to db module
 -- hikari
@@ -89,6 +90,8 @@ DONE - TO BE DISCUSSED => remove ninjasession when it is valid in request, but n
 -- jdbc
 -- big fat try catch to wrap java exceptions with a 500
 - move conf to resourcs
+
+- how to make e.g. json configurable with json...
 
 v1 BETA TODO:
 =============

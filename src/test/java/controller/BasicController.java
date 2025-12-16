@@ -1,6 +1,5 @@
 package controller;
 
-import com.google.common.collect.ImmutableMap;
 import org.ninjax.core.Request;
 import org.ninjax.core.Result;
 import org.ninjax.core.properties.NinjaProperties;
@@ -29,7 +28,8 @@ public class BasicController {
         return Result
                 .ok()
                 .withNinjaSession(newNinjaSession)
-                .text("ok - time in session is " + time);
+                .text("ok - time in session is " + time)
+                .build();
     }
  
     public Result helloWorld(Request request) {
@@ -38,12 +38,12 @@ public class BasicController {
         String userName = request.getParameter("user").stream().findFirst().orElse("default");
         String landingPageHtml = LandingPage.render("Hello World " + userName + " running on " + appName).toString();
         
-        return Result.ok().addHeader("testheader", "testvalue").html(landingPageHtml);
+        return Result.ok().addHeader("testheader", "testvalue").html(landingPageHtml).build();
     }
     
     public Result personJson(Request request) {
         var person = new Person("a name", 12);
-        return Result.ok().json(person);
+        return Result.ok().json(person).build();
     }
     
     
@@ -51,9 +51,9 @@ public class BasicController {
         var personOpt = request.<Person>getJsonBody();
         
         if (personOpt.isPresent()) {
-            return Result.ok().json(personOpt.get());
+            return Result.ok().json(personOpt.get()).build();
         } else {
-            return Result.badRequest();
+            return Result.badRequest().build();
         }
     }
 
