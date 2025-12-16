@@ -14,7 +14,7 @@ public class Routes {
             AssetsController assetsController,
             MyCustomFilter myCustomFilter) {
 
-        router.GET("/hello/{user}").filter(myCustomFilter).with(basicController::helloWorld);
+        router.GET("/hello/{user}").filters(myCustomFilter).with(basicController::helloWorld);
         router.GET("/anotherpath").with(basicController::helloWorld);
         
         router.GET("/session-test").with(basicController::sessionTest);

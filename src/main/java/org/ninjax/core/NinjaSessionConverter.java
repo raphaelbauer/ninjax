@@ -63,8 +63,8 @@ public class NinjaSessionConverter {
                 Optional.empty(),
                 REMOVE_SESSION_MAX_AGE,
                 Optional.of(NINJA_SESSION_PATH),
-                false,
-                false);
+                Secure.No,
+                HttpOnly.Yes);
 
         return cookie;
     }
@@ -111,8 +111,8 @@ public class NinjaSessionConverter {
                 Optional.empty(),
                 maxAge,
                 Optional.of(NINJA_SESSION_PATH),
-                false,
-                false);
+                Secure.No,
+                HttpOnly.Yes);
 
         return cookie;
     }

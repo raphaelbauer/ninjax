@@ -30,7 +30,7 @@ public class Router {
             this.path = path;
         }
         
-        public RouteTmp filter(NinjaFilter ninjaFilter) {
+        public RouteTmp filters(NinjaFilter ninjaFilter) {
             filters.add(ninjaFilter);
             return this;
         }

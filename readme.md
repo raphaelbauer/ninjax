@@ -58,16 +58,9 @@ Log in to https://central.sonatype.com/ to release things.
 
 v1 Alpha TODO:
 =========
-DONE httpServletRequest.getLocale() /* TODO local can also be set by a lang cookie to override headers of accept... */
-DONE - TO BE DISCUSSED => remove ninjasession when it is valid in request, but not set in result (-1)
-DONE -- request vs result and what to do where? (keep immutable) or request
-- WON'T DO get rid of guava as dependency
 
 - session => Secret / httponly add flags
 
-- router.GET("/app/dashboard").filter(ensureLogin).with(appController::dashboard);
--- filter und with is ugly and does not read well.
--- maybe: - router.GET("/app/dashboard").with(appController::dashboard).andfilter(...) or so???
 
 - juckula.replacePlaceholders ... tests + hwat if I want to render ${...}?
 - juckula add escaping by default and special record to render raw

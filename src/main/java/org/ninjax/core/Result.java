@@ -114,7 +114,6 @@ public final class Result {
         return new Builder(this);
     }
     
-    // Factories
     public static Builder ok() {
         return builder().status(SC_200_OK);
     }

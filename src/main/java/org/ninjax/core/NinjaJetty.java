@@ -297,8 +297,8 @@ public class NinjaJetty {
                     Optional.ofNullable(cookie.getDomain()),
                     cookie.getMaxAge(),
                     Optional.ofNullable(cookie.getPath()),
-                    cookie.getSecure(),
-                    cookie.isHttpOnly());
+                    Secure.ofBoolean(cookie.getSecure()),
+                    HttpOnly.ofBoolean(cookie.isHttpOnly()));
         }
 
         public static Cookie convertNinjaCookieToServletCookie(NinjaCookie ninjaCookie) {
@@ -309,8 +309,8 @@ public class NinjaJetty {
             ninjaCookie.domain().ifPresent(d -> cookie.setDomain(d));
             cookie.setMaxAge(ninjaCookie.maxAge());
             ninjaCookie.path().ifPresent(p -> cookie.setPath(p));
-            cookie.setSecure(ninjaCookie.secure());
-            cookie.setHttpOnly(ninjaCookie.httpOnly());
+            cookie.setSecure(ninjaCookie.secure().toBoolean());
+            cookie.setHttpOnly(ninjaCookie.httpOnly().toBoolean());
 
             return cookie;
         }
