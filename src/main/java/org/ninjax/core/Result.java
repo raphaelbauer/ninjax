@@ -47,8 +47,8 @@ public final class Result {
 
     public static final String LOCATION = "Location";
     public static final String CACHE_CONTROL = "Cache-Control";
-    public static final String CACHE_CONTROL_DEFAULT_NOCACHE_VALUE =
-            "no-cache, no-store, max-age=0, must-revalidate";
+    public static final String CACHE_CONTROL_DEFAULT_NOCACHE_VALUE
+            = "no-cache, no-store, max-age=0, must-revalidate";
 
     public static final String DATE = "Date";
     public static final String EXPIRES = "Expires";
@@ -81,31 +81,6 @@ public final class Result {
         this.ninjaSessionState = b.ninjaSessionState;
     }
 
-    // ------------------------------------------------------------------------
-    // Factories
-//    public static Result ok() {
-//        return builder().status(SC_200_OK).build();
-//    }
-//
-//    public static Result notFound() {
-//        return builder().status(SC_404_NOT_FOUND).build(); // fixed (was 200)
-//    }
-//
-//    public static Result badRequest() {
-//        return builder().status(SC_400_BAD_REQUEST).build();
-//    }
-//
-//    public static Result internalServerError() {
-//        return builder().status(SC_500_INTERNAL_SERVER_ERROR).build();
-//    }
-//
-//    public static Result redirect(String url) {
-//        return builder()
-//                .status(SC_303_SEE_OTHER)
-//                .addHeader(LOCATION, url)
-//                .build();
-//    }
-
     public static Builder builder() {
         return new Builder();
     }
@@ -113,75 +88,7 @@ public final class Result {
     public Builder toBuilder() {
         return new Builder(this);
     }
-    
-    public static Builder ok() {
-        return builder().status(SC_200_OK);
-    }
 
-    public static Builder notFound() {
-        return builder().status(SC_404_NOT_FOUND);
-    }
-
-    public static Builder badRequest() {
-        return builder().status(SC_400_BAD_REQUEST);
-    }
-
-    public static Builder internalServerError() {
-        return builder().status(SC_500_INTERNAL_SERVER_ERROR);
-    }
-
-    public static Builder redirect(String url) {
-        return builder()
-                .status(SC_303_SEE_OTHER)
-                .addHeader(LOCATION, url);
-    }
-        
-        
-
-    // ------------------------------------------------------------------------
-    // "Fluent" immutable modifiers (return new Result)
-//    public Result addCookie(NinjaCookie cookie) {
-//        return toBuilder().addCookie(cookie).build();
-//    }
-//
-//    public Result addHeader(String key, String value) {
-//        return toBuilder().addHeader(key, value).build();
-//    }
-//
-//    public Result withNinjaSession(NinjaSession ninjaSession) {
-//        return toBuilder().withNinjaSession(ninjaSession).build();
-//    }
-//
-//    public Result deleteNinjaSession() {
-//        return toBuilder().deleteNinjaSession().build();
-//    }
-//
-//    public Result html(String content) {
-//        return toBuilder().html(content).build();
-//    }
-//
-//    public Result json(Object objectToRenderAsJson) {
-//        return toBuilder().json(objectToRenderAsJson).build();
-//    }
-//
-//    public Result contentType(String contentType) {
-//        return toBuilder().contentType(contentType).build();
-//    }
-//
-//    public Result status(int status) {
-//        return toBuilder().status(status).build();
-//    }
-//
-//    public Result text(String content) {
-//        return toBuilder().text(content).build();
-//    }
-//
-//    public Result stream(OutputStreamRenderer outputStreamRenderer) {
-//        return toBuilder().stream(outputStreamRenderer).build();
-//    }
-
-    // ------------------------------------------------------------------------
-    // Getters (since fields are now private final)
     public int getStatus() {
         return status;
     }
@@ -208,15 +115,18 @@ public final class Result {
 
     // ------------------------------------------------------------------------
     public interface OutputStreamRenderer {
+
         void streamTo(OutputStream outputStream);
     }
 
     // //////////////////////////////////////////////////////////////////////////
     // Make sure we can't mess up the Ninja Session State.
     // Sealed classes to the rescue!
-    public sealed interface NinjaSessionState permits Exists, Remove, UnknownButDontTouch {}
+    public sealed interface NinjaSessionState permits Exists, Remove, UnknownButDontTouch {
+    }
 
     public static final class Exists implements NinjaSessionState {
+
         private final NinjaSession session;
 
         public Exists(NinjaSession session) {
@@ -241,6 +151,7 @@ public final class Result {
     // ------------------------------------------------------------------------
     // Builder
     public static final class Builder {
+
         private int status = SC_200_OK;
         private String contentType = TEXT_PLAIN;
         private OutputStreamRenderer outputStreamRenderer = null;
@@ -248,7 +159,8 @@ public final class Result {
         private final Map<String, List<String>> headers = new LinkedHashMap<>();
         private NinjaSessionState ninjaSessionState = new UnknownButDontTouch();
 
-        public Builder() {}
+        public Builder() {
+        }
 
         private Builder(Result r) {
             this.status = r.status;
@@ -263,6 +175,28 @@ public final class Result {
 
         public Result build() {
             return new Result(this);
+        }
+
+        public Builder ok() {
+            return builder().status(SC_200_OK);
+        }
+
+        public Builder notFound() {
+            return builder().status(SC_404_NOT_FOUND);
+        }
+
+        public Builder badRequest() {
+            return builder().status(SC_400_BAD_REQUEST);
+        }
+
+        public Builder internalServerError() {
+            return builder().status(SC_500_INTERNAL_SERVER_ERROR);
+        }
+
+        public Builder redirect(String url) {
+            return builder()
+                    .status(SC_303_SEE_OTHER)
+                    .addHeader(LOCATION, url);
         }
 
         public Builder status(int status) {

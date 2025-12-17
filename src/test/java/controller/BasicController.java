@@ -26,6 +26,7 @@ public class BasicController {
         var newNinjaSession = ninjaSession.withValue("my-custome-time", System.currentTimeMillis() + "");
         
         return Result
+                .builder()
                 .ok()
                 .withNinjaSession(newNinjaSession)
                 .text("ok - time in session is " + time)
@@ -38,12 +39,12 @@ public class BasicController {
         String userName = request.getParameter("user").stream().findFirst().orElse("default");
         String landingPageHtml = LandingPage.render("Hello World " + userName + " running on " + appName).toString();
         
-        return Result.ok().addHeader("testheader", "testvalue").html(landingPageHtml).build();
+        return Result.builder().ok().addHeader("testheader", "testvalue").html(landingPageHtml).build();
     }
     
     public Result personJson(Request request) {
         var person = new Person("a name", 12);
-        return Result.ok().json(person).build();
+        return Result.builder().ok().json(person).build();
     }
     
     
@@ -51,9 +52,9 @@ public class BasicController {
         var personOpt = request.<Person>getJsonBody();
         
         if (personOpt.isPresent()) {
-            return Result.ok().json(personOpt.get()).build();
+            return Result.builder().ok().json(personOpt.get()).build();
         } else {
-            return Result.badRequest().build();
+            return Result.builder().badRequest().build();
         }
     }
 

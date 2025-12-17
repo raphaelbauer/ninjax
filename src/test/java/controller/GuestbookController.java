@@ -29,7 +29,7 @@ public class GuestbookController {
 
         var guestbookPage = GuestbookPage.render(guestBookEntries);
         
-        return Result.ok().html(guestbookPage.toString()).build();
+        return Result.builder().ok().html(guestbookPage.toString()).build();
     }
 
     public Result post(Request request) { 
@@ -39,7 +39,7 @@ public class GuestbookController {
         Guestbook guestbook = new Guestbook(email, content);
         
         guestbooksService.createGuestbook(guestbook);
-        return Result.redirect("/").build();
+        return Result.builder().redirect("/").build();
     }
 
 }

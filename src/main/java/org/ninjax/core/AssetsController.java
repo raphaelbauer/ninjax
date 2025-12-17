@@ -28,7 +28,7 @@ public class AssetsController {
 
         if (requestedFileOpt.isEmpty()) {
             logger.warn("Opsi. Not able to find: {} - based on param {}.", requestedFileOpt, FILENAME_PATH_PARAM);
-            return Result.notFound().build();
+            return Result.builder().notFound().build();
         }
 
         // Normalize the path to remove dangerous sequences
@@ -40,7 +40,7 @@ public class AssetsController {
                     resourcePath.toString(),
                     requestedFileOpt.get());
 
-            return Result.notFound().build();
+            return Result.builder().notFound().build();
         }
 
         // Load the resource as a stream
@@ -48,7 +48,7 @@ public class AssetsController {
 
         if (resourceStream == null) {
             logger.debug("Not able to find resource {}. Returning 404.", resourcePath.toString());
-            return Result.notFound().build();
+            return Result.builder().notFound().build();
         }
 
         // Determine MIME type
@@ -57,7 +57,7 @@ public class AssetsController {
             mimeType = "application/octet-stream";
         }
 
-        var result = Result.ok().contentType(mimeType).stream(outputStream -> {
+        var result = Result.builder().ok().contentType(mimeType).stream(outputStream -> {
             try {
                 ByteStreams.copy(resourceStream, outputStream);
                 resourceStream.close();
