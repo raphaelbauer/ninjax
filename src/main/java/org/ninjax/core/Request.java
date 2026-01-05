@@ -171,11 +171,7 @@ public class Request {
         return map;
     }
 
-    public void putPayload(String key, Object o) {
-        payload.put(key, o);
-    }
-
-    // not sure if this is ok with optinal...
+    // Not sure if this is ok with Optional...
     public <U> Optional<U> getPayload(String key, Class<U> clazz) {
         Object object = payload.get(key);
         if (clazz.isInstance(object)) {
