@@ -13,16 +13,16 @@ import org.ninjax.core.properties.NinjaProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NinjaMesssages {
+public class NinjaMessages {
 
-    private static final Logger logger = LoggerFactory.getLogger(NinjaMesssages.class);
+    private static final Logger logger = LoggerFactory.getLogger(NinjaMessages.class);
 
     private static final String APPLICATION_LANGUAGES = "application.languages";
     private static final String BASE_NAME = "messages";
     private final Map<Locale, ResourceBundle> bundles;
     private final Locale defaultLocale;
 
-    public NinjaMesssages(NinjaProperties ninjaProperties) {
+    public NinjaMessages(NinjaProperties ninjaProperties) {
 
         List<Locale> supportedLocales = ninjaProperties.get(APPLICATION_LANGUAGES)
                 .map(s -> Arrays.stream(s.split(","))
