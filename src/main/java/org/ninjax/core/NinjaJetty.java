@@ -42,7 +42,7 @@ public class NinjaJetty {
     public final NinjaProperties ninjaProperties;
 
     private final Optional<Long> sessionExpiryTimeInSeconds;
-    //private final Optional<Long> sessionisSecure;
+    private final boolean sessionCookieSecure;
     //private final Optional<Long> sessionisHttpOnly;
 
     public static final String NINJA_APPLICATION_SECRET_KEY = "application.secret";
@@ -81,6 +81,9 @@ public class NinjaJetty {
         this.secretKeyForSessionEncryption = new SecretKeySpec(decodedKey, 0, decodedKey.length, "HmacSHA256");
 
         this.sessionExpiryTimeInSeconds = ninjaProperties.get("application.session.expire_time_in_seconds").map(v -> Long.valueOf(v));
+        this.sessionCookieSecure = ninjaProperties.get("application.session.cookie.secure")
+                .map(v -> Boolean.parseBoolean(v))
+                .orElse(true); // Default to true (secure) if not specified
 
         try {
             start();
@@ -237,11 +240,12 @@ public class NinjaJetty {
                             var cookie = NinjaSessionConverter.createCookieWithInformationOfNinjaSession(
                                     ninjaSessionForResponse,
                                     secretKeyForSessionEncryption,
-                                    sessionExpiryTimeInSeconds);
+                                    sessionExpiryTimeInSeconds,
+                                    sessionCookieSecure);
                             httpServletResponse.addCookie(NinjaJettyHelper.convertNinjaCookieToServletCookie(cookie));
                         }
                         case Result.Remove remove -> {
-                            var cookie = NinjaSessionConverter.createCookieToRemoveNinjaSession();
+                            var cookie = NinjaSessionConverter.createCookieToRemoveNinjaSession(sessionCookieSecure);
                             httpServletResponse.addCookie(NinjaJettyHelper.convertNinjaCookieToServletCookie(cookie));
                         }
                         case Result.UnknownButDontTouch unknown -> {

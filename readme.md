@@ -120,7 +120,29 @@ Q&A
 
 # Documentation
 
+## Session Configuration
 
+Session cookies in NinjaX can be configured via application.conf.
+
+### Session Cookie Security
+
+By default, session cookies are created with the `Secure` flag enabled, which means they will only be transmitted over HTTPS connections. This is the recommended setting for production environments.
+
+To configure the Secure flag, add the following to your application.conf:
+
+    # Set to true (default) to only send session cookies over HTTPS
+    # Set to false to allow session cookies over HTTP (not recommended for production)
+    application.session.cookie.secure=true
+
+If not specified, the default value is `true`.
+
+### Session Expiry Time
+
+To configure session expiry time in seconds:
+
+    application.session.expire_time_in_seconds=3600
+
+If not specified, session cookies will be session-only (expire when browser closes).
 
 ## Messages and I18N
 

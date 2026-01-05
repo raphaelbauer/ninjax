@@ -54,7 +54,7 @@ public class NinjaSessionConverter {
 
     }
 
-    public static NinjaCookie createCookieToRemoveNinjaSession() {
+    public static NinjaCookie createCookieToRemoveNinjaSession(boolean secure) {
         int REMOVE_SESSION_MAX_AGE = 0;
         var cookie = new NinjaCookie(
                 NINJA_SESSION_COOKIE_NAME,
@@ -63,7 +63,7 @@ public class NinjaSessionConverter {
                 Optional.empty(),
                 REMOVE_SESSION_MAX_AGE,
                 Optional.of(NINJA_SESSION_PATH),
-                Secure.No,
+                secure ? Secure.Yes : Secure.No,
                 HttpOnly.Yes);
 
         return cookie;
@@ -72,7 +72,8 @@ public class NinjaSessionConverter {
     public static NinjaCookie createCookieWithInformationOfNinjaSession(
             NinjaSession ninjaSession,
             SecretKey secretKeyForSessionEncryption,
-            Optional<Long> sessionExpiryTimeInSeconds) {
+            Optional<Long> sessionExpiryTimeInSeconds,
+            boolean secure) {
 
         // some setup
         Instant now = Instant.now();
@@ -111,7 +112,7 @@ public class NinjaSessionConverter {
                 Optional.empty(),
                 maxAge,
                 Optional.of(NINJA_SESSION_PATH),
-                Secure.No,
+                secure ? Secure.Yes : Secure.No,
                 HttpOnly.Yes);
 
         return cookie;
