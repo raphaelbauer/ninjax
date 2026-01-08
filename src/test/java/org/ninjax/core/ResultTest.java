@@ -13,17 +13,146 @@ import org.junit.jupiter.api.Test;
 class ResultTest {
 
     @Test
+    void static_ok_withoutBody_sets200_andDefaultContentType_andNoRenderer() {
+        Result r = Result.ok();
+
+        assertThat(r.status()).isEqualTo(Result.SC_200_OK);
+        assertThat(r.contentType()).isEqualTo(Result.TEXT_PLAIN);
+        assertThat(r.outputStreamRenderer()).isEmpty();
+    }
+
+    @Test
+    void static_ok_withBody_sets200_andTextPlain_andRendersBody() throws Exception {
+        Result r = Result.ok("hello");
+
+        assertThat(r.status()).isEqualTo(Result.SC_200_OK);
+        assertThat(r.contentType()).isEqualTo(Result.TEXT_PLAIN);
+        assertThat(r.outputStreamRenderer()).isPresent();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        r.outputStreamRenderer().get().streamTo(baos);
+        assertThat(baos.toString(StandardCharsets.UTF_8)).isEqualTo("hello");
+    }
+
+    @Test
+    void static_notFound_sets404_andDefaultContentType_andNoRenderer() {
+        Result r = Result.notFound();
+
+        assertThat(r.status()).isEqualTo(Result.SC_404_NOT_FOUND);
+        assertThat(r.contentType()).isEqualTo(Result.TEXT_PLAIN);
+        assertThat(r.outputStreamRenderer()).isEmpty();
+    }
+
+    @Test
+    void static_redirect_uses303_andLocationHeader() {
+        Result r = Result.redirect("https://example.test/static");
+
+        assertThat(r.status()).isEqualTo(303);
+        assertThat(r.headers()).containsKey(Result.LOCATION);
+        assertThat(r.headers().get(Result.LOCATION))
+                .containsExactly("https://example.test/static");
+    }
+
+    @Test
+    void builder_ok_setsStatus200_andKeepsOtherDefaults() {
+        Result r = Result.builder().ok().build();
+
+        assertThat(r.status()).isEqualTo(Result.SC_200_OK);
+        assertThat(r.contentType()).isEqualTo(Result.TEXT_PLAIN);
+        assertThat(r.outputStreamRenderer()).isEmpty();
+    }
+
+    @Test
+    void builder_notFound_setsStatus404_andKeepsOtherDefaults() {
+        Result r = Result.builder().notFound().build();
+
+        assertThat(r.status()).isEqualTo(Result.SC_404_NOT_FOUND);
+        assertThat(r.contentType()).isEqualTo(Result.TEXT_PLAIN);
+        assertThat(r.outputStreamRenderer()).isEmpty();
+    }
+
+    @Test
+    void builder_badRequest_setsStatus400_andKeepsOtherDefaults() {
+        Result r = Result.builder().badRequest().build();
+
+        assertThat(r.status()).isEqualTo(Result.SC_400_BAD_REQUEST);
+        assertThat(r.contentType()).isEqualTo(Result.TEXT_PLAIN);
+        assertThat(r.outputStreamRenderer()).isEmpty();
+    }
+
+    @Test
+    void builder_internalServerError_setsStatus500_andKeepsOtherDefaults() {
+        Result r = Result.builder().internalServerError().build();
+
+        assertThat(r.status()).isEqualTo(Result.SC_500_INTERNAL_SERVER_ERROR);
+        assertThat(r.contentType()).isEqualTo(Result.TEXT_PLAIN);
+        assertThat(r.outputStreamRenderer()).isEmpty();
+    }
+
+    @Test
+    void builder_redirect_sets303_andLocationHeader_andOverridesStatus() {
+        Result r = Result.builder()
+                .status(Result.SC_200_OK) // should be overridden
+                .redirect("https://example.test/builder")
+                .build();
+
+        assertThat(r.status()).isEqualTo(Result.SC_303_SEE_OTHER);
+        assertThat(r.headers()).containsKey(Result.LOCATION);
+        assertThat(r.headers().get(Result.LOCATION))
+                .containsExactly("https://example.test/builder");
+    }
+
+    @Test
+    void json_setsContentType_andUsesJsonObjectMapper() throws Exception {
+        // simple DTO
+        record Foo(String name, int value) {
+
+        }
+        Foo foo = new Foo("abc", 123);
+
+        Result r = Result.builder().json(foo).build();
+
+        assertThat(r.contentType()).isEqualTo(Result.APPLICATION_JSON);
+        assertThat(r.outputStreamRenderer()).isPresent();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        r.outputStreamRenderer().get().streamTo(baos);
+
+        String json = baos.toString(StandardCharsets.UTF_8);
+        // don’t depend on property order, just do simple contains checks
+        assertThat(json).contains("abc");
+        assertThat(json).contains("123");
+    }
+
+    @Test
+    void addCookie_addsToCookiesList_andIsVisibleInImmutableView() {
+        NinjaCookie cookie = NinjaCookie.builder("sid", "xyz").build();
+
+        Result r = Result.builder()
+                .addCookie(cookie)
+                .build();
+
+        assertThat(r.cookies()).hasSize(1);
+        assertThat(r.cookies().get(0)).isSameInstanceAs(cookie);
+    }
+
+    @Test
+    void addCookie_nullGuard() {
+        assertThrows(NullPointerException.class, () -> Result.builder().addCookie(null));
+    }
+
+    @Test
     void defaults_areOkTextPlain_unknownSession_noRenderer_noHeaders_noCookies() {
         Result r = Result.builder().build();
 
-        assertThat(r.getStatus()).isEqualTo(Result.SC_200_OK);
-        assertThat(r.getContentType()).isEqualTo(Result.TEXT_PLAIN);
+        assertThat(r.status()).isEqualTo(Result.SC_200_OK);
+        assertThat(r.contentType()).isEqualTo(Result.TEXT_PLAIN);
 
-        assertThat(r.getOutputStreamRenderer()).isEmpty();
-        assertThat(r.getHeaders()).isEmpty();
-        assertThat(r.getCookies()).isEmpty();
+        assertThat(r.outputStreamRenderer()).isEmpty();
+        assertThat(r.headers()).isEmpty();
+        assertThat(r.cookies()).isEmpty();
 
-        assertThat(r.getNinjaSessionState()).isInstanceOf(Result.UnknownButDontTouch.class);
+        assertThat(r.ninjaSessionState()).isInstanceOf(Result.UnknownButDontTouch.class);
     }
 
     @Test
@@ -33,17 +162,17 @@ class ResultTest {
                 .contentType(Result.APPLICATION_XML)
                 .build();
 
-        assertThat(r.getStatus()).isEqualTo(Result.SC_201_CREATED);
-        assertThat(r.getContentType()).isEqualTo(Result.APPLICATION_XML);
+        assertThat(r.status()).isEqualTo(Result.SC_201_CREATED);
+        assertThat(r.contentType()).isEqualTo(Result.APPLICATION_XML);
     }
 
     @Test
     void redirect_sets303_andLocationHeader() {
         Result r = Result.builder().redirect("https://example.test/x").build();
 
-        assertThat(r.getStatus()).isEqualTo(Result.SC_303_SEE_OTHER);
-        assertThat(r.getHeaders()).containsKey(Result.LOCATION);
-        assertThat(r.getHeaders().get(Result.LOCATION)).containsExactly("https://example.test/x");
+        assertThat(r.status()).isEqualTo(Result.SC_303_SEE_OTHER);
+        assertThat(r.headers()).containsKey(Result.LOCATION);
+        assertThat(r.headers().get(Result.LOCATION)).containsExactly("https://example.test/x");
     }
 
     @Test
@@ -53,7 +182,7 @@ class ResultTest {
                 .addHeader("X-Test", "b")
                 .build();
 
-        assertThat(r.getHeaders()).isEqualTo(Map.of("X-Test", List.of("a", "b")));
+        assertThat(r.headers()).isEqualTo(Map.of("X-Test", List.of("a", "b")));
     }
 
     @Test
@@ -62,42 +191,20 @@ class ResultTest {
                 .addHeader("X-Test", "a")
                 .build();
 
-        assertThrows(UnsupportedOperationException.class, () -> r.getHeaders().put("Y", List.of("z")));
-        assertThrows(UnsupportedOperationException.class, () -> r.getHeaders().get("X-Test").add("b"));
-        assertThrows(UnsupportedOperationException.class, () -> r.getCookies().add(null));
-    }
-
-    @Test
-    void toBuilder_copiesAndIsIndependentOfOriginalResult() {
-        Result original = Result.builder()
-                .status(Result.SC_200_OK)
-                .addHeader("X-Test", "a")
-                .text("hello")
-                .build();
-
-        Result modified = original.toBuilder()
-                .addHeader("X-Test", "b")
-                .status(Result.SC_201_CREATED)
-                .build();
-
-        // original unchanged
-        assertThat(original.getStatus()).isEqualTo(Result.SC_200_OK);
-        assertThat(original.getHeaders().get("X-Test")).containsExactly("a");
-
-        // modified has updates
-        assertThat(modified.getStatus()).isEqualTo(Result.SC_201_CREATED);
-        assertThat(modified.getHeaders().get("X-Test")).containsExactly("a", "b").inOrder();
+        assertThrows(UnsupportedOperationException.class, () -> r.headers().put("Y", List.of("z")));
+        assertThrows(UnsupportedOperationException.class, () -> r.headers().get("X-Test").add("b"));
+        assertThrows(UnsupportedOperationException.class, () -> r.cookies().add(null));
     }
 
     @Test
     void html_rendersUtf8_andSetsContentType() throws Exception {
         Result r = Result.builder().html("Héllo").build();
 
-        assertThat(r.getContentType()).isEqualTo(Result.TEXT_HTML);
-        assertThat(r.getOutputStreamRenderer()).isPresent();
+        assertThat(r.contentType()).isEqualTo(Result.TEXT_HTML);
+        assertThat(r.outputStreamRenderer()).isPresent();
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        r.getOutputStreamRenderer().get().streamTo(baos);
+        r.outputStreamRenderer().get().streamTo(baos);
 
         assertThat(baos.toString(StandardCharsets.UTF_8)).isEqualTo("Héllo");
     }
@@ -106,11 +213,11 @@ class ResultTest {
     void text_rendersUtf8_andSetsContentType() throws Exception {
         Result r = Result.builder().text("hi").build();
 
-        assertThat(r.getContentType()).isEqualTo(Result.TEXT_PLAIN);
-        assertThat(r.getOutputStreamRenderer()).isPresent();
+        assertThat(r.contentType()).isEqualTo(Result.TEXT_PLAIN);
+        assertThat(r.outputStreamRenderer()).isPresent();
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        r.getOutputStreamRenderer().get().streamTo(baos);
+        r.outputStreamRenderer().get().streamTo(baos);
 
         assertThat(baos.toString(StandardCharsets.UTF_8)).isEqualTo("hi");
     }
@@ -126,10 +233,10 @@ class ResultTest {
                 })
                 .build();
 
-        assertThat(r.getOutputStreamRenderer()).isPresent();
+        assertThat(r.outputStreamRenderer()).isPresent();
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        r.getOutputStreamRenderer().get().streamTo(baos);
+        r.outputStreamRenderer().get().streamTo(baos);
         assertThat(baos.toString(StandardCharsets.UTF_8)).isEqualTo("x");
     }
 
@@ -138,10 +245,10 @@ class ResultTest {
         // We can't easily instantiate NinjaSession here unless it's available on the classpath.
         // So we verify Remove works and default is Unknown.
         Result removed = Result.builder().deleteNinjaSession().build();
-        assertThat(removed.getNinjaSessionState()).isInstanceOf(Result.Remove.class);
+        assertThat(removed.ninjaSessionState()).isInstanceOf(Result.Remove.class);
 
         Result unknown = Result.builder().build();
-        assertThat(unknown.getNinjaSessionState()).isInstanceOf(Result.UnknownButDontTouch.class);
+        assertThat(unknown.ninjaSessionState()).isInstanceOf(Result.UnknownButDontTouch.class);
     }
 
     @Test

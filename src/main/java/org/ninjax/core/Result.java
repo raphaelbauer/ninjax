@@ -7,7 +7,14 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class Result {
+public record Result(
+        int status,
+        String contentType,
+        Optional<Result.OutputStreamRenderer> outputStreamRenderer,
+        List<NinjaCookie> cookies,
+        Map<String, List<String>> headers,
+        Result.NinjaSessionState ninjaSessionState
+) {
 
     private static final Logger logger = LoggerFactory.getLogger(Result.class);
 
@@ -19,7 +26,6 @@ public final class Result {
     public static final int SC_201_CREATED = 201;
     public static final int SC_204_NO_CONTENT = 204;
 
-    // for redirects:
     public static final int SC_300_MULTIPLE_CHOICES = 300;
     public static final int SC_301_MOVED_PERMANENTLY = 301;
     public static final int SC_302_FOUND = 302;
@@ -55,78 +61,69 @@ public final class Result {
 
     public static final String WWW_AUTHENTICATE = "WWW-Authenticate";
 
-    // ------------------------------------------------------------------------
-    // Immutable state
-    private final int status;
-    private final String contentType;
-    private final Optional<OutputStreamRenderer> outputStreamRenderer;
-    private final List<NinjaCookie> cookies;                 // unmodifiable
-    private final Map<String, List<String>> headers;          // deep unmodifiable
-    private final NinjaSessionState ninjaSessionState;
+    // Canonical constructor – enforce defensive copies and non‑nulls
+    public Result {
+        Objects.requireNonNull(contentType, "contentType");
+        Objects.requireNonNull(outputStreamRenderer, "outputStreamRenderer");
+        Objects.requireNonNull(cookies, "cookies");
+        Objects.requireNonNull(headers, "headers");
+        Objects.requireNonNull(ninjaSessionState, "ninjaSessionState");
 
-    private Result(Builder b) {
-        this.status = b.status;
-        this.contentType = b.contentType;
-        this.outputStreamRenderer = Optional.ofNullable(b.outputStreamRenderer);
+        // freeze cookies
+        cookies = List.copyOf(cookies);
 
-        // defensive copies + freeze
-        this.cookies = List.copyOf(b.cookies);
-
+        // deep‑freeze headers
         Map<String, List<String>> tmp = new LinkedHashMap<>();
-        for (var e : b.headers.entrySet()) {
+        for (var e : headers.entrySet()) {
             tmp.put(e.getKey(), List.copyOf(e.getValue()));
         }
-        this.headers = Collections.unmodifiableMap(tmp);
+        headers = Collections.unmodifiableMap(tmp);
+    }
 
-        this.ninjaSessionState = b.ninjaSessionState;
+    // ------------------------------------------------------------------------
+    // Convenience factory methods
+
+    public static Result redirect(String route) {
+        return Result.builder()
+                .redirect(route)
+                .build();
+    }
+
+    public static Result ok() {
+        return Result.builder()
+                .status(SC_200_OK)
+                .build();
+    }
+
+    public static Result ok(String body) {
+        return Result.builder()
+                .status(SC_200_OK)
+                .text(body)
+                .build();
+    }
+
+    public static Result notFound() {
+        return Result.builder()
+                .status(SC_404_NOT_FOUND)
+                .build();
     }
 
     public static Builder builder() {
         return new Builder();
     }
 
-    public Builder toBuilder() {
-        return new Builder(this);
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public String getContentType() {
-        return contentType;
-    }
-
-    public Optional<OutputStreamRenderer> getOutputStreamRenderer() {
-        return outputStreamRenderer;
-    }
-
-    public List<NinjaCookie> getCookies() {
-        return cookies;
-    }
-
-    public Map<String, List<String>> getHeaders() {
-        return headers;
-    }
-
-    public NinjaSessionState getNinjaSessionState() {
-        return ninjaSessionState;
-    }
-
     // ------------------------------------------------------------------------
     public interface OutputStreamRenderer {
-
         void streamTo(OutputStream outputStream);
     }
 
     // //////////////////////////////////////////////////////////////////////////
-    // Make sure we can't mess up the Ninja Session State.
-    // Sealed classes to the rescue!
+    // Sealed session state types
+    // //////////////////////////////////////////////////////////////////////////
     public sealed interface NinjaSessionState permits Exists, Remove, UnknownButDontTouch {
     }
 
     public static final class Exists implements NinjaSessionState {
-
         private final NinjaSession session;
 
         public Exists(NinjaSession session) {
@@ -145,11 +142,9 @@ public final class Result {
     public static final class UnknownButDontTouch implements NinjaSessionState {
         // No session field!
     }
-    // end
-    // //////////////////////////////////////////////////////////////////////////
 
     // ------------------------------------------------------------------------
-    // Builder
+    // Builder (unchanged public API, but builds the record)
     public static final class Builder {
 
         private int status = SC_200_OK;
@@ -162,19 +157,15 @@ public final class Result {
         public Builder() {
         }
 
-        private Builder(Result r) {
-            this.status = r.status;
-            this.contentType = r.contentType;
-            this.outputStreamRenderer = r.outputStreamRenderer.orElse(null);
-            this.cookies.addAll(r.cookies);
-            for (var e : r.headers.entrySet()) {
-                this.headers.put(e.getKey(), new ArrayList<>(e.getValue()));
-            }
-            this.ninjaSessionState = r.ninjaSessionState;
-        }
-
         public Result build() {
-            return new Result(this);
+            return new Result(
+                    status,
+                    contentType,
+                    Optional.ofNullable(outputStreamRenderer),
+                    cookies,
+                    headers,
+                    ninjaSessionState
+            );
         }
 
         public Builder ok() {
@@ -259,7 +250,6 @@ public final class Result {
             this.contentType = APPLICATION_JSON;
             this.outputStreamRenderer = outputStream -> {
                 try {
-                    // still static, per your original code
                     Json.objectMapper.writeValue(outputStream, objectToRenderAsJson);
                 } catch (IOException e) {
                     logger.error("Rendering went wrong. Ouch! ", e);

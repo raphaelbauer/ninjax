@@ -225,16 +225,16 @@ public class NinjaJetty {
                     FilterChain chain = new FilterChain(route.filters, 0, routingResult.get().controllerMethod());
                     var result = chain.doFilter(request);
 
-                    var status = result.getStatus();
-                    var contentType = result.getContentType();
+                    var status = result.status();
+                    var contentType = result.contentType();
 
                     httpServletResponse.setContentType(contentType);
                     httpServletResponse.setStatus(status);
-                    NinjaJettyHelper.setHeadersOnResponse(httpServletResponse, result.getHeaders());
+                    NinjaJettyHelper.setHeadersOnResponse(httpServletResponse, result.headers());
 
                     // That's actually not jetty specific logic...
                     // should live likely somewhere else...
-                    switch (result.getNinjaSessionState()) {
+                    switch (result.ninjaSessionState()) {
                         case Result.Exists exists -> {
                             NinjaSession ninjaSessionForResponse = exists.getSession();
                             var cookie = NinjaSessionConverter.createCookieWithInformationOfNinjaSession(
@@ -253,12 +253,12 @@ public class NinjaJetty {
                         }
                     }
 
-                    for (var ninjaCookie : result.getCookies()) {
+                    for (var ninjaCookie : result.cookies()) {
                         httpServletResponse.addCookie(NinjaJettyHelper.convertNinjaCookieToServletCookie(ninjaCookie));
                     }
 
-                    if (result.getOutputStreamRenderer().isPresent()) {
-                        result.getOutputStreamRenderer().get().streamTo(httpServletResponse.getOutputStream());
+                    if (result.outputStreamRenderer().isPresent()) {
+                        result.outputStreamRenderer().get().streamTo(httpServletResponse.getOutputStream());
                     }
 
                 } else {
