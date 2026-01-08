@@ -58,18 +58,15 @@ Log in to https://central.sonatype.com/ to release things.
 
 v1 Alpha TODO:
 =========
-
 - session => Secret / httponly add flags
-
-
-- juckula.replacePlaceholders ... tests + hwat if I want to render ${...}?
+- juckula.replacePlaceholders ... tests + what if I want to render ${...}?
 - juckula add escaping by default and special record to render raw
 - compiled templates without regex...
-- stream to x and not toString
 
 
 - json und request jackson parsen mit inject bauen
 - umbenennen in setAttribute (nicht payload bei request)
+
 - assetscontroller review und test
 - assetscontroller - do not update session / flash (race condition?)
 - test of sessioncookie code
@@ -88,6 +85,10 @@ v1 Alpha TODO:
 
 v1 BETA TODO:
 =============
+
+
+juckula?
+- stream to x and not toString
 
 - make NinjaJetty nicer
 -flashscope?

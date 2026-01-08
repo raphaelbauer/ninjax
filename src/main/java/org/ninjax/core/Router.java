@@ -13,7 +13,7 @@ public class Router {
     public RouteTmp GET(String path) {
         return new RouteTmp("GET", path);
     }
-    
+
     public RouteTmp POST(String path) {
         return new RouteTmp("POST", path);
     }
@@ -22,14 +22,14 @@ public class Router {
 
         private final String httpMethod;
         private final String path;
-        
+
         private final List<NinjaFilter> filters = new ArrayList();
 
         public RouteTmp(String httpMethod, String path) {
             this.httpMethod = httpMethod;
             this.path = path;
         }
-        
+
         public RouteTmp filter(NinjaFilter ninjaFilter) {
             filters.add(ninjaFilter);
             return this;
@@ -71,7 +71,7 @@ public class Router {
         private final Pattern pathRegex;
 
         public final Map<String, RouteParameter> parameters;
-        
+
         public List<NinjaFilter> filters;
 
         public Route(String httpMethod, String path, ControllerMethod controllerMethod, List<NinjaFilter> filters) {

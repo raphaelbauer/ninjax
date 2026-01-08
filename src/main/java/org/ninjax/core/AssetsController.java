@@ -12,62 +12,60 @@ import org.slf4j.LoggerFactory;
 
 public class AssetsController {
 
-    private final static Logger logger = LoggerFactory
-            .getLogger(AssetsController.class);
+    private static final Logger logger = LoggerFactory.getLogger(AssetsController.class);
 
-    private final static String FILENAME_PATH_PARAM = "fileName";
-    private static final String BASE_DIR = "/assets/";
+    private static final String FILENAME_PATH_PARAM = "fileName";
+    private static final Path BASE_DIR = Paths.get("assets");
 
     public Result serveStatic(Request request) {
+        String requestedPath = request.getPathParameter(FILENAME_PATH_PARAM)
+                .orElseGet(request::getRequestPath);
 
-        // Get the requested file path
-        Optional<String> requestedFileOpt
-                = request.getPathParameter(FILENAME_PATH_PARAM)
-                        // or... to serve '/favicon.ico' for instance
-                        .or(() -> Optional.of(request.getRequestPath()));
-
-        if (requestedFileOpt.isEmpty()) {
-            logger.warn("Opsi. Not able to find: {} - based on param {}.", requestedFileOpt, FILENAME_PATH_PARAM);
+        if (requestedPath == null || requestedPath.isEmpty()) {
+            logger.warn("No requested file found based on param '{}'.", FILENAME_PATH_PARAM);
             return Result.builder().notFound().build();
         }
 
-        // Normalize the path to remove dangerous sequences
-        Path resourcePath = Paths.get(BASE_DIR, requestedFileOpt.get()).normalize();
+        // normalize request path
+        if (requestedPath.startsWith("/")) {
+            requestedPath = requestedPath.substring(1);
+        }
+        if (requestedPath.startsWith("assets/")) {
+            requestedPath = requestedPath.substring("assets/".length());
+        }
 
-        // Prevent directory traversal attacks
-        if (!resourcePath.startsWith(BASE_DIR)) {
-            logger.warn("Wow. That is strange. I got a request for file {} - but I was not able to normalize that path ({}). Looks dangerous. Returning 404. ",
-                    resourcePath.toString(),
-                    requestedFileOpt.get());
+        Path normalized = Paths.get(requestedPath).normalize();
 
+        // prevent directory traversal
+        if (normalized.isAbsolute() || normalized.startsWith("..")) {
+            logger.warn("Rejected potentially dangerous static file request: {}", requestedPath);
             return Result.builder().notFound().build();
         }
 
-        // Load the resource as a stream
-        InputStream resourceStream = getClass().getResourceAsStream(resourcePath.toString());
+        Path resourcePath = BASE_DIR.resolve(normalized).normalize();
+        String resourcePathString = "/" + resourcePath.toString().replace('\\', '/');
 
+        InputStream resourceStream = getClass().getResourceAsStream(resourcePathString);
         if (resourceStream == null) {
-            logger.debug("Not able to find resource {}. Returning 404.", resourcePath.toString());
+            logger.debug("Static resource not found: {}", resourcePathString);
             return Result.builder().notFound().build();
         }
 
-        // Determine MIME type
-        String mimeType = URLConnection.guessContentTypeFromName(resourcePath.getFileName().toString());
-        if (mimeType == null) {
-            mimeType = "application/octet-stream";
-        }
+        String fileName = resourcePath.getFileName().toString();
+        String mimeType = Optional.ofNullable(URLConnection.guessContentTypeFromName(fileName))
+                .orElse("application/octet-stream");
 
-        var result = Result.builder().ok().contentType(mimeType).stream(outputStream -> {
-            try {
-                ByteStreams.copy(resourceStream, outputStream);
-                resourceStream.close();
-            } catch (IOException e) {
-                throw new RuntimeException("Opsi. An error occurred while reading resource and sending to user.", e);
-            }
-        }).build();
-
-        return result;
-
+        return Result.builder()
+                .ok()
+                .contentType(mimeType)
+                .stream(out -> {
+                    try (InputStream in = resourceStream) {
+                        ByteStreams.copy(in, out);
+                    } catch (IOException e) {
+                        logger.error("Error streaming static resource {}", resourcePathString, e);
+                        throw new RuntimeException("Error streaming static resource", e);
+                    }
+                })
+                .build();
     }
-
 }
