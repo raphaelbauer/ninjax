@@ -107,6 +107,19 @@ public record Result(
                 .status(SC_404_NOT_FOUND)
                 .build();
     }
+    
+    public static Result badRequest() {
+        return Result.builder()
+                .badRequest()
+                .build();
+    }
+    
+    public static Result badRequest(String body) {
+        return Result.builder()
+                .badRequest()
+                .text(body)
+                .build();
+    }
 
     public static Builder builder() {
         return new Builder();

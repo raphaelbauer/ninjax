@@ -42,6 +42,28 @@ class ResultTest {
         assertThat(r.contentType()).isEqualTo(Result.TEXT_PLAIN);
         assertThat(r.outputStreamRenderer()).isEmpty();
     }
+    
+    @Test
+    void static_badRequest_sets400_andDefaultContentType_andNoRenderer() {
+        Result r = Result.badRequest();
+
+        assertThat(r.status()).isEqualTo(Result.SC_400_BAD_REQUEST);
+        assertThat(r.contentType()).isEqualTo(Result.TEXT_PLAIN);
+        assertThat(r.outputStreamRenderer()).isEmpty();
+    }
+    
+    @Test
+    void static_badRequest_withBody_sets400_andTextPlain_andRendersBody() throws Exception {
+        Result r = Result.badRequest("invalid input");
+
+        assertThat(r.status()).isEqualTo(Result.SC_400_BAD_REQUEST);
+        assertThat(r.contentType()).isEqualTo(Result.TEXT_PLAIN);
+        assertThat(r.outputStreamRenderer()).isPresent();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        r.outputStreamRenderer().get().streamTo(baos);
+        assertThat(baos.toString(StandardCharsets.UTF_8)).isEqualTo("invalid input");
+    }
 
     @Test
     void static_redirect_uses303_andLocationHeader() {
