@@ -32,6 +32,8 @@ public class RequestTestHelper {
         Request.FileItemGetter fileItemGetter = fieldName -> Optional.empty();
         Request.FileItemsGetter fileItemsGetter = fieldName -> List.of();
 
+        var payload = new org.ninjax.core.Request.Payload(Map.of());
+        
         return Request.builder()
                 .route(route)
                 .requestPath(requestPath)
@@ -39,7 +41,7 @@ public class RequestTestHelper {
                 .fileItemGetter(fileItemGetter)
                 .fileItemsGetter(fileItemsGetter)
                 .ninjaCookies(List.of())
-                .payload(Map.of())
+                .payload(payload)
                 .headers(Map.of())
                 .parameters(Map.of())
                 .ninjaSession(Optional.empty())

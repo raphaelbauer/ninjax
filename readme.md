@@ -58,6 +58,7 @@ Log in to https://central.sonatype.com/ to release things.
 
 v1 Alpha TODO:
 =========
+- DONE assetscontroller review und test
 - session => Secret / httponly add flags
 - juckula.replacePlaceholders ... tests + what if I want to render ${...}?
 - juckula add escaping by default and special record to render raw
@@ -67,7 +68,6 @@ v1 Alpha TODO:
 - json und request jackson parsen mit inject bauen
 - umbenennen in setAttribute (nicht payload bei request)
 
-- assetscontroller review und test
 - assetscontroller - do not update session / flash (race condition?)
 - test of sessioncookie code
 - remove secret in conf - maybe

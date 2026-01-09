@@ -208,19 +208,36 @@ public class NinjaJetty {
                         return result;
                     };
 
-                    var request = new Request(
-                            route,
-                            requestURI,
-                            inputStreamGetter,
-                            fileItemGetter,
-                            fileItemsGetter,
-                            ninjaCookies,
-                            ImmutableMap.<String, Object>of(),
-                            headers,
-                            httpServletRequest.getParameterMap(),
-                            ninjaSessionInRequest,
-                            httpServletRequest.getLocale() /* TODO local can also be set by a lang cookie to override headers of accept... */
-                    );
+                    
+                    var payload = new org.ninjax.core.Request.Payload(Map.of());
+                    
+                    var request = Request.builder().
+                            route(route)
+                            .requestPath(requestURI)
+                            .inputStreamGetter(inputStreamGetter)
+                            .fileItemGetter(fileItemGetter)
+                            .fileItemsGetter(fileItemsGetter)
+                            .ninjaCookies(ninjaCookies)
+                            .payload(payload)
+                            .headers(headers)
+                            .parameters(httpServletRequest.getParameterMap())
+                            .ninjaSession(ninjaSessionInRequest)
+                            .language(httpServletRequest.getLocale())
+                            .build();
+                            
+//                    var request = new Request(
+//                            route,
+//                            requestURI,
+//                            inputStreamGetter,
+//                            fileItemGetter,
+//                            fileItemsGetter,
+//                            ninjaCookies,
+//                            new org.ninjax.core.Request.Payload(delegate),
+//                            headers,
+//                            httpServletRequest.getParameterMap(),
+//                            ninjaSessionInRequest,
+//                            httpServletRequest.getLocale() /* TODO local can also be set by a lang cookie to override headers of accept... */
+//                    );
 
                     FilterChain chain = new FilterChain(route.filters, 0, routingResult.get().controllerMethod());
                     var result = chain.doFilter(request);

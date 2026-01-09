@@ -25,7 +25,7 @@ public record Request(
         FileItemGetter fileItemGetter,
         FileItemsGetter fileItemsGetter,
         List<NinjaCookie> ninjaCookies,
-        Map<String, Object> payload,
+        Payload payload,
         Map<String, List<String>> headers,
         Map<String, String[]> parameters,
         Optional<NinjaSession> ninjaSession,
@@ -54,14 +54,14 @@ public record Request(
      * Canonical constructor wrapper to enforce defensive copies and derive
      * pathParameters.
      */
-    public Request(
+    private Request(
             Router.Route route,
             String requestPath,
             InputStreamGetter inputStreamGetter,
             FileItemGetter fileItemGetter,
             FileItemsGetter fileItemsGetter,
             List<NinjaCookie> ninjaCookies,
-            Map<String, Object> payload,
+            Payload payload,
             Map<String, List<String>> headers,
             Map<String, String[]> parameters,
             Optional<NinjaSession> ninjaSession,
@@ -75,7 +75,7 @@ public record Request(
                 fileItemsGetter,
                 // defensive copies
                 ImmutableList.copyOf(ninjaCookies),
-                ImmutableMap.copyOf(payload),
+                payload,
                 ImmutableMap.copyOf(headers),
                 ImmutableMap.copyOf(parameters),
                 ninjaSession,
@@ -145,24 +145,6 @@ public record Request(
         return Map.copyOf(map); // unmodifiable
     }
 
-    public <U> Optional<U> getPayload(String key, Class<U> clazz) {
-        Object object = payload.get(key);
-        if (clazz.isInstance(object)) {
-            return Optional.of(clazz.cast(object));
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    public Optional<String> getPayload(String key) {
-        Object object = payload.get(key);
-        if (object instanceof String s) {
-            return Optional.of(s);
-        } else {
-            return Optional.empty();
-        }
-    }
-
     public List<FileItem> getFiles(String fieldName) {
         return fileItemsGetter.getFileItems(fieldName);
     }
@@ -193,7 +175,7 @@ public record Request(
         private FileItemGetter fileItemGetter;
         private FileItemsGetter fileItemsGetter;
         private List<NinjaCookie> ninjaCookies = List.of();
-        private Map<String, Object> payload = Map.of();
+        private Payload payload;
         private Map<String, List<String>> headers = Map.of();
         private Map<String, String[]> parameters = Map.of();
         private Optional<NinjaSession> ninjaSession = Optional.empty();
@@ -232,7 +214,7 @@ public record Request(
             return this;
         }
 
-        public Builder payload(Map<String, Object> payload) {
+        public Builder payload(Payload payload) {
             this.payload = payload;
             return this;
         }
@@ -264,7 +246,6 @@ public record Request(
             Objects.requireNonNull(fileItemGetter, "fileItemGetter must not be null");
             Objects.requireNonNull(fileItemsGetter, "fileItemsGetter must not be null");
             Objects.requireNonNull(ninjaCookies, "ninjaCookies must not be null");
-            Objects.requireNonNull(payload, "payload must not be null");
             Objects.requireNonNull(headers, "headers must not be null");
             Objects.requireNonNull(parameters, "parameters must not be null");
             Objects.requireNonNull(ninjaSession, "ninjaSession must not be null");
@@ -284,5 +265,27 @@ public record Request(
                     language
             );
         }
+    }
+
+    public final static class Payload {
+
+        private final Map<String, Object> delegate;
+
+        public Payload(Map<String, Object> delegate) {
+            this.delegate = Map.copyOf(delegate);
+        }
+
+        public <U> Optional<U> get(String key, Class<U> clazz) {
+            Object object = delegate.get(key);
+            return clazz.isInstance(object)
+                    ? Optional.of(clazz.cast(object))
+                    : Optional.empty();
+        }
+
+        public Optional<String> getString(String key) {
+            Object object = delegate.get(key);
+            return object instanceof String s ? Optional.of(s) : Optional.empty();
+        }
+
     }
 }
