@@ -1,27 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- Parent coordinates -->
     <groupId>org.r10r</groupId>
     <artifactId>ninjax</artifactId>
     <version>0.1.13</version>
-    <packaging>jar</packaging>
 
+    <!-- IMPORTANT: packaging must be pom for a multi‑module parent -->
+    <packaging>pom</packaging>
+
+    <name>ninjax-parent</name>
     <url>https://github.com/raphaelbauer/ninjax</url>
-    <name>${project.artifactId}</name>
-    <description>NinjaX is a full stack web framework for Java. Simple. Immuatble. Fast and dev friendly.</description>
-    
+    <description>NinjaX is a full stack web framework for Java. Simple. Immutable. Fast and dev friendly.</description>
+
     <licenses>
         <license>
             <name>The Apache License, Version 2.0</name>
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
         </license>
     </licenses>
+
     <scm>
         <url>https://github.com/raphaelbauer/ninjax</url>
         <connection>scm:git:git://github.com/raphaelbauer/ninjax</connection>
         <developerConnection>scm:git:ssh://github.com:raphaelbauer/ninjax.git</developerConnection>
     </scm>
-        
+
     <developers>
         <developer>
             <name>Raphael A. Bauer</name>
@@ -32,7 +40,7 @@
             </roles>
         </developer>
     </developers>
-    
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <slf4j.version>2.0.17</slf4j.version>
@@ -41,185 +49,38 @@
         <junit.version>5.11.0</junit.version>
         <jjwt.version>0.13.0</jjwt.version>
     </properties>
-    
-    <dependencies>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-            <version>11.0.25</version> <!-- Ensure you have the latest version -->
-        </dependency>
-        
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlet</artifactId>
-            <version>11.0.25</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>33.3.0-jre</version>
-            <scope>compile</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
 
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jdk8</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>2.20</version>
-        </dependency>
+    <!-- Optional: common dependencyManagement (shared versions) -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- Put all your versioned deps here if you want children to inherit versions -->
+            <!-- Example (you can move all you had in <dependencies> here): -->
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-server</artifactId>
+                <version>11.0.25</version>
+            </dependency>
+            <!-- ...repeat for others as needed... -->
+        </dependencies>
+    </dependencyManagement>
 
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-api</artifactId>
-            <version>${jjwt.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-impl</artifactId>
-            <version>${jjwt.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-jackson</artifactId> <!-- or jjwt-gson if Gson is preferred -->
-            <version>${jjwt.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-
-        <!-- Logback is the successor of log4j. We use it: -->
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.5.18</version>
-        </dependency>
-		
-        <!-- Replace commons-logging with slf4j bridge (that will use logback)-->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-        
-        <!-- Replace log4j with slf4j bridge (that will use logback)-->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-params</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.google.truth</groupId>
-            <artifactId>truth</artifactId>
-            <version>1.4.4</version>
-            <scope>test</scope>
-        </dependency>
-        
-        <!-- for flyway plugin move to separate project -->
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-            <version>11.12.0</version>
-        </dependency>
-        
-        <!-- for hikari plugin move to separate project  -->
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>7.0.2</version>
-        </dependency>
-        
-        <!-- for hikari plugin move to separate project  -->
-        <dependency>
-            <groupId>org.jdbi</groupId>
-            <artifactId>jdbi3-core</artifactId>
-            <version>${jdbi.version}</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.jdbi</groupId>
-            <artifactId>jdbi3-sqlobject</artifactId>
-            <version>${jdbi.version}</version>
-        </dependency>
-        
-        <!-- can be removed from core ninja stuff  -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>2.3.232</version>
-        </dependency>
-        
-
-    </dependencies>
-    
+    <!-- Common build config for all modules -->
     <build>
-        <resources>  
-            <resource>
-                <directory>src/main/java</directory>
-                <includes>
-                    <include>**/*</include>
-                </includes>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>**/*</include>
-                </includes>
-            </resource>
-        </resources>
-        <plugins>
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.14.1</version>
-                <configuration>
-                    <source>25</source>
-                    <target>25</target>
-                </configuration>
-            </plugin>
-        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.14.1</version>
+                    <configuration>
+                        <source>25</source>
+                        <target>25</target>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
-    
+
+    <!-- Release profile stays on the parent so it applies to all modules -->
     <profiles>
         <profile>
             <id>release</id>
@@ -276,5 +137,12 @@
         </profile>
     </profiles>
 
-
+    <!-- List of child modules (directories under this pom) -->
+    <modules>
+        <module>ninjax-core</module>
+        <!--<module>ninjax-flyway</module>-->
+        <!--<module>ninjax-hikari</module>-->
+        <!-- add/remove as you need -->
+    </modules>
 </project>
+
