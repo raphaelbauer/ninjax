@@ -59,7 +59,10 @@ Log in to https://central.sonatype.com/ to release things.
 v1 Alpha TODO:
 =========
 - DONE assetscontroller review und test
-- session => Secret / httponly add flags
+- DONE session => Secret / httponly add flags
+
+
+
 - juckula.replacePlaceholders ... tests + what if I want to render ${...}?
 - juckula add escaping by default and special record to render raw
 - compiled templates without regex...
@@ -72,7 +75,6 @@ v1 Alpha TODO:
 - test of sessioncookie code
 - remove secret in conf - maybe
 
-
 - add tests to db module
 -- hikari
 -- jdbi
@@ -82,6 +84,11 @@ v1 Alpha TODO:
 - move conf to resourcs
 
 - how to make e.g. json configurable with json...
+
+- add ninjax:run
+- multi project build with separate db modules
+
+
 
 v1 BETA TODO:
 =============
