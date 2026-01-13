@@ -6,16 +6,16 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!-- Parent coordinates -->
-    <groupId>org.r10r</groupId>
-    <artifactId>ninjax</artifactId>
-    <version>0.1.13</version>
+    <groupId>org.ninja</groupId>
+    <artifactId>ninja</artifactId>
+    <version>1.0-SNAPSHOT</version>
 
     <!-- IMPORTANT: packaging must be pom for a multi‑module parent -->
     <packaging>pom</packaging>
 
-    <name>ninjax-parent</name>
+    <name>ninja-parent</name>
     <url>https://github.com/raphaelbauer/ninjax</url>
-    <description>NinjaX is a full stack web framework for Java. Simple. Immutable. Fast and dev friendly.</description>
+    <description>Ninja is a full stack web framework for Java. Simple. Immutable. Fast and dev friendly.</description>
 
     <licenses>
         <license>
@@ -48,6 +48,9 @@
         <jackson.version>2.20.0</jackson.version>
         <junit.version>5.11.0</junit.version>
         <jjwt.version>0.13.0</jjwt.version>
+        <hikari.version>7.0.2</hikari.version>
+        <flyway.version>11.12.0</flyway.version>
+        <h2.version>2.3.232</h2.version>
     </properties>
 
     <!-- Optional: common dependencyManagement (shared versions) -->
@@ -59,6 +62,64 @@
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-server</artifactId>
                 <version>11.0.25</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>33.3.0-jre</version>
+            </dependency>
+            
+            <!-- Database dependencies -->
+            <dependency>
+                <groupId>org.ninja</groupId>
+                <artifactId>ninja-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ninja</groupId>
+                <artifactId>ninja-db-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ninja</groupId>
+                <artifactId>ninja-db-hikari</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ninja</groupId>
+                <artifactId>ninja-db-flyway</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ninja</groupId>
+                <artifactId>ninja-db-jdbi</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            
+            <dependency>
+                <groupId>com.zaxxer</groupId>
+                <artifactId>HikariCP</artifactId>
+                <version>${hikari.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-core</artifactId>
+                <version>${flyway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jdbi</groupId>
+                <artifactId>jdbi3-core</artifactId>
+                <version>${jdbi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jdbi</groupId>
+                <artifactId>jdbi3-sqlobject</artifactId>
+                <version>${jdbi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <version>${h2.version}</version>
             </dependency>
             <!-- ...repeat for others as needed... -->
         </dependencies>
@@ -139,10 +200,11 @@
 
     <!-- List of child modules (directories under this pom) -->
     <modules>
-        <module>ninjax-core</module>
-        <!--<module>ninjax-flyway</module>-->
-        <!--<module>ninjax-hikari</module>-->
-        <!-- add/remove as you need -->
+        <module>ninja-core</module>
+        <module>ninja-db-common</module>
+        <module>ninja-db-hikari</module>
+        <module>ninja-db-flyway</module>
+        <module>ninja-db-jdbi</module>
     </modules>
 </project>
 
