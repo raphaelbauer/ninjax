@@ -64,6 +64,12 @@
                 <version>11.0.25</version>
             </dependency>
             <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-servlet</artifactId>
+                <version>11.0.25</version>
+            </dependency>
+        
+            <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>33.3.0-jre</version>
@@ -95,6 +101,11 @@
                 <artifactId>ninja-db-jdbi</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.ninja</groupId>
+                <artifactId>ninja-template</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             
             <dependency>
                 <groupId>com.zaxxer</groupId>
@@ -121,7 +132,26 @@
                 <artifactId>h2</artifactId>
                 <version>${h2.version}</version>
             </dependency>
-            <!-- ...repeat for others as needed... -->
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>5.10.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-params</artifactId>
+                <version>5.10.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-engine</artifactId>
+                <version>5.10.3</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.truth</groupId>
+                <artifactId>truth</artifactId>
+                <version>1.4.4</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -205,6 +235,7 @@
         <module>ninja-db-hikari</module>
         <module>ninja-db-flyway</module>
         <module>ninja-db-jdbi</module>
+        <module>ninja-template</module>
     </modules>
 </project>
 

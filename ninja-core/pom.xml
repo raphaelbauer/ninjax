@@ -21,19 +21,16 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>11.0.25</version>
         </dependency>
         
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
-            <version>11.0.25</version>
         </dependency>
         
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>33.3.0-jre</version>
             <scope>compile</scope>
         </dependency>
         
@@ -125,6 +122,14 @@
             <groupId>com.google.truth</groupId>
             <artifactId>truth</artifactId>
             <version>1.4.4</version>
+            <scope>test</scope>
+        </dependency>
+        
+        <!-- Template dependencies for testing -->
+        <dependency>
+            <groupId>org.ninjax</groupId>
+            <artifactId>ninja-template</artifactId>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         
