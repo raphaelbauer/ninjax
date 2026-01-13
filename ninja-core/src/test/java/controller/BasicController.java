@@ -4,8 +4,6 @@ import org.ninjax.core.Request;
 import org.ninjax.core.Result;
 import org.ninjax.core.properties.NinjaProperties;
 import services.BasicService;
-import views.LandingPage;
-
 
 public class BasicController {
     
@@ -37,7 +35,11 @@ public class BasicController {
         String appName = ninjaProperties.get("appname").orElseThrow();
         
         String userName = request.getParameter("user").stream().findFirst().orElse("default");
-        String landingPageHtml = LandingPage.render("Hello World " + userName + " running on " + appName).toString();
+        String landingPageHtml = """
+                                 <html>
+                                 <body>hello!</body>
+                                 </html>
+                                 """;
         
         return Result.builder().ok().addHeader("testheader", "testvalue").html(landingPageHtml).build();
     }

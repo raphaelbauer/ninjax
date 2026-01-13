@@ -125,14 +125,6 @@
             <scope>test</scope>
         </dependency>
         
-        <!-- Template dependencies for testing -->
-        <dependency>
-            <groupId>org.ninjax</groupId>
-            <artifactId>ninja-template</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        
     </dependencies>
 
     <build>
