@@ -8,8 +8,7 @@
     <parent>
         <groupId>org.ninja</groupId>
         <artifactId>ninja</artifactId>
-        <version>1.0-SNAPSHOT</version>
-        <relativePath>..</relativePath>
+        <version>10.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>ninja-core</artifactId>
@@ -100,28 +99,24 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         
         <dependency>
             <groupId>com.google.truth</groupId>
             <artifactId>truth</artifactId>
-            <version>1.4.4</version>
             <scope>test</scope>
         </dependency>
         

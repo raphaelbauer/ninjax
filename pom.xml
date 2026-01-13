@@ -8,7 +8,7 @@
     <!-- Parent coordinates -->
     <groupId>org.ninja</groupId>
     <artifactId>ninja</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>10.0-SNAPSHOT</version>
 
     <!-- IMPORTANT: packaging must be pom for a multi‑module parent -->
     <packaging>pom</packaging>
