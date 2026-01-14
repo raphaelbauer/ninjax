@@ -1,8 +1,8 @@
 package controller;
 
-import org.ninjax.core.Request;
-import org.ninjax.core.Result;
-import org.ninjax.core.properties.NinjaProperties;
+import org.ninja.core.Request;
+import org.ninja.core.Result;
+import org.ninja.core.properties.NinjaProperties;
 import services.BasicService;
 
 public class BasicController {

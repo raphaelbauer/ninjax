@@ -119,11 +119,19 @@
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
             <plugin>
+                <groupId>org.ninja</groupId>
+                <artifactId>ninja-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <configuration>
+                    <mainClass>org.ninja.demo.todo.TodoApplication</mainClass>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.5.0</version>
                 <configuration>
-                    <mainClass>org.ninjax.demo.todo.TodoApplication</mainClass>
+                    <mainClass>org.ninja.demo.todo.TodoApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>

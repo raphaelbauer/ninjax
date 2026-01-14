@@ -1,9 +1,9 @@
 package conf;
 
-import org.ninjax.core.Request;
-import org.ninjax.core.FilterChain;
-import org.ninjax.core.NinjaFilter;
-import org.ninjax.core.Result;
+import org.ninja.core.Request;
+import org.ninja.core.FilterChain;
+import org.ninja.core.NinjaFilter;
+import org.ninja.core.Result;
 
 
 public class MyCustomFilter implements NinjaFilter {

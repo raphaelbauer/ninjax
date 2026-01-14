@@ -1,10 +1,10 @@
 package conf;
 
 import controller.BasicController;
-import org.ninjax.core.AssetsController;
-import org.ninjax.core.NinjaJetty;
-import org.ninjax.core.Router;
-import org.ninjax.core.properties.NinjaProperties;
+import org.ninja.core.AssetsController;
+import org.ninja.core.NinjaJetty;
+import org.ninja.core.Router;
+import org.ninja.core.properties.NinjaProperties;
 import services.BasicService;
 
 

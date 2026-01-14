@@ -1,18 +1,15 @@
-package conf;
+package org.ninja.demo.todo;
 
-import controller.GuestbookController;
-import org.ninja.core.AssetsController;
 import org.ninja.core.NinjaJetty;
 import org.ninja.core.Router;
 import org.ninja.core.properties.NinjaProperties;
-import org.ninja.db.flyway.NinjaFlywayMigrator;
-import org.ninja.db.hikari.NinjaDbHikariProvider;
-import org.ninja.db.jdbc.NinjaDatasourcePropertiesExtractor;
 import org.ninja.db.jdbi.NinjaJdbiImpl;
-import services.GuestbooksService;
+import org.ninja.db.hikari.NinjaDbHikariProvider;
+import org.ninja.db.flyway.NinjaFlywayMigrator;
+import org.ninja.db.jdbc.NinjaDatasourcePropertiesExtractor;
 
-
-public class Assembly {
+public class TodoApplication {
+    
     public final NinjaProperties ninjaProperties = new NinjaProperties();
     
     ////////////////////////////////////////////////////////////////////////////
@@ -26,19 +23,27 @@ public class Assembly {
     // end
     ////////////////////////////////////////////////////////////////////////////
     
-    public final GuestbooksService guestbooksService = new GuestbooksService(ninjaJdbiImpl);
-    public final GuestbookController guestbookController = new GuestbookController(guestbooksService);
-     
-    public final AssetsController assetsController = new AssetsController();
+    public final TaskService taskService = new TaskService(ninjaJdbiImpl);
+    public final TodoController todoController = new TodoController(taskService);
     
     public final Router router = new Router();
-    public final Routes routes = new Routes(router, guestbookController, assetsController);
+    {
+        router.GET("/").with(todoController::showTasks);
+        router.POST("/tasks").with(todoController::addTask);
+        router.POST("/tasks/delete").with(todoController::deleteTask);
+        router.GET("/tasks.json").with(todoController::getTasksJson);
+    }
     
-    public final NinjaJetty ninja = new NinjaJetty(router, ninjaProperties);
-    
-
-    public static void main(String [] a) {
-        new Assembly();
+    public final NinjaJetty ninja;
+    {
+        try {
+            ninja = new NinjaJetty(router, ninjaProperties);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to start NinjaJetty", e);
+        }
     }
 
+    public static void main(String [] a) {
+        new TodoApplication();
+    }
 }

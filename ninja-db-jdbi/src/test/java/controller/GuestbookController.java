@@ -2,8 +2,8 @@ package controller;
 
 import java.util.List;
 import models.Guestbook;
-import org.ninjax.core.Request;
-import org.ninjax.core.Result;
+import org.ninja.core.Request;
+import org.ninja.core.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import services.GuestbooksService;

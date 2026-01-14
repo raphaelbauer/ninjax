@@ -138,6 +138,11 @@
                 <artifactId>ninja-template</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.ninja</groupId>
+                <artifactId>ninja-maven-plugin</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             
             <!-- External database libraries -->
             <dependency>
@@ -296,6 +301,7 @@
         <module>ninja-db-flyway</module>
         <module>ninja-db-jdbi</module>
         <module>ninja-template</module>
+        <module>ninja-maven-plugin</module>
         <module>ninja-demo-todo</module>
     </modules>
 </project>

@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import org.ninjax.core.Request;
-import org.ninjax.core.Result;
-import org.ninjax.core.Router;
+import org.ninja.core.Request;
+import org.ninja.core.Result;
+import org.ninja.core.Router;
 
 public class RequestTestHelper {
 
@@ -32,7 +32,7 @@ public class RequestTestHelper {
         Request.FileItemGetter fileItemGetter = fieldName -> Optional.empty();
         Request.FileItemsGetter fileItemsGetter = fieldName -> List.of();
 
-        var payload = new org.ninjax.core.Request.Payload(Map.of());
+        var payload = new org.ninja.core.Request.Payload(Map.of());
         
         return Request.builder()
                 .route(route)
