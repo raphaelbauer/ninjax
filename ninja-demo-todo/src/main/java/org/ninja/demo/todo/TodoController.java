@@ -135,7 +135,7 @@ public class TodoController {
                 html.append("    <div class=\"task ").append(completedClass).append("\">");
                 html.append("        <strong>").append(completedText).append(escapeHtml(task.title())).append("</strong>");
                 html.append("        <small style=\"color: #666; display: block; margin-top: 5px;\">");
-                html.append("            Created: ").append(task.created_at().toString().substring(0, 19).replace("T", " "));
+                html.append("            Created: ").append(task.createdAt().toString().substring(0, 19).replace("T", " "));
                 
                 if (task.completed()) {
                     html.append("            | ✅ Completed");

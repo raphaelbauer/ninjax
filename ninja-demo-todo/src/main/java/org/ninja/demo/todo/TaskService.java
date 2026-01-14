@@ -6,6 +6,8 @@ import java.util.Optional;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.mapper.reflect.ConstructorMapper;
 import org.jdbi.v3.core.mapper.reflect.ReflectionMappers;
+import org.jdbi.v3.core.statement.SqlStatements;
+import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 import org.jdbi.v3.sqlobject.config.RegisterConstructorMapper;
 import org.jdbi.v3.sqlobject.config.RegisterRowMapperFactory;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
@@ -18,16 +20,17 @@ public class TaskService {
 public interface TaskDaoInterface {
 
     @SqlQuery("SELECT id, title, description, created_at, completed FROM tasks ORDER BY created_at DESC")
+    @RegisterConstructorMapper(Task.class)
     List<Task> findAny();
 
     @SqlQuery("SELECT id, title, description, created_at, completed FROM tasks WHERE id = :id")
+    @RegisterConstructorMapper(Task.class)
     Optional<Task> findById(long id);
 
     @SqlUpdate("INSERT INTO tasks (title, description, created_at, completed) " +
                "VALUES (:title, :description, :createdAt, :completed)")
     @GetGeneratedKeys
-    long insert(String title, String description,
-                LocalDateTime createdAt, boolean completed);
+    long insert(String title, String description, LocalDateTime createdAt, boolean completed);
 
     @SqlUpdate("DELETE FROM tasks WHERE id = :id")
     int deleteById(long id);
@@ -37,20 +40,19 @@ public interface TaskDaoInterface {
 }
 
     private final Jdbi jdbi;
-    private final TaskDaoInterface taskDaoInterface;
             
     public TaskService(NinjaJdbi ninjaJdbi) {
         this.jdbi = ninjaJdbi.getJdbi("default");
-        this.taskDaoInterface = jdbi.onDemand(TaskDaoInterface.class);
+        jdbi.installPlugin(new SqlObjectPlugin());
+        
     }
 
     public List<Task> findAny() {
-        return this.taskDaoInterface.findAny();
+        return this.jdbi.onDemand(TaskDaoInterface.class).findAny();
     }
 
     public Task create(Task task) {
-        TaskDaoInterface dao = jdbi.open().attach(TaskDaoInterface.class);
-        long id = dao.insert(task.title(), task.description(), task.created_at(), task.completed());
+        var id = this.jdbi.onDemand(TaskDaoInterface.class).insert(task.title(), task.description(), task.createdAt(), task.completed());
         return task.withId(id);
     }
 
