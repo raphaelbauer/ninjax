@@ -2,6 +2,7 @@ package org.ninja.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 
 public class Json {
@@ -12,6 +13,7 @@ public class Json {
     
     static {
         objectMapper.registerModule(new Jdk8Module());
+        objectMapper.registerModule(new JavaTimeModule());
     }
     
 }
