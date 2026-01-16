@@ -1,41 +1,37 @@
 package org.ninja.demo.todo.templates;
 
+import java.util.Map;
 import org.ninja.demo.todo.Task;
 import org.juckula.JuckulaCompositionTemplate;
+import org.juckula.JuckulaTool;
 
 public class TaskItemTemplate {
-    
+
+    private final static String TEMPLATE = JuckulaTool.readResourceFile(TaskItemTemplate.class);
+
     public static JuckulaCompositionTemplate render(Task task) {
-        JuckulaCompositionTemplate template = new JuckulaCompositionTemplate();
-        
+
         String completedClass = task.completed() ? "completed" : "";
         String completedText = task.completed() ? "✅ " : "⏳ ";
         String createdAtStr = task.createdAt().toString().substring(0, 19).replace("T", " ");
-        
-        template.html("""
-            <div class="task """, completedClass, """
-                ">
-                <strong>""", completedText, JuckulaCompositionTemplate.escapeUnsafe(task.title()), "</strong>");
-        
-        template.html("""
-                <small style="color: #666; display: block; margin-top: 5px;">
-                    Created: """, createdAtStr);
-        
-        if (task.completed()) {
-            template.html(" | ✅ Completed");
-        }
-        
-        template.html(String.format("""
-                </small>
-                <div class="task-actions">
-                    <form method="post" action="/tasks/delete" style="display: inline;">
-                        <input type="hidden" name="id" value="%d">
-                        <button type="submit" class="btn btn-delete" onclick="return confirm('Delete this task?')">🗑️ Delete</button>
-                    </form>
-                </div>
-            </div>
-            """, task.id()));
-        
+
+        String completed = task.completed() ? " | ✅ Completed" : "";
+
+        var parameters = Map.of(
+                "completedClass", completedClass,
+                "completedText", completedText,
+                "title", task.title(),
+                "createdAtStr", createdAtStr,
+                "completed", completed,
+                "taskId", task.id().toString()
+        );
+        var templateWithVariables = JuckulaTool.replacePlaceholders(TEMPLATE, parameters);
+
+        var template = new JuckulaCompositionTemplate();
+        template.html(templateWithVariables);
+
         return template;
+
     }
+
 }
