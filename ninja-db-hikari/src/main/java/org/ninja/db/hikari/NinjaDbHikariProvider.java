@@ -50,7 +50,8 @@ public class NinjaDbHikariProvider {
                     Properties properties = extractHikariProperties(ninjaDatasourceConfig.getProperties());
                     HikariConfig config = new HikariConfig(properties);
 
-                    config.setDriverClassName(ninjaDatasourceConfig.getDriver());
+                    ninjaDatasourceConfig.getDriver().ifPresent(d -> config.setDriverClassName(d));
+                    
                     config.setJdbcUrl(ninjaDatasourceConfig.getJdbcUrl());
                     config.setUsername(ninjaDatasourceConfig.getUsername());
                     config.setPassword(ninjaDatasourceConfig.getPassword());

@@ -1,50 +1,26 @@
 package org.ninja.demo.todo.templates;
 
+import java.util.Map;
+import java.util.Optional;
 import org.juckula.JuckulaCompositionTemplate;
+import org.juckula.JuckulaTool;
 
 public class LayoutTemplate {
-    
+
+    private final static String TEMPLATE = JuckulaTool.readResourceFile(LayoutTemplate.class);
+
     public static JuckulaCompositionTemplate render(String title, JuckulaCompositionTemplate content) {
-        JuckulaCompositionTemplate template = new JuckulaCompositionTemplate();
+
+        var parameters = Map.of(
+                "title", title,
+                "content", content.toString()
+        );
+        var templateWithVariables = JuckulaTool.replacePlaceholders(TEMPLATE, parameters);
         
-        template.html("""
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>""", JuckulaCompositionTemplate.escapeUnsafe(title), "</title>");
-        
-        template.html("""
-                <style>
-                    body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }
-                    .task { border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px; }
-                    .task.completed { background-color: #f0f0f0; text-decoration: line-through; }
-                    .task-actions { margin-top: 10px; }
-                    .btn { padding: 8px 16px; margin: 5px; border: none; border-radius: 3px; cursor: pointer; }
-                    .btn-delete { background-color: #dc3545; color: white; }
-                    .form-group { margin-bottom: 15px; }
-                    input[type="text"] { width: 70%; padding: 8px; border: 1px solid #ddd; border-radius: 3px; }
-                    .btn-add { background-color: #28a745; color: white; padding: 8px 20px; }
-                    h1 { color: #333; }
-                    .empty-message { color: #666; font-style: italic; }
-                </style>
-            </head>
-            <body>
-            """);
-        
-        template.html(content);
-        
-        template.html("""
-                <hr>
-                <p style="color: #666; font-size: 14px;">
-                    💡 Try the <a href="/tasks.json" target="_blank">JSON API endpoint</a> to see all tasks as JSON!
-                    <br>Built with NinjaX Java Framework - Simple, Modern, Fast 🚀
-                </p>
-            </body>
-            </html>
-            """);
-        
+        var template = new JuckulaCompositionTemplate();
+        template.html(templateWithVariables);
+
         return template;
     }
+
 }

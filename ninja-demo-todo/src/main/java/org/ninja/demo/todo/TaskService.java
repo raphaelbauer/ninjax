@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.config.RegisterConstructorMapper;
+import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.statement.GetGeneratedKeys;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
@@ -25,13 +26,13 @@ public class TaskService {
         @SqlUpdate("INSERT INTO tasks (title, description, created_at, completed) "
                 + "VALUES (:title, :description, :createdAt, :completed)")
         @GetGeneratedKeys
-        long insert(String title, String description, LocalDateTime createdAt, boolean completed);
+        long insert(@Bind("title") String title, @Bind("description") String description, @Bind("createdAt") LocalDateTime createdAt, @Bind("completed") boolean completed);
 
         @SqlUpdate("DELETE FROM tasks WHERE id = :id")
-        int deleteById(long id);
+        int deleteById(@Bind("id") long id);
 
         @SqlUpdate("UPDATE tasks SET completed = :completed WHERE id = :id")
-        int updateCompleted(long id, boolean completed);
+        int updateCompleted(@Bind("id") long id, @Bind("completed") boolean completed);
     }
 
     private final Jdbi jdbi;

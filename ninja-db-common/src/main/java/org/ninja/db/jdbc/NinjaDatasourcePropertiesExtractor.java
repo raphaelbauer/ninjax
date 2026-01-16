@@ -54,7 +54,7 @@ import org.ninja.core.properties.NinjaProperties;
         for (String datasourceName : datasourceNames) {
             
             String name = datasourceName;
-            String driver = ninjaProperties.get(DATASOURCE_PREFIX + "." + datasourceName + "." + DATASOURCE_DRIVER).orElseThrow();
+            var driverOpt = ninjaProperties.get(DATASOURCE_PREFIX + "." + datasourceName + "." + DATASOURCE_DRIVER);
             
             // datasource
             String jdbcUrl = ninjaProperties.get(DATASOURCE_PREFIX + "." + datasourceName + "." + DATASOURCE_URL).orElseThrow();
@@ -68,7 +68,7 @@ import org.ninja.core.properties.NinjaProperties;
                     
             NinjaDatasourceProperties ninjaDatasourceConfig = new NinjaDatasourceProperties(
                     name,
-                    driver,
+                    driverOpt,
                     jdbcUrl,
                     username,
                     password,

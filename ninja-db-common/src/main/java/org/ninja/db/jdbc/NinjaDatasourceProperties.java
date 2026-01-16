@@ -6,7 +6,7 @@ import java.util.Optional;
 public class NinjaDatasourceProperties {
 
     private final String name;
-    private final String driver;
+    private final Optional<String> driver;
 
     private final String jdbcUrl;
     private final String username;
@@ -21,7 +21,7 @@ public class NinjaDatasourceProperties {
     
     public NinjaDatasourceProperties(
             String name, 
-            String driver, 
+            Optional<String> driver, 
             String jdbcUrl, 
             String username, 
             String password, 
@@ -42,7 +42,7 @@ public class NinjaDatasourceProperties {
         return name;
     }
 
-    public String getDriver() {
+    public Optional<String> getDriver() {
         return driver;
     }
 
