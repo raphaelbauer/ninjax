@@ -92,4 +92,28 @@ public class TodoController {
                     .build();
         }
     }
+
+    public Result toggleTaskCompletion(Request request) {
+        try {
+            String idStr = request.getParameter("id").stream().findFirst().orElse("");
+            long id = Long.parseLong(idStr);
+            boolean success = taskService.toggleCompleted(id);
+            
+            if (success) {
+                return Result.builder()
+                    .redirect("/")
+                    .build();
+            } else {
+                return Result.builder()
+                    .notFound()
+                    .text("Task not found")
+                    .build();
+            }
+        } catch (Exception e) {
+            return Result.builder()
+                .status(Result.SC_500_INTERNAL_SERVER_ERROR)
+                .text("Error toggling task: " + e.getMessage())
+                .build();
+        }
+    }
 }

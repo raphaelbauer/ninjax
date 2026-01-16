@@ -21,7 +21,7 @@ public class TaskService {
 
         @SqlQuery("SELECT id, title, description, created_at, completed FROM tasks WHERE id = :id")
         @RegisterConstructorMapper(Task.class)
-        Optional<Task> findById(long id);
+        Optional<Task> findById(@Bind("id") long id);
 
         @SqlUpdate("INSERT INTO tasks (title, description, created_at, completed) "
                 + "VALUES (:title, :description, :createdAt, :completed)")
@@ -32,7 +32,7 @@ public class TaskService {
         int deleteById(@Bind("id") long id);
 
         @SqlUpdate("UPDATE tasks SET completed = :completed WHERE id = :id")
-        int updateCompleted(@Bind("id") long id, @Bind("completed") boolean completed);
+        int updateCompleted(@Bind("completed") boolean completed, @Bind("id") long id);
     }
 
     private final Jdbi jdbi;
@@ -60,7 +60,7 @@ public class TaskService {
         java.util.Optional<Task> task = taskDaoInterface.findById(id);
         if (task.isPresent()) {
             Task currentTask = task.get();
-            return taskDaoInterface.updateCompleted(id, !currentTask.completed()) > 0;
+            return taskDaoInterface.updateCompleted(!currentTask.completed(), id) > 0;
         }
         return false;
     }

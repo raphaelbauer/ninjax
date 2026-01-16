@@ -6,6 +6,12 @@
 
     </small>
     <div class="task-actions">
+        <form method="post" action="/tasks/toggle" style="display: inline;">
+            <input type="hidden" name="id" value="{{taskId}}">
+            <button type="submit" class="btn btn-toggle">
+                {{toggleButtonText}}
+            </button>
+        </form>
         <form method="post" action="/tasks/delete" style="display: inline;">
             <input type="hidden" name="id" value="{{taskId}}">
             <button type="submit" class="btn btn-delete" onclick="return confirm('Delete this task?')">🗑️ Delete</button>

@@ -32,6 +32,7 @@ public class TodoApplication {
         router.GET("/").with(todoController::showTasks);
         router.POST("/tasks").with(todoController::addTask);
         router.POST("/tasks/delete").with(todoController::deleteTask);
+        router.POST("/tasks/toggle").with(todoController::toggleTaskCompletion);
         router.GET("/tasks.json").with(todoController::getTasksJson);
     }
 
