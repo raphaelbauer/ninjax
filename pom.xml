@@ -48,6 +48,7 @@
         <hikari.version>7.0.2</hikari.version>
         <flyway.version>11.12.0</flyway.version>
         <h2.version>2.3.232</h2.version>
+        <testcontainers.version>1.20.4</testcontainers.version>
     </properties>
     
     <!-- Optional: common dependencyManagement (shared versions) -->
@@ -150,7 +151,19 @@
                 <artifactId>ninja-maven-plugin</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            
+            <dependency>
+                <groupId>org.ninja</groupId>
+                <artifactId>ninja-test-utils</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.ninja</groupId>
+                <artifactId>ninja-test-db-utils</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
             <!-- External database libraries -->
             <dependency>
                 <groupId>com.zaxxer</groupId>
@@ -224,7 +237,32 @@
                 <version>1.4.4</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers</artifactId>
+                <version>${testcontainers.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${testcontainers.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>42.7.5</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>5.21.0</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
+
     </dependencyManagement>
     
     <!-- Common build config for all modules -->
@@ -309,6 +347,8 @@
         <module>ninja-db-jdbi</module>
         <module>ninja-template</module>
         <module>ninja-maven-plugin</module>
+        <module>ninja-test-utils</module>
+        <module>ninja-test-db-utils</module>
         <module>ninja-demo-todo</module>
     </modules>
 </project>

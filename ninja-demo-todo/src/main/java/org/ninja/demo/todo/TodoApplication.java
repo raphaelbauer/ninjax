@@ -23,7 +23,8 @@ public class TodoApplication {
     // end
     ////////////////////////////////////////////////////////////////////////////
     
-    public final TaskService taskService = new TaskService(ninjaJdbiImpl);
+    public final TaskRepository taskRepository = new TaskRepository(ninjaJdbiImpl);
+    public final TaskService taskService = new TaskService(taskRepository);
     public final TodoController todoController = new TodoController(taskService);
 
     public final Router router = new Router();
