@@ -3,6 +3,7 @@ package org.ninja.test;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import org.ninja.core.PathParameterExtractor;
 import org.ninja.core.Request;
 import org.ninja.core.Result;
 import org.ninja.core.Router;
@@ -183,12 +184,19 @@ public class TestRequestBuilder {
      * @return The constructed Request
      */
     public Request build() {
-        // Create the route
+        // Create temporary route to extract path parameters
         Router.Route route = router.new Route(
                 httpMethod,
                 routePath,
                 req -> Result.ok(), // dummy controller method
                 List.of()
+        );
+
+        // Extract path parameters using utility
+        var pathParams = PathParameterExtractor.extractPathParameters(
+                route.pathRegex(),
+                route.parameters,
+                requestPath
         );
 
         // Create input stream from body
@@ -203,8 +211,8 @@ public class TestRequestBuilder {
         var payload = new Request.Payload(Collections.unmodifiableMap(parameters));
 
         return Request.builder()
-                .route(route)
                 .requestPath(requestPath)
+                .pathParameters(pathParams)
                 .inputStreamGetter(inputStreamGetter)
                 .fileItemGetter(fileItemGetter)
                 .fileItemsGetter(fileItemsGetter)

@@ -208,12 +208,19 @@ public class NinjaJetty {
                         return result;
                     };
 
-                    
+
                     var payload = new org.ninja.core.Request.Payload(Map.of());
-                    
-                    var request = Request.builder().
-                            route(route)
+
+                    // Extract path parameters using the utility
+                    var pathParams = PathParameterExtractor.extractPathParameters(
+                            route.pathRegex(),
+                            route.parameters,
+                            requestURI
+                    );
+
+                    var request = Request.builder()
                             .requestPath(requestURI)
+                            .pathParameters(pathParams)
                             .inputStreamGetter(inputStreamGetter)
                             .fileItemGetter(fileItemGetter)
                             .fileItemsGetter(fileItemsGetter)

@@ -7,19 +7,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.regex.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public record Request(
-        Router.Route route,
         String requestPath,
         InputStreamGetter inputStreamGetter,
         FileItemGetter fileItemGetter,
@@ -30,7 +26,7 @@ public record Request(
         Map<String, String[]> parameters,
         Optional<NinjaSession> ninjaSession,
         Locale language,
-        Map<String, String> pathParameters // derived from route + requestPath
+        Map<String, String> pathParameters
         ) {
 
     private static final Logger logger = LoggerFactory.getLogger(Request.class);
@@ -51,11 +47,9 @@ public record Request(
     }
 
     /**
-     * Canonical constructor wrapper to enforce defensive copies and derive
-     * pathParameters.
+     * Canonical constructor to enforce defensive copies.
      */
-    private Request(
-            Router.Route route,
+    public Request(
             String requestPath,
             InputStreamGetter inputStreamGetter,
             FileItemGetter fileItemGetter,
@@ -65,23 +59,21 @@ public record Request(
             Map<String, List<String>> headers,
             Map<String, String[]> parameters,
             Optional<NinjaSession> ninjaSession,
-            Locale language
+            Locale language,
+            Map<String, String> pathParameters
     ) {
-        this(
-                route,
-                requestPath,
-                inputStreamGetter,
-                fileItemGetter,
-                fileItemsGetter,
-                // defensive copies
-                ImmutableList.copyOf(ninjaCookies),
-                payload,
-                ImmutableMap.copyOf(headers),
-                ImmutableMap.copyOf(parameters),
-                ninjaSession,
-                language,
-                getPathParametersEncodedStatic(route, requestPath)
-        );
+        // Apply defensive copies directly
+        this.requestPath = requestPath;
+        this.inputStreamGetter = inputStreamGetter;
+        this.fileItemGetter = fileItemGetter;
+        this.fileItemsGetter = fileItemsGetter;
+        this.ninjaCookies = ImmutableList.copyOf(ninjaCookies);
+        this.payload = payload;
+        this.headers = ImmutableMap.copyOf(headers);
+        this.parameters = ImmutableMap.copyOf(parameters);
+        this.ninjaSession = ninjaSession;
+        this.language = language;
+        this.pathParameters = ImmutableMap.copyOf(pathParameters);
     }
 
     // ----- Original methods, adapted to the record style -----
@@ -103,10 +95,6 @@ public record Request(
         return ninjaSession;
     }
 
-    public Router.Route route() {
-        return route;
-    }
-
     /**
      * Content of this raw path parameter.
      *
@@ -126,23 +114,6 @@ public record Request(
         }
 
         return ImmutableList.copyOf(value);
-    }
-
-    // Static helper because records can’t have “custom” instance-init easily
-    private static Map<String, String> getPathParametersEncodedStatic(Router.Route route, String uri) {
-        Map<String, String> map = new HashMap<>();
-
-        Matcher m = route.pathRegex().matcher(uri);
-
-        if (m.matches()) {
-            Iterator<String> it = route.parameters.keySet().iterator();
-            for (int i = 1; i < m.groupCount() + 1; i++) {
-                String parameterName = it.next();
-                map.put(parameterName, m.group(i));
-            }
-        }
-
-        return Map.copyOf(map); // unmodifiable
     }
 
     public List<FileItem> getFiles(String fieldName) {
@@ -169,7 +140,6 @@ public record Request(
 
     public static final class Builder {
 
-        private Router.Route route;
         private String requestPath;
         private InputStreamGetter inputStreamGetter;
         private FileItemGetter fileItemGetter;
@@ -180,13 +150,9 @@ public record Request(
         private Map<String, String[]> parameters = Map.of();
         private Optional<NinjaSession> ninjaSession = Optional.empty();
         private Locale language = Locale.getDefault();
+        private Map<String, String> pathParameters = Map.of();
 
         private Builder() {
-        }
-
-        public Builder route(Router.Route route) {
-            this.route = route;
-            return this;
         }
 
         public Builder requestPath(String requestPath) {
@@ -239,8 +205,12 @@ public record Request(
             return this;
         }
 
+        public Builder pathParameters(Map<String, String> pathParameters) {
+            this.pathParameters = pathParameters;
+            return this;
+        }
+
         public Request build() {
-            Objects.requireNonNull(route, "route must not be null");
             Objects.requireNonNull(requestPath, "requestPath must not be null");
             Objects.requireNonNull(inputStreamGetter, "inputStreamGetter must not be null");
             Objects.requireNonNull(fileItemGetter, "fileItemGetter must not be null");
@@ -250,9 +220,9 @@ public record Request(
             Objects.requireNonNull(parameters, "parameters must not be null");
             Objects.requireNonNull(ninjaSession, "ninjaSession must not be null");
             Objects.requireNonNull(language, "language must not be null");
+            Objects.requireNonNull(pathParameters, "pathParameters must not be null");
 
             return new Request(
-                    route,
                     requestPath,
                     inputStreamGetter,
                     fileItemGetter,
@@ -262,7 +232,8 @@ public record Request(
                     headers,
                     parameters,
                     ninjaSession,
-                    language
+                    language,
+                    pathParameters
             );
         }
     }
