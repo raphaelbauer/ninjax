@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     
-    <groupId>org.ninja</groupId>
-    <artifactId>ninja</artifactId>
+    <groupId>org.r10r</groupId>
+    <artifactId>ninjax</artifactId>
     <version>10.0-SNAPSHOT</version>
     
     <packaging>pom</packaging>
@@ -117,48 +117,48 @@
             </dependency>
             
             <dependency>
-                <groupId>org.ninja</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninja-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.ninja</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninja-db-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.ninja</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninja-db-hikari</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.ninja</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninja-db-flyway</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.ninja</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninja-db-jdbi</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.ninja</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninja-template</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.ninja</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninja-maven-plugin</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.ninja</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninja-test-utils</artifactId>
                 <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.ninja</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninja-test-db-utils</artifactId>
                 <version>${project.version}</version>
                 <scope>test</scope>

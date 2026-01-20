@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.ninja</groupId>
-        <artifactId>ninja</artifactId>
+        <groupId>org.r10r</groupId>
+        <artifactId>ninjax</artifactId>
         <version>10.0-SNAPSHOT</version>
     </parent>
 
@@ -16,7 +16,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.ninja</groupId>
+            <groupId>org.r10r</groupId>
             <artifactId>ninja-core</artifactId>
         </dependency>
     </dependencies>

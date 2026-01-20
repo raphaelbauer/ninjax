@@ -52,7 +52,7 @@ has been created in 2012.
 ## Deployment to Maven Central
 
     # Make sure gpg is set up properly
-    mvn deploy -Prelease
+    mvn -Prelease release:prepare release:perform
 
 Log in to https://central.sonatype.com/ to release things.
 
