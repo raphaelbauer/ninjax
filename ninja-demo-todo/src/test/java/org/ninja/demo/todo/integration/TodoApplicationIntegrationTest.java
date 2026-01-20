@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Integration tests for the TodoApplication.
@@ -35,6 +36,9 @@ class TodoApplicationIntegrationTest {
         // Set test port via system property
         TEST_PORT = findAvailablePort(1000);
         System.setProperty("ninja.port", String.valueOf(TEST_PORT));
+        
+        String dbConnectString = "jdbc:h2:./target/test-db-" + UUID.randomUUID();
+        System.setProperty("application.datasource.default.url", dbConnectString);
 
         // Start application in background thread
         serverThread = new Thread(() -> {

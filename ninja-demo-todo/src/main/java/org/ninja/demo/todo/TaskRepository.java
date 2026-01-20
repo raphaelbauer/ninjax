@@ -15,11 +15,7 @@ public class TaskRepository {
     public TaskRepository(NinjaJdbi ninjaJdbi) {
         this.jdbi = ninjaJdbi.getJdbi("default");
 
-        // If Task has a suitable constructor, register a constructor mapper.
-        // Otherwise use BeanMapper / field mapper as appropriate.
         this.jdbi.registerRowMapper(ConstructorMapper.factory(Task.class));
-        // this.jdbi.registerRowMapper(org.jdbi.v3.core.mapper.reflect.BeanMapper.factory(Task.class));
-
     }
 
     public List<Task> findAny() {
