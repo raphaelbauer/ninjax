@@ -4,7 +4,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,12 +13,18 @@ import org.ninja.test.HttpTestClient;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
+import static org.junit.jupiter.api.AssertionsKt.fail;
 
 /**
- * Integration tests for the TodoApplication.
- * Tests the full application stack with real HTTP requests.
+ * Integration tests for the TodoApplication. Tests the full application stack
+ * with real HTTP requests.
  */
 class TodoApplicationIntegrationTest {
 
@@ -36,7 +41,7 @@ class TodoApplicationIntegrationTest {
         // Set test port via system property
         TEST_PORT = findAvailablePort(1000);
         System.setProperty("ninja.port", String.valueOf(TEST_PORT));
-        
+
         String dbConnectString = "jdbc:h2:./target/test-db-" + UUID.randomUUID();
         System.setProperty("application.datasource.default.url", dbConnectString);
 
@@ -47,16 +52,7 @@ class TodoApplicationIntegrationTest {
         serverThread.setDaemon(true);
         serverThread.start();
 
-        // Wait for server to start
-        Thread.sleep(1000);
-    }
-
-    @AfterAll
-    static void stopApplication() {
-        // when
-        if (serverThread != null) {
-            serverThread.interrupt();
-        }
+        waitForServer("http://localhost:" + TEST_PORT);
     }
 
     @BeforeEach
@@ -269,8 +265,44 @@ class TodoApplicationIntegrationTest {
         assertThat(tasksAfterDelete.get(0).get("title").asText()).isEqualTo("Task 3");
         assertThat(tasksAfterDelete.get(1).get("title").asText()).isEqualTo("Task 1");
     }
-    
-       private static int findAvailablePort(int minPort) throws IOException {
+
+    private static void waitForServer(String url) throws InterruptedException {
+        
+        Duration timeout = Duration.ofSeconds(2);
+        Duration pollInterval = Duration.ofMillis(100);
+        
+        HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofMillis(500))
+                .build();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .GET()
+                .timeout(Duration.ofMillis(500))
+                .build();
+
+        long deadline = System.nanoTime() + timeout.toNanos();
+
+        while (System.nanoTime() < deadline) {
+            try {
+                HttpResponse<Void> response
+                        = client.send(request, HttpResponse.BodyHandlers.discarding());
+
+                // Adjust condition if you need a specific status (e.g., 200 only)
+                if (response.statusCode() >= 200 && response.statusCode() < 500) {
+                    return; // server is responding
+                }
+            } catch (Exception ignored) {
+                // server not yet up or connection failed
+            }
+
+            Thread.sleep(pollInterval.toMillis());
+        }
+
+        throw new RuntimeException("Server did not start within " + timeout.toMillis() + " ms");
+    }
+
+    private static int findAvailablePort(int minPort) throws IOException {
         // Bind to port 0 (let OS choose any free port), ensure it's >= minPort
         // If the chosen port is < minPort (very unlikely for 0), retry.
         int attempts = 0;
@@ -279,14 +311,14 @@ class TodoApplicationIntegrationTest {
             if (attempts > 50) {
                 throw new IOException("Unable to find available port >= " + minPort);
             }
-            try (ServerSocket socket =
-                         new ServerSocket(0, 0, InetAddress.getByName("127.0.0.1"))) {
+            try (ServerSocket socket
+                    = new ServerSocket(0, 0, InetAddress.getByName("127.0.0.1"))) {
                 int port = socket.getLocalPort();
                 if (port >= minPort) {
                     return port;
                 }
             }
         }
-    } 
-   
+    }
+
 }
