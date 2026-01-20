@@ -1,4 +1,4 @@
-package org.ninja.demo.todo.integration;
+package org.ninja.demo.todo;
 
 import static com.google.common.truth.Truth.assertThat;
 
