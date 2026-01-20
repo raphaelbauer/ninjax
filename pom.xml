@@ -277,7 +277,24 @@
                         <target>25</target>
                     </configuration>
                 </plugin>
+                <!-- Release plugin -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>3.1.1</version>
+                    <configuration>
+                        <!-- Use Git -->
+                        <scmCommentPrefix>[maven-release-plugin] </scmCommentPrefix>
+                        <!-- Deploy with the "release" profile active so signing+central kick in -->
+                        <arguments>-Prelease</arguments>
+                        <!-- Optional: disable auto versioning of submodules (default is true) -->
+                        <autoVersionSubmodules>true</autoVersionSubmodules>
+                        <!-- Use the standard release goals -->
+                        <goals>deploy</goals>
+                    </configuration>
+                </plugin>
             </plugins>
+
         </pluginManagement>
     </build>
     
