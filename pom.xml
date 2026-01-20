@@ -4,7 +4,7 @@
     
     <groupId>org.ninja</groupId>
     <artifactId>ninja</artifactId>
-    <version>0.2.0</version>
+    <version>0.2.1-SNAPSHOT</version>
     
     <packaging>pom</packaging>
     
@@ -23,7 +23,7 @@
         <url>https://github.com/raphaelbauer/ninjax</url>
         <connection>scm:git://github.com/raphaelbauer/ninjax.git</connection>
         <developerConnection>scm:git:git@github.com:raphaelbauer/ninjax.git</developerConnection>
-      <tag>ninja-0.2.0</tag>
+      <tag>HEAD</tag>
   </scm>
     
     <developers>
