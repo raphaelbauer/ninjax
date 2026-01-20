@@ -1,11 +1,12 @@
-package org.ninja.demo.todo.templates;
+package org.ninja.demo.todo.tasks.views;
 
 import org.juckula.JuckulaCompositionTemplate;
 import org.juckula.JuckulaTool;
-import org.ninja.demo.todo.Task;
+import org.ninja.demo.todo.tasks.Task;
 
 import java.util.Map;
 import java.util.List;
+import org.ninja.demo.todo.views.LayoutTemplate;
 
 public class TodoTemplateService {
     

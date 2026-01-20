@@ -1,5 +1,8 @@
 package org.ninja.demo.todo;
 
+import org.ninja.demo.todo.tasks.TaskService;
+import org.ninja.demo.todo.tasks.Task;
+import org.ninja.demo.todo.tasks.TodoController;
 import java.time.LocalDateTime;
 import static org.ninja.test.ResultAssertions.assertThat;
 

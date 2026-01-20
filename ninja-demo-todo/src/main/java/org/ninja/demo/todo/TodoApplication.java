@@ -1,5 +1,8 @@
 package org.ninja.demo.todo;
 
+import org.ninja.demo.todo.tasks.TaskService;
+import org.ninja.demo.todo.tasks.TodoController;
+import org.ninja.demo.todo.tasks.TaskRepository;
 import java.util.Optional;
 import org.ninja.core.NinjaJetty;
 import org.ninja.core.Router;

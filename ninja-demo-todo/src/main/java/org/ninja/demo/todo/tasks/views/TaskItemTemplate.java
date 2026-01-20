@@ -1,7 +1,7 @@
-package org.ninja.demo.todo.templates;
+package org.ninja.demo.todo.tasks.views;
 
 import java.util.Map;
-import org.ninja.demo.todo.Task;
+import org.ninja.demo.todo.tasks.Task;
 import org.juckula.JuckulaCompositionTemplate;
 import org.juckula.JuckulaTool;
 

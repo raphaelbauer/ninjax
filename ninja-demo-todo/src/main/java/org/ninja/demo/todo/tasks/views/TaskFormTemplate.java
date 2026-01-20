@@ -1,4 +1,4 @@
-package org.ninja.demo.todo.templates;
+package org.ninja.demo.todo.tasks.views;
 
 import org.juckula.JuckulaCompositionTemplate;
 

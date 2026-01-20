@@ -1,5 +1,8 @@
 package org.ninja.demo.todo;
 
+import org.ninja.demo.todo.tasks.TaskRepository;
+import org.ninja.demo.todo.tasks.TaskService;
+import org.ninja.demo.todo.tasks.Task;
 import static com.google.common.truth.Truth.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;

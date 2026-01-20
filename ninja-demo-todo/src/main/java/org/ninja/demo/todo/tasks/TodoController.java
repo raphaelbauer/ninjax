@@ -1,8 +1,8 @@
-package org.ninja.demo.todo;
+package org.ninja.demo.todo.tasks;
 
 import org.ninja.core.Request;
 import org.ninja.core.Result;
-import org.ninja.demo.todo.templates.TodoTemplateService;
+import org.ninja.demo.todo.tasks.views.TodoTemplateService;
 
 import java.util.List;
 

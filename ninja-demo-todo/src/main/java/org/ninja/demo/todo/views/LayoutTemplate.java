@@ -1,4 +1,4 @@
-package org.ninja.demo.todo.templates;
+package org.ninja.demo.todo.views;
 
 import java.util.Map;
 import java.util.Optional;

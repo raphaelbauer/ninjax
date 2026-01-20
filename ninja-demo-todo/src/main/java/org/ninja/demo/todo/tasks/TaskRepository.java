@@ -1,4 +1,4 @@
-package org.ninja.demo.todo;
+package org.ninja.demo.todo.tasks;
 
 import java.time.LocalDateTime;
 import java.util.List;
