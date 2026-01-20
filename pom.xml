@@ -23,8 +23,8 @@
     
     <scm>
         <url>https://github.com/raphaelbauer/ninjax</url>
-        <connection>scm:git:git://github.com/raphaelbauer/ninjax</connection>
-        <developerConnection>scm:git:ssh://github.com:raphaelbauer/ninjax.git</developerConnection>
+        <connection>scm:git://github.com/raphaelbauer/ninjax.git</connection>
+        <developerConnection>scm:git:git@github.com:raphaelbauer/ninjax.git</developerConnection>
     </scm>
     
     <developers>
