@@ -9,6 +9,7 @@ import org.ninja.core.Request;
 import org.ninja.core.Result;
 import java.util.*;
 import org.mockito.Mockito;
+import org.ninja.test.TestRequest;
 
 /**
  * Unit tests for TodoController. Uses a fake TaskService to avoid database
@@ -30,7 +31,7 @@ class TodoControllerTest {
     @Test
     void showTasks_whenNoTasks_returns200WithEmptyList() {
         // given
-        Request request = Mockito.mock(Request.class);
+        Request request = TestRequest.basic();
 
         // when
         Result result = controller.showTasks(request);
@@ -48,7 +49,7 @@ class TodoControllerTest {
                 new Task(1L, "title", "descriptio", LocalDateTime.now(), true),
                 new Task(2L, "title", "descriptio", LocalDateTime.now(), true)));
 
-        Request request = Mockito.mock(Request.class);
+        Request request = TestRequest.basic();
 
         // when
         Result result = controller.showTasks(request);

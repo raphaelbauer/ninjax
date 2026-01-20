@@ -138,6 +138,21 @@ public record Request(
         return new Builder();
     }
 
+    public Builder toBuilder() {
+        return new Builder()
+                .requestPath(this.requestPath)
+                .inputStreamGetter(this.inputStreamGetter)
+                .fileItemGetter(this.fileItemGetter)
+                .fileItemsGetter(this.fileItemsGetter)
+                .ninjaCookies(this.ninjaCookies)
+                .payload(this.payload)
+                .headers(this.headers)
+                .parameters(this.parameters)
+                .ninjaSession(this.ninjaSession)
+                .language(this.language)
+                .pathParameters(this.pathParameters);
+    }
+
     public static final class Builder {
 
         private String requestPath;

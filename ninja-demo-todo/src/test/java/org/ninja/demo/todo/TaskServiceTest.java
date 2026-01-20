@@ -4,7 +4,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.ninja.demo.todo.testutil.TestDatabaseSetup;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,7 +12,6 @@ import org.mockito.Mockito;
 
 class TaskServiceTest {
 
-    private TestDatabaseSetup dbSetup;
     private TaskService taskService;
     private TaskRepository taskRepository;
 

@@ -12,6 +12,8 @@ import org.ninja.demo.todo.TodoApplication;
 import org.ninja.test.HttpTestClient;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.util.Map;
 
 /**
@@ -20,7 +22,7 @@ import java.util.Map;
  */
 class TodoApplicationIntegrationTest {
 
-    private static final int TEST_PORT = 8765;
+    private static int TEST_PORT;
     private static Thread serverThread;
     private static TodoApplication application;
 
@@ -31,6 +33,7 @@ class TodoApplicationIntegrationTest {
     static void startApplication() throws Exception {
         // given
         // Set test port via system property
+        TEST_PORT = findAvailablePort(1000);
         System.setProperty("ninja.port", String.valueOf(TEST_PORT));
 
         // Start application in background thread
@@ -262,4 +265,24 @@ class TodoApplicationIntegrationTest {
         assertThat(tasksAfterDelete.get(0).get("title").asText()).isEqualTo("Task 3");
         assertThat(tasksAfterDelete.get(1).get("title").asText()).isEqualTo("Task 1");
     }
+    
+       private static int findAvailablePort(int minPort) throws IOException {
+        // Bind to port 0 (let OS choose any free port), ensure it's >= minPort
+        // If the chosen port is < minPort (very unlikely for 0), retry.
+        int attempts = 0;
+        while (true) {
+            attempts++;
+            if (attempts > 50) {
+                throw new IOException("Unable to find available port >= " + minPort);
+            }
+            try (ServerSocket socket =
+                         new ServerSocket(0, 0, InetAddress.getByName("127.0.0.1"))) {
+                int port = socket.getLocalPort();
+                if (port >= minPort) {
+                    return port;
+                }
+            }
+        }
+    } 
+   
 }
