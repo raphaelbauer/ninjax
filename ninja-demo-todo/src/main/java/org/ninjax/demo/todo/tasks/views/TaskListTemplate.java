@@ -1,14 +1,14 @@
 package org.ninjax.demo.todo.tasks.views;
 
 import org.ninjax.demo.todo.tasks.Task;
-import org.juckula.JuckulaCompositionTemplate;
+import org.ninja.htmltemplate.NinjaHtmlTemplate;
 
 import java.util.List;
 
 public class TaskListTemplate {
     
-    public static JuckulaCompositionTemplate render(List<Task> tasks) {
-        JuckulaCompositionTemplate template = new JuckulaCompositionTemplate();
+    public static NinjaHtmlTemplate render(List<Task> tasks) {
+        NinjaHtmlTemplate template = new NinjaHtmlTemplate();
         
         template.html("<h1>📝 Todo List - NinjaX Framework Demo</h1>");
         

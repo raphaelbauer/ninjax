@@ -1,4 +1,4 @@
-package org.juckula;
+package org.ninja.htmltemplate;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -10,45 +10,76 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
-class JuckulaCompositionTemplateTest {
+class NinjaHtmlTemplateTest {
 
     @Test
-    void html_appendsStringsWithTrailingNewline() {
-        JuckulaCompositionTemplate t = new JuckulaCompositionTemplate();
+    void html_appendsStrings() {
+        NinjaHtmlTemplate t = new NinjaHtmlTemplate();
 
         t.html("Hello", " ", "World");
 
-        assertThat(t.toString()).isEqualTo("Hello World\n");
+        assertThat(t.toString()).isEqualTo("Hello World");
     }
 
     @Test
-    void html_canBeCalledMultipleTimes_appendsLines() {
-        JuckulaCompositionTemplate t = new JuckulaCompositionTemplate();
+    void html_canBeCalledMultipleTimes() {
+        NinjaHtmlTemplate t = new NinjaHtmlTemplate();
 
         t.html("line1");
         t.html("line2");
 
-        assertThat(t.toString()).isEqualTo("line1\nline2\n");
+        assertThat(t.toString()).isEqualTo("line1line2");
     }
 
     @Test
     void html_withTemplate_appendsOtherTemplateContent() {
-        JuckulaCompositionTemplate t1 = new JuckulaCompositionTemplate();
+        NinjaHtmlTemplate t1 = new NinjaHtmlTemplate();
         t1.html("foo");
 
-        JuckulaCompositionTemplate t2 = new JuckulaCompositionTemplate();
+        NinjaHtmlTemplate t2 = new NinjaHtmlTemplate();
         t2.html("bar");
 
         // append t2 into t1
         t1.html(t2);
 
-        assertThat(t1.toString()).isEqualTo("foo\nbar\n");
+        assertThat(t1.toString()).isEqualTo("foobar");
+    }
+
+    @Test
+    void ninjaHtmlTemplate_escapes_strings_by_default() {
+        // given
+        String input = "<script>alert('x');</script> & \"test\"";
+
+        // when
+        var ninjaHtmlTemplate = new NinjaHtmlTemplate();
+        ninjaHtmlTemplate.html(input);
+        var result = ninjaHtmlTemplate.toString();
+
+        // then
+        assertThat(result).doesNotContain("<");
+        assertThat(result).doesNotContain(">");
+        assertThat(result).doesNotContain("\"");
+        assertThat(result).contains("&lt;script&gt;alert(&#39;x&#39;);&lt;/script&gt; &amp; &quot;test&quot;");
+    }
+
+    @Test
+    void ninjaHtmlTemplate_does_not_escape_html() {
+        // given
+        String input = "<script>alert('x');</script> & \"test\"";
+
+        // when
+        var ninjaHtmlTemplate = new NinjaHtmlTemplate();
+        ninjaHtmlTemplate.html(new Html(input));
+        var result = ninjaHtmlTemplate.toString();
+
+        // then
+        assertThat(result).isEqualTo(input);
     }
 
     @Test
     void escapeUnsafe_escapesHtmlSpecialChars() {
         String input = "<script>alert('x');</script> & \"test\"";
-        String escaped = JuckulaCompositionTemplate.escapeUnsafe(input);
+        String escaped = NinjaHtmlTemplate.escapeUnsafe(input);
 
         // Using Guava HtmlEscapers.htmlEscaper contract:
         assertThat(escaped).doesNotContain("<");
@@ -59,7 +90,7 @@ class JuckulaCompositionTemplateTest {
 
     @Test
     void writeOut_writesUtf8ContentToOutputStream() throws Exception {
-        JuckulaCompositionTemplate t = new JuckulaCompositionTemplate();
+        NinjaHtmlTemplate t = new NinjaHtmlTemplate();
         t.html("Héllo");
         t.html("World");
 
@@ -68,12 +99,12 @@ class JuckulaCompositionTemplateTest {
         t.writeOut(baos);
 
         String result = baos.toString(StandardCharsets.UTF_8);
-        assertThat(result).isEqualTo("Héllo\nWorld\n");
+        assertThat(result).isEqualTo("HélloWorld");
     }
 
     @Test
     void writeOut_wrapsIOExceptionInIllegalStateException() {
-        JuckulaCompositionTemplate t = new JuckulaCompositionTemplate();
+        NinjaHtmlTemplate t = new NinjaHtmlTemplate();
         t.html("data");
 
         OutputStream throwingStream = new OutputStream() {

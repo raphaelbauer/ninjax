@@ -2,14 +2,14 @@ package org.ninjax.demo.todo.tasks.views;
 
 import java.util.Map;
 import org.ninjax.demo.todo.tasks.Task;
-import org.juckula.JuckulaCompositionTemplate;
-import org.juckula.JuckulaTool;
+import org.ninja.htmltemplate.NinjaHtmlTemplate;
+import org.ninja.htmltemplate.NinjaHtmlTemplateTool;
 
 public class TaskItemTemplate {
 
-    private final static String TEMPLATE = JuckulaTool.readResourceFile(TaskItemTemplate.class);
+    private final static String TEMPLATE = NinjaHtmlTemplateTool.readResourceFile(TaskItemTemplate.class);
 
-    public static JuckulaCompositionTemplate render(Task task) {
+    public static NinjaHtmlTemplate render(Task task) {
 
         String completedClass = task.completed() ? "completed" : "";
         String completedText = task.completed() ? "✅ " : "⏳ ";
@@ -26,9 +26,9 @@ public class TaskItemTemplate {
                 "taskId", task.id().toString(),
                 "toggleButtonText", toggleButtonText
         );
-        var templateWithVariables = JuckulaTool.replacePlaceholders(TEMPLATE, parameters);
+        var templateWithVariables = NinjaHtmlTemplateTool.replacePlaceholders(TEMPLATE, parameters);
 
-        var template = new JuckulaCompositionTemplate();
+        var template = new NinjaHtmlTemplate();
         template.html(templateWithVariables);
 
         return template;

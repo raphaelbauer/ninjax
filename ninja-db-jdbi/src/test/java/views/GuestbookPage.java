@@ -2,16 +2,16 @@ package views;
 
 import java.util.List;
 import models.Guestbook;
-import org.juckula.JuckulaCompositionTemplate;
+import org.ninja.htmltemplate.NinjaHtmlTemplate;
 
 
 public class GuestbookPage {
     
-    public static JuckulaCompositionTemplate render(List<Guestbook> guestbookEntries) {
+    public static NinjaHtmlTemplate render(List<Guestbook> guestbookEntries) {
         
         LayoutHtml layoutHtml = new LayoutHtml();
         
-        JuckulaCompositionTemplate juckula2Template = new JuckulaCompositionTemplate();
+        NinjaHtmlTemplate juckula2Template = new NinjaHtmlTemplate();
         
         juckula2Template.html("""
                    <header class="jumbotron subhead">

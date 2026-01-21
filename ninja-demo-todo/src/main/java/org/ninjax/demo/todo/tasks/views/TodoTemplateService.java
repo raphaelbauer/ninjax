@@ -1,7 +1,7 @@
 package org.ninjax.demo.todo.tasks.views;
 
-import org.juckula.JuckulaCompositionTemplate;
-import org.juckula.JuckulaTool;
+import org.ninja.htmltemplate.NinjaHtmlTemplate;
+import org.ninja.htmltemplate.NinjaHtmlTemplateTool;
 import org.ninjax.demo.todo.tasks.Task;
 
 import java.util.Map;
@@ -12,10 +12,10 @@ public class TodoTemplateService {
     
     public String generateTodoPage(List<Task> tasks) {
         // Generate dynamic content
-        JuckulaCompositionTemplate dynamicContent = TaskListTemplate.render(tasks);
+        NinjaHtmlTemplate dynamicContent = TaskListTemplate.render(tasks);
         
         // Generate full layout
-        JuckulaCompositionTemplate fullPage = LayoutTemplate.render("Todo List - NinjaX Demo", dynamicContent);
+        NinjaHtmlTemplate fullPage = LayoutTemplate.render("Todo List - NinjaX Demo", dynamicContent);
         
         return fullPage.toString();
     }

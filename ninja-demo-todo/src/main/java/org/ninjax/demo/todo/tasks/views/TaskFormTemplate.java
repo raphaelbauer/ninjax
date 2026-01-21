@@ -1,11 +1,11 @@
 package org.ninjax.demo.todo.tasks.views;
 
-import org.juckula.JuckulaCompositionTemplate;
+import org.ninja.htmltemplate.NinjaHtmlTemplate;
 
 public class TaskFormTemplate {
     
-    public static JuckulaCompositionTemplate render() {
-        JuckulaCompositionTemplate template = new JuckulaCompositionTemplate();
+    public static NinjaHtmlTemplate render() {
+        NinjaHtmlTemplate template = new NinjaHtmlTemplate();
         
         template.html("""
             <form method="post" action="/tasks">

@@ -1,15 +1,15 @@
 package views;
 
-import org.juckula.JuckulaCompositionTemplate;
+import org.ninja.htmltemplate.NinjaHtmlTemplate;
 
 public class LayoutHtml {
 
-    public JuckulaCompositionTemplate render(String title, JuckulaCompositionTemplate innerHtml) {
+    public NinjaHtmlTemplate render(String title, NinjaHtmlTemplate innerHtml) {
         
-        JuckulaCompositionTemplate template = new JuckulaCompositionTemplate();
+        NinjaHtmlTemplate template = new NinjaHtmlTemplate();
 
         template.html("<html>");
-        template.html("<head><title>", JuckulaCompositionTemplate.escapeUnsafe(title), "</title></head>");
+        template.html("<head><title>", NinjaHtmlTemplate.escapeUnsafe(title), "</title></head>");
         template.html("<body>");
 
         template.html(HeaderHtml.render());

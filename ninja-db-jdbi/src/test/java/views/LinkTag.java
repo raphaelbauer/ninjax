@@ -1,13 +1,13 @@
 package views;
 
-import org.juckula.JuckulaCompositionTemplate;
+import org.ninja.htmltemplate.NinjaHtmlTemplate;
 
 public class LinkTag {
 
-    public static JuckulaCompositionTemplate render(String name, String href) {
+    public static NinjaHtmlTemplate render(String name, String href) {
 
-        JuckulaCompositionTemplate juckula2Template = new JuckulaCompositionTemplate();
-        juckula2Template.html("<a href='", JuckulaCompositionTemplate.escapeUnsafe(href), "'>", JuckulaCompositionTemplate.escapeUnsafe(name), "</a>");
+        NinjaHtmlTemplate juckula2Template = new NinjaHtmlTemplate();
+        juckula2Template.html("<a href='", NinjaHtmlTemplate.escapeUnsafe(href), "'>", NinjaHtmlTemplate.escapeUnsafe(name), "</a>");
         return juckula2Template;
     }
 

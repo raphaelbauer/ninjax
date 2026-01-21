@@ -1,23 +1,24 @@
-package org.juckula;
+package org.ninja.htmltemplate;
 
 
 import com.google.common.html.HtmlEscapers;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import static org.ninja.htmltemplate.NinjaHtmlTemplateTool.renderRawHtmlOrString;
 
-public class JuckulaCompositionTemplate {
+public class NinjaHtmlTemplate {
 
     private final StringBuilder stringBuilder = new StringBuilder();
 
-    public void html(String... strings) {
-        for (String string : strings) {
-            stringBuilder.append(string);
+    public void html(Object... stringsOrRawHtml) {
+        for (Object stringOrRawHtml : stringsOrRawHtml) {
+            String toRender = renderRawHtmlOrString(stringOrRawHtml);
+            stringBuilder.append(toRender);
         }
-        stringBuilder.append('\n');
     }
 
-    public void html(JuckulaCompositionTemplate template) {
+    public void html(NinjaHtmlTemplate template) {
         stringBuilder.append(template.toString());
     }
 

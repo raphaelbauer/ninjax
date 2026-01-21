@@ -59,6 +59,11 @@ Log in to https://central.sonatype.com/ check releases.
 
 v1 Alpha TODO:
 =========
+
+
+v1 BETA TODO:
+=============
+
 - juckula add escaping by default and special record to render raw
  json und request jackson parsen mit inject bauen
 
@@ -71,8 +76,7 @@ v1 Alpha TODO:
 
 - how to make e.g. json configurable with json...
 
-v1 BETA TODO:
-=============
+
 - MAYBE move conf to resourcs
 - remove secret in conf - maybe
 - compiled templates without regex...

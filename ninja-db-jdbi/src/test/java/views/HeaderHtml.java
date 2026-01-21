@@ -1,11 +1,11 @@
 package views;
 
-import org.juckula.JuckulaCompositionTemplate;
+import org.ninja.htmltemplate.NinjaHtmlTemplate;
 
 public class HeaderHtml {
 
-    public static JuckulaCompositionTemplate render() {
-        JuckulaCompositionTemplate juckula2Template = new JuckulaCompositionTemplate();
+    public static NinjaHtmlTemplate render() {
+        NinjaHtmlTemplate juckula2Template = new NinjaHtmlTemplate();
 
         juckula2Template.html(
                 """

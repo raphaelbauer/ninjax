@@ -1,4 +1,4 @@
-package org.juckula;
+package org.ninja.htmltemplate;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,13 +7,12 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class JuckulaTool {
+public class NinjaHtmlTemplateTool {
 
     // Precompiled regex for performance - used to replace {{yourParameter}} with the parameter in your map
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{\\{(.+?)}}");
 
-    public static String replacePlaceholders(String template, Map<String, String> params) {
-        // FIXME => No Html Escaping... This needs to be added...
+    public static String replacePlaceholders(String template, Map<String, ?> params) {
 
         Matcher matcher = PLACEHOLDER_PATTERN.matcher(template);
         StringBuffer sb = new StringBuffer();
@@ -23,7 +22,13 @@ public class JuckulaTool {
             if (!params.containsKey(key)) {
                 throw new IllegalArgumentException("Missing variable for placeholder: " + key);
             }
-            String replacement = params.get(key);
+            Object v = params.get(key);
+            if (v == null) {
+                throw new IllegalArgumentException("Missing variable for placeholder: " + key);
+            }
+
+            String replacement = renderRawHtmlOrString(v);
+            
             // Escape $ and \ in replacement to avoid issues
             matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
         }
@@ -41,6 +46,15 @@ public class JuckulaTool {
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    protected static String renderRawHtmlOrString(Object rawHtmlOrString) {
+        return switch (rawHtmlOrString) {
+            case Html html -> html.rawHtml();
+            case String s -> NinjaHtmlTemplate.escapeUnsafe(s);
+            default -> NinjaHtmlTemplate.escapeUnsafe(String.valueOf(rawHtmlOrString));
+        };
+
     }
 
 }
