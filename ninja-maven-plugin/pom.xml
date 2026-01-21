@@ -26,8 +26,8 @@
                 <version>3.15.2</version>
                 <configuration>
                     <skipErrorNoDescriptorsFound>false</skipErrorNoDescriptorsFound>
-                     <goalPrefix>ninjax</goalPrefix>
-                     <requiredMavenVersion>3.9.6</requiredMavenVersion>
+                    <goalPrefix>ninjax</goalPrefix>
+                    <requiredMavenVersion>3.9.6</requiredMavenVersion>
                 </configuration>
                 <executions>
                     <execution>
@@ -64,5 +64,11 @@
             <version>3.11.0</version>
             <scope>provided</scope>
         </dependency>
+        
+        <dependency>
+            <groupId>org.r10r</groupId>
+            <artifactId>ninja-core</artifactId>
+        </dependency>
+    
     </dependencies>
 </project>

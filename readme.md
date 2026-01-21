@@ -58,20 +58,11 @@ Log in to https://central.sonatype.com/ to release things.
 
 v1 Alpha TODO:
 =========
-- DONE assetscontroller review und test
-- DONE session => Secret / httponly add flags
-
-
-
-- juckula.replacePlaceholders ... tests + what if I want to render ${...}?
 - juckula add escaping by default and special record to render raw
-- compiled templates without regex...
-
-
-- json und request jackson parsen mit inject bauen
-- umbenennen in setAttribute (nicht payload bei request)
+ json und request jackson parsen mit inject bauen
 
 - assetscontroller - do not update session / flash (race condition?)
+
 - test of sessioncookie code
 - remove secret in conf - maybe
 
@@ -92,7 +83,7 @@ v1 Alpha TODO:
 
 v1 BETA TODO:
 =============
-
+- compiled templates without regex...
 
 juckula?
 - stream to x and not toString

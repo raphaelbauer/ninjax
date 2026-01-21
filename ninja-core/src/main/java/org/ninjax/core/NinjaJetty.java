@@ -52,13 +52,13 @@ public class NinjaJetty {
     private final SecretKey secretKeyForSessionEncryption;
 
     private static final String NINJA_LOGO
-            = """
-                     _______  .___ _______        ____.  _____   
-                     \\      \\ |   |\\      \\      |    | /  _  \\  
-                     /   |   \\|   |/   |   \\     |    |/  /_\\  \\ 
-                    /    |    \\   /    |    \\/\\__|    /    |    \\
-                    \\____|__  /___\\____|__  /\\________\\____|__  /
-                            \\/            \\/                  \\/
+                = """
+                      _______  .___ _______        ____.  _____  ____  ___
+                      \\      \\ |   |\\      \\      |    | /  _  \\ \\   \\/  /
+                      /   |   \\|   |/   |   \\     |    |/  /_\\  \\ \\     / 
+                     /    |    \\   /    |    \\/\\__|    /    |    \\/     \\ 
+                     \\____|__  /___\\____|__  /\\________\\____|__  /___/\\  \\
+                             \\/            \\/                  \\/      \\_/
                 """;
 
     public NinjaJetty(Router router, NinjaProperties ninjaProperties) throws RuntimeException {
@@ -68,13 +68,7 @@ public class NinjaJetty {
         this.jettyServerPort = Integer.parseInt(ninjaProperties.get("ninja.port").orElse("8080"));
 
         String encodedSecret = ninjaProperties.get(NINJA_APPLICATION_SECRET_KEY).orElseThrow(() -> {
-            SecretKey key = Jwts.SIG.HS256.key().build();
-            String secretString = Encoders.BASE64.encode(key.getEncoded());
-
-            logger.error("Key {} is missing in your application.conf.Either add it or use -D{}=... to add it during startup.", NINJA_APPLICATION_SECRET_KEY, NINJA_APPLICATION_SECRET_KEY);
-            logger.error("I just randomly generated the following key that you could use: {}={}", NINJA_APPLICATION_SECRET_KEY, secretString);
-
-            return new RuntimeException(NINJA_LOGO);
+            return new RuntimeException(String.format("Missing key '%s' in 'conf/application.conf'. Can't start without a secret. Please create the secret using e.g. 'mvn ninja:generateSecret'.", NINJA_APPLICATION_SECRET_KEY));
         });
 
         byte[] decodedKey = Base64.getDecoder().decode(encodedSecret);

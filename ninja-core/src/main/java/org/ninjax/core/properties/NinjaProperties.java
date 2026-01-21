@@ -15,7 +15,7 @@ public class NinjaProperties {
 
     private final ImmutableMap<String, String> properties;
 
-    private static final String DEFAULT_LOCATION_OF_APPLICATION_CONF = "conf/application.conf";
+    public static final String DEFAULT_LOCATION_OF_APPLICATION_CONF = "conf/application.conf";
 
     public NinjaProperties() {
         properties = loadProperties();
