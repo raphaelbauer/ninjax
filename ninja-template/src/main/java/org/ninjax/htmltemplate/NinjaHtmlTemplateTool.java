@@ -1,4 +1,4 @@
-package org.ninja.htmltemplate;
+package org.ninjax.htmltemplate;
 
 import java.io.IOException;
 import java.io.InputStream;

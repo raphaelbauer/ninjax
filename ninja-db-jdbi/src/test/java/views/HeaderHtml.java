@@ -1,6 +1,6 @@
 package views;
 
-import org.ninja.htmltemplate.NinjaHtmlTemplate;
+import org.ninjax.htmltemplate.NinjaHtmlTemplate;
 
 public class HeaderHtml {
 

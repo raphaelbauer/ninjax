@@ -1,5 +1,7 @@
-package org.ninja.htmltemplate;
+package org.ninjax.htmltemplate;
 
+import org.ninjax.htmltemplate.NinjaHtmlTemplate;
+import org.ninjax.htmltemplate.Html;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 

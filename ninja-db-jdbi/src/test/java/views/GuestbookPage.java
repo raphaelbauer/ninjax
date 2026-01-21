@@ -2,7 +2,7 @@ package views;
 
 import java.util.List;
 import models.Guestbook;
-import org.ninja.htmltemplate.NinjaHtmlTemplate;
+import org.ninjax.htmltemplate.NinjaHtmlTemplate;
 
 
 public class GuestbookPage {

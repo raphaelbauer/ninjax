@@ -64,9 +64,6 @@ v1 Alpha TODO:
 v1 BETA TODO:
 =============
 
-- juckula add escaping by default and special record to render raw
- json und request jackson parsen mit inject bauen
-
 - add tests to db module
 -- hikari
 -- jdbi

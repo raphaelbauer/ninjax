@@ -1,6 +1,6 @@
 package org.ninjax.demo.todo.tasks.views;
 
-import org.ninja.htmltemplate.NinjaHtmlTemplate;
+import org.ninjax.htmltemplate.NinjaHtmlTemplate;
 
 public class TaskFormTemplate {
     

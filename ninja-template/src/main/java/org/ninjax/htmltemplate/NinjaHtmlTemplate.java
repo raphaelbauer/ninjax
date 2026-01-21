@@ -1,11 +1,11 @@
-package org.ninja.htmltemplate;
+package org.ninjax.htmltemplate;
 
 
 import com.google.common.html.HtmlEscapers;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import static org.ninja.htmltemplate.NinjaHtmlTemplateTool.renderRawHtmlOrString;
+import static org.ninjax.htmltemplate.NinjaHtmlTemplateTool.renderRawHtmlOrString;
 
 public class NinjaHtmlTemplate {
 

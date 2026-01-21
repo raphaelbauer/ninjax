@@ -2,8 +2,8 @@ package org.ninjax.demo.todo.tasks.views;
 
 import java.util.Map;
 import org.ninjax.demo.todo.tasks.Task;
-import org.ninja.htmltemplate.NinjaHtmlTemplate;
-import org.ninja.htmltemplate.NinjaHtmlTemplateTool;
+import org.ninjax.htmltemplate.NinjaHtmlTemplate;
+import org.ninjax.htmltemplate.NinjaHtmlTemplateTool;
 
 public class TaskItemTemplate {
 
