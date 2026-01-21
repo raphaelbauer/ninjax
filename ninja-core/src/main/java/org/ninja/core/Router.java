@@ -1,4 +1,4 @@
-package org.ninja.core;
+package org.ninjax.core;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package org.ninja.core;
+package org.ninjax.core;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;

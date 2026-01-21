@@ -1,4 +1,4 @@
-package org.ninja.core;
+package org.ninjax.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;

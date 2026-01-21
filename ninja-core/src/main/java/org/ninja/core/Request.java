@@ -1,4 +1,4 @@
-package org.ninja.core;
+package org.ninjax.core;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.ImmutableList;

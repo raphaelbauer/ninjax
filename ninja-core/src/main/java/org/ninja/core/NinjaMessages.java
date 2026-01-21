@@ -1,4 +1,4 @@
-package org.ninja.core;
+package org.ninjax.core;
 
 import com.google.common.collect.ImmutableMap;
 import java.text.MessageFormat;
@@ -9,7 +9,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
-import org.ninja.core.properties.NinjaProperties;
+import org.ninjax.core.properties.NinjaProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

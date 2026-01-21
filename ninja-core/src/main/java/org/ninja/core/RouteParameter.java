@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ninja.core;
+package org.ninjax.core;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

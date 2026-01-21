@@ -1,4 +1,4 @@
-package org.ninja.core;
+package org.ninjax.core;
 
 import java.util.Optional;
 import java.util.regex.Matcher;

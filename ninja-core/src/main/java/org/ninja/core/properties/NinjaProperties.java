@@ -1,4 +1,4 @@
-package org.ninja.core.properties;
+package org.ninjax.core.properties;
 
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package org.ninja.core;
+package org.ninjax.core;
 
 import com.google.common.collect.ImmutableMap;
 import io.jsonwebtoken.Jwts;
@@ -29,8 +29,8 @@ import javax.crypto.spec.SecretKeySpec;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import static org.ninja.core.NinjaSessionConverter.NINJA_SESSION_COOKIE_NAME;
-import org.ninja.core.properties.NinjaProperties;
+import static org.ninjax.core.NinjaSessionConverter.NINJA_SESSION_COOKIE_NAME;
+import org.ninjax.core.properties.NinjaProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -209,7 +209,7 @@ public class NinjaJetty {
                     };
 
 
-                    var payload = new org.ninja.core.Request.Payload(Map.of());
+                    var payload = new org.ninjax.core.Request.Payload(Map.of());
 
                     // Extract path parameters using the utility
                     var pathParams = PathParameterExtractor.extractPathParameters(
@@ -239,7 +239,7 @@ public class NinjaJetty {
 //                            fileItemGetter,
 //                            fileItemsGetter,
 //                            ninjaCookies,
-//                            new org.ninja.core.Request.Payload(delegate),
+//                            new org.ninjax.core.Request.Payload(delegate),
 //                            headers,
 //                            httpServletRequest.getParameterMap(),
 //                            ninjaSessionInRequest,
@@ -316,9 +316,9 @@ public class NinjaJetty {
 
     public static class NinjaJettyHelper {
 
-        public static org.ninja.core.NinjaCookie convertServletCookieToNinjaCookie(Cookie cookie) {
+        public static org.ninjax.core.NinjaCookie convertServletCookieToNinjaCookie(Cookie cookie) {
 
-            return new org.ninja.core.NinjaCookie(
+            return new org.ninjax.core.NinjaCookie(
                     cookie.getName(),
                     cookie.getValue(),
                     Optional.ofNullable(cookie.getComment()),

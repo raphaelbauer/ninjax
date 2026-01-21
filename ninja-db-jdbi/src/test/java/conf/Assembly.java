@@ -1,14 +1,14 @@
 package conf;
 
 import controller.GuestbookController;
-import org.ninja.core.AssetsController;
-import org.ninja.core.NinjaJetty;
-import org.ninja.core.Router;
-import org.ninja.core.properties.NinjaProperties;
-import org.ninja.db.flyway.NinjaFlywayMigrator;
-import org.ninja.db.hikari.NinjaDbHikariProvider;
-import org.ninja.db.jdbc.NinjaDatasourcePropertiesExtractor;
-import org.ninja.db.jdbi.NinjaJdbiImpl;
+import org.ninjax.core.AssetsController;
+import org.ninjax.core.NinjaJetty;
+import org.ninjax.core.Router;
+import org.ninjax.core.properties.NinjaProperties;
+import org.ninjax.db.flyway.NinjaFlywayMigrator;
+import org.ninjax.db.hikari.NinjaDbHikariProvider;
+import org.ninjax.db.jdbc.NinjaDatasourcePropertiesExtractor;
+import org.ninjax.db.jdbi.NinjaJdbiImpl;
 import services.GuestbooksService;
 
 

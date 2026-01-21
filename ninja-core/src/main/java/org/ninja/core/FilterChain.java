@@ -1,5 +1,5 @@
 
-package org.ninja.core;
+package org.ninjax.core;
 
 import java.util.List;
 

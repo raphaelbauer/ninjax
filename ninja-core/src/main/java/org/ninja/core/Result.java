@@ -1,4 +1,4 @@
-package org.ninja.core;
+package org.ninjax.core;
 
 import java.io.IOException;
 import java.io.OutputStream;

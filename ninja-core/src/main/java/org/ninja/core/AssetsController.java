@@ -1,4 +1,4 @@
-package org.ninja.core;
+package org.ninjax.core;
 
 import com.google.common.io.ByteStreams;
 import java.io.IOException;

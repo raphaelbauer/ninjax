@@ -1,7 +1,7 @@
-package org.ninja.core.conf;
+package org.ninjax.core.conf;
 
 
-import org.ninja.core.properties.NinjaProperties;
+import org.ninjax.core.properties.NinjaProperties;
 import static com.google.common.truth.Truth.*;
 import java.util.Optional;
 

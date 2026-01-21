@@ -1,8 +1,8 @@
 package conf;
 
 import controller.GuestbookController;
-import org.ninja.core.AssetsController;
-import org.ninja.core.Router;
+import org.ninjax.core.AssetsController;
+import org.ninjax.core.Router;
 
 public class Routes {
     

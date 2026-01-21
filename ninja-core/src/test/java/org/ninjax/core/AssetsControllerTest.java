@@ -1,4 +1,4 @@
-package org.ninja.core;
+package org.ninjax.core;
 
 import static com.google.common.truth.Truth.assertThat;
 
