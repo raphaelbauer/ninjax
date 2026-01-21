@@ -1,8 +1,5 @@
 package org.ninjax.core;
 
-import com.google.common.collect.ImmutableMap;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Encoders;
 import jakarta.servlet.MultipartConfigElement;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -43,7 +40,6 @@ public class NinjaJetty {
 
     private final Optional<Long> sessionExpiryTimeInSeconds;
     private final boolean sessionCookieSecure;
-    //private final Optional<Long> sessionisHttpOnly;
 
     public static final String NINJA_APPLICATION_SECRET_KEY = "application.secret";
 
@@ -225,20 +221,6 @@ public class NinjaJetty {
                             .ninjaSession(ninjaSessionInRequest)
                             .language(httpServletRequest.getLocale())
                             .build();
-                            
-//                    var request = new Request(
-//                            route,
-//                            requestURI,
-//                            inputStreamGetter,
-//                            fileItemGetter,
-//                            fileItemsGetter,
-//                            ninjaCookies,
-//                            new org.ninjax.core.Request.Payload(delegate),
-//                            headers,
-//                            httpServletRequest.getParameterMap(),
-//                            ninjaSessionInRequest,
-//                            httpServletRequest.getLocale() /* TODO local can also be set by a lang cookie to override headers of accept... */
-//                    );
 
                     FilterChain chain = new FilterChain(route.filters, 0, routingResult.get().controllerMethod());
                     var result = chain.doFilter(request);
