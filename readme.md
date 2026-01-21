@@ -53,8 +53,9 @@ has been created in 2012.
 
     # Make sure gpg is set up properly
     mvn -Prelease release:prepare release:perform
+    # => Everything is released automatically and should be available after few minutes globally.
 
-Log in to https://central.sonatype.com/ to release things.
+Log in to https://central.sonatype.com/ check releases.
 
 v1 Alpha TODO:
 =========
@@ -121,7 +122,52 @@ Q&A
 
 ## Session Configuration
 
-Session cookies in NinjaX can be configured via application.conf.
+Ninja uses a session cookie that stores the session on the client side. The browser sends
+the cookie back to the server with each request, which allows the server to re-identify a user.
+
+### The Session Secret
+
+Keeping the session client side is convenient because you don't need any server-side caching technology, and scaling
+with many Ninja instances is trivial.
+
+In order to verify that a cookie has been issued by a server, it is digitally signed and verified
+using a secret that can be set in your `application.conf` file:
+
+```properties
+application.secret=YOUR_SECRET
+```
+
+You can generate a new secret easily using the Ninja plugin:
+
+```bash
+ninja:generateSecret
+```
+
+Copy this value into your `application.conf`.
+
+### Handling
+
+In production services it is not advisable to use an `application.conf` that is checked into a version control system.
+Instead, provide the application secret as an environment variable.
+
+You can easily set the secret as an environment variable:
+
+```bash
+# Set variable manually or using built-in tooling of your cloud provider:
+export APPLICATION_SECRET=generated_application_secret
+
+java -jar -Dninja.port=5000 \
+       -Dapplication.secret=${APPLICATION_SECRET} \
+       ... more system variables \
+       my-app.jar
+```
+
+Most cloud providers (such as AWS or Heroku) allow you to globally set environment variables, which
+lets you start multiple instances that all use the same secret. 
+This allows you to run multiple Ninja instances behind a load balancer; 
+it does not matter which instance handles which request.
+Any instance can handle and verify any session cookie.
+
 
 ### Session Cookie Security
 
