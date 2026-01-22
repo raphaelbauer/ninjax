@@ -1,19 +1,22 @@
 package views;
 
 import java.util.List;
+import java.util.Map;
 import models.Guestbook;
+import org.ninjax.htmltemplate.Html;
 import org.ninjax.htmltemplate.NinjaHtmlTemplate;
-
+import org.ninjax.htmltemplate.NinjaHtmlTemplateTool;
 
 public class GuestbookPage {
-    
+
     public static NinjaHtmlTemplate render(List<Guestbook> guestbookEntries) {
-        
+
         LayoutHtml layoutHtml = new LayoutHtml();
-        
-        NinjaHtmlTemplate juckula2Template = new NinjaHtmlTemplate();
-        
-        juckula2Template.html("""
+
+        NinjaHtmlTemplate ninjaHtmlTemplate = new NinjaHtmlTemplate();
+
+        ninjaHtmlTemplate.append(
+                """
                    <header class="jumbotron subhead">
                        <h1>Hi. This is a simple guestbook.</h1>
                        <p class="lead">I exemplify the usage
@@ -29,30 +32,33 @@ public class GuestbookPage {
                            Content: <input type="text" name="content" /><br/> 
                                    <input type="submit" value="submit">
                        </form>
-                              """);
-        
-        
-        juckula2Template.html("""
+                       """);
+
+        ninjaHtmlTemplate.append("""
                               <h2>All previous entries:</h2>
                               """);
-        
-        
-        
+
         for (var guestbook : guestbookEntries) {
-                    juckula2Template.html("""
-                            <h3>Entry</h3>
+
+            String template
+                    = """
+                        <h3>Entry</h3>
                             <p>
-                                Email: """, guestbook.email, 
-                                """
+                                Email: {{guestbookEmail}}
                                 <br/>
-                                Content: """, guestbook.content,
-                                """
+                                Content: {{guestbookContent}}
                             </p>
-                              """);
+                          """;
+
+            String templateWithReplacedValues = NinjaHtmlTemplateTool.replacePlaceholders(
+                    template, Map.of("guestbookEmail", guestbook.email, "guestbookContent", guestbook.content));
+
+            ninjaHtmlTemplate.append(new Html(templateWithReplacedValues));
+
+            
         }
         
-        
-        return layoutHtml.render("Guestbook Entries", juckula2Template);   
-    }
+        return layoutHtml.render("Guestbook Entries", ninjaHtmlTemplate);
 
+    }
 }

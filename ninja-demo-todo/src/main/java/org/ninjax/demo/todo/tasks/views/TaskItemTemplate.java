@@ -29,7 +29,7 @@ public class TaskItemTemplate {
         var templateWithVariables = NinjaHtmlTemplateTool.replacePlaceholders(TEMPLATE, parameters);
 
         var template = new NinjaHtmlTemplate();
-        template.html(templateWithVariables);
+        template.append(templateWithVariables);
 
         return template;
 

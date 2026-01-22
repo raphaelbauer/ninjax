@@ -64,6 +64,15 @@ v1 Alpha TODO:
 v1 BETA TODO:
 =============
 
+improve ninhahml template dev ergonomics
+- maybe immutable and only render one ting (not String...)
+- repladce Map with List of objects that then will be rendered 
+- hide juckulaTool.replacePlceholders and integrate in template...
+- new Html => Html.of(...) maybe better?
+
+
+- rerun security assessment and fix all open topics
+
 - add tests to db module
 -- hikari
 -- jdbi
@@ -71,29 +80,26 @@ v1 BETA TODO:
 -- jdbc
 -- big fat try catch to wrap java exceptions with a 500
 
-- how to make e.g. json configurable with json...
-
 
 - MAYBE move conf to resourcs
 - remove secret in conf - maybe
-- compiled templates without regex...
 
-juckula?
-- stream to x and not toString
-
-- make NinjaJetty nicer
 -flashscope?
-- make everything immutable and stabilize Api
 - header => do not return null if not present...
-- move from servlet to raw jetty api
 - add tests to all areas / documentation / fix missing proper error handling
 - add ai compatible documentation
-- send security headers by defaul (see e.g. play fraemwork)
+- send security headers by default (see e.g. play fraemwork)
 
 
 v2 TODO:
 ====
-- replaceable prpertties ${...} => see chatgpt
+- how to make e.g. json configurable with json...
+- make NinjaJetty nicer
+- move from servlet to raw jetty api
+- compiled templates without regex...
+- stream to x and not toString
+
+
 - json
 - websockets?
 - global filter

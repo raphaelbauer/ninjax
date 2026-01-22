@@ -13,20 +13,11 @@ import org.junit.jupiter.api.Test;
 class NinjaHtmlTemplateTest {
 
     @Test
-    void html_appendsStrings() {
-        NinjaHtmlTemplate t = new NinjaHtmlTemplate();
-
-        t.html("Hello", " ", "World");
-
-        assertThat(t.toString()).isEqualTo("Hello World");
-    }
-
-    @Test
     void html_canBeCalledMultipleTimes() {
         NinjaHtmlTemplate t = new NinjaHtmlTemplate();
 
-        t.html("line1");
-        t.html("line2");
+        t.append("line1");
+        t.append("line2");
 
         assertThat(t.toString()).isEqualTo("line1line2");
     }
@@ -34,13 +25,13 @@ class NinjaHtmlTemplateTest {
     @Test
     void html_withTemplate_appendsOtherTemplateContent() {
         NinjaHtmlTemplate t1 = new NinjaHtmlTemplate();
-        t1.html("foo");
+        t1.append("foo");
 
         NinjaHtmlTemplate t2 = new NinjaHtmlTemplate();
-        t2.html("bar");
+        t2.append("bar");
 
         // append t2 into t1
-        t1.html(t2);
+        t1.append(t2);
 
         assertThat(t1.toString()).isEqualTo("foobar");
     }
@@ -52,7 +43,7 @@ class NinjaHtmlTemplateTest {
 
         // when
         var ninjaHtmlTemplate = new NinjaHtmlTemplate();
-        ninjaHtmlTemplate.html(input);
+        ninjaHtmlTemplate.append(input);
         var result = ninjaHtmlTemplate.toString();
 
         // then
@@ -67,11 +58,11 @@ class NinjaHtmlTemplateTest {
         // given
         String intentionalHtml = "<p>intentional html</p>";
         var intentionalHtmlTemplate = new NinjaHtmlTemplate();
-        intentionalHtmlTemplate.html(new Html(intentionalHtml));
+        intentionalHtmlTemplate.append(new Html(intentionalHtml));
 
         // when
         var ninjaHtmlTemplate = new NinjaHtmlTemplate();
-        ninjaHtmlTemplate.html(intentionalHtmlTemplate);
+        ninjaHtmlTemplate.append(intentionalHtmlTemplate);
         var result = ninjaHtmlTemplate.toString();
 
         // then
@@ -85,7 +76,7 @@ class NinjaHtmlTemplateTest {
 
         // when
         var ninjaHtmlTemplate = new NinjaHtmlTemplate();
-        ninjaHtmlTemplate.html(new Html(input));
+        ninjaHtmlTemplate.append(new Html(input));
         var result = ninjaHtmlTemplate.toString();
 
         // then
@@ -107,8 +98,8 @@ class NinjaHtmlTemplateTest {
     @Test
     void writeOut_writesUtf8ContentToOutputStream() throws Exception {
         NinjaHtmlTemplate t = new NinjaHtmlTemplate();
-        t.html("Héllo");
-        t.html("World");
+        t.append("Héllo");
+        t.append("World");
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
@@ -121,7 +112,7 @@ class NinjaHtmlTemplateTest {
     @Test
     void writeOut_wrapsIOExceptionInIllegalStateException() {
         NinjaHtmlTemplate t = new NinjaHtmlTemplate();
-        t.html("data");
+        t.append("data");
 
         OutputStream throwingStream = new OutputStream() {
             @Override

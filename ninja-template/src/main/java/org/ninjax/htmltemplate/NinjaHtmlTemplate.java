@@ -11,14 +11,17 @@ public class NinjaHtmlTemplate {
 
     private final StringBuilder stringBuilder = new StringBuilder();
 
-    public void html(Object... stringsOrRawHtml) {
-        for (Object stringOrRawHtml : stringsOrRawHtml) {
-            String toRender = renderRawHtmlOrString(stringOrRawHtml);
-            stringBuilder.append(toRender);
-        }
+    public void append(String stringOrRawHtml) {
+        String toRender = renderRawHtmlOrString(stringOrRawHtml);
+        stringBuilder.append(toRender);
+    }
+        
+    public void append(Object stringOrRawHtml) {
+        String toRender = renderRawHtmlOrString(stringOrRawHtml);
+        stringBuilder.append(toRender);
     }
 
-    public void html(NinjaHtmlTemplate template) {
+    public void append(NinjaHtmlTemplate template) {
         stringBuilder.append(template.toString());
     }
 

@@ -5,9 +5,9 @@ import org.ninjax.htmltemplate.NinjaHtmlTemplate;
 public class HeaderHtml {
 
     public static NinjaHtmlTemplate render() {
-        NinjaHtmlTemplate juckula2Template = new NinjaHtmlTemplate();
+        NinjaHtmlTemplate ninjaHtmlTemplate = new NinjaHtmlTemplate();
 
-        juckula2Template.html(
+        ninjaHtmlTemplate.append(
                 """
                 <header>
                 <p>That's the funky header, duderino!</p>
@@ -15,7 +15,7 @@ public class HeaderHtml {
                 """
         );
         
-        return juckula2Template;
+        return ninjaHtmlTemplate;
     }
 
 }

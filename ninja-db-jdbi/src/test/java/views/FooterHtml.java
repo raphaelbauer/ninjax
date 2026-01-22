@@ -5,9 +5,9 @@ import org.ninjax.htmltemplate.NinjaHtmlTemplate;
 public class FooterHtml {
 
     public static NinjaHtmlTemplate render() {
-        NinjaHtmlTemplate juckula2Template = new NinjaHtmlTemplate();
+        NinjaHtmlTemplate ninjaHtmlTemplate = new NinjaHtmlTemplate();
 
-        juckula2Template.html(
+        ninjaHtmlTemplate.append(
                 """
                 <footer>
                 <p>That's the funky footer, dude!</p>
@@ -15,7 +15,7 @@ public class FooterHtml {
                 """
         );
 
-        return juckula2Template;
+        return ninjaHtmlTemplate;
     }
 
 }

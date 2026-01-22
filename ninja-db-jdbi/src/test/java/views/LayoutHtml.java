@@ -1,30 +1,33 @@
 package views;
 
+import org.ninjax.htmltemplate.Html;
 import org.ninjax.htmltemplate.NinjaHtmlTemplate;
 
 public class LayoutHtml {
 
     public NinjaHtmlTemplate render(String title, NinjaHtmlTemplate innerHtml) {
-        
+
         NinjaHtmlTemplate template = new NinjaHtmlTemplate();
 
-        template.html("<html>");
-        template.html("<head><title>", NinjaHtmlTemplate.escapeUnsafe(title), "</title></head>");
-        template.html("<body>");
+        template.append(new Html("<html>"));
+        template.append(new Html("<head><title>"));
+        template.append(new Html(title));
+        template.append(new Html("</title></head>"));
+        template.append(new Html("<body>"));
 
-        template.html(HeaderHtml.render());
+        template.append(HeaderHtml.render());
 
         for (int i = 0; i < 10; i++) {
-            template.html(LinkTag.render("title" + i, "href" + i));
+            template.append(LinkTag.render("title" + i, "href" + i));
         }
 
-        template.html(innerHtml);
+        template.append(innerHtml);
 
-        template.html(FooterHtml.render());
+        template.append(FooterHtml.render());
 
-        template.html("</body>");
-        template.html("</html>");
-        
+        template.append("</body>");
+        template.append("</html>");
+
         return template;
 
     }

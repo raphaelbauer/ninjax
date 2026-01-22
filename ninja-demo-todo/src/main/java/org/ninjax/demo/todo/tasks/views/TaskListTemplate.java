@@ -10,18 +10,18 @@ public class TaskListTemplate {
     public static NinjaHtmlTemplate render(List<Task> tasks) {
         NinjaHtmlTemplate template = new NinjaHtmlTemplate();
         
-        template.html("<h1>📝 Todo List - NinjaX Framework Demo</h1>");
+        template.append("<h1>📝 Todo List - NinjaX Framework Demo</h1>");
         
         // Add task form
-        template.html(TaskFormTemplate.render());
+        template.append(TaskFormTemplate.render());
         
-        template.html("<h2>Tasks</h2>");
+        template.append("<h2>Tasks</h2>");
         
         if (tasks.isEmpty()) {
-            template.html("<p class=\"empty-message\">No tasks yet. Add one above! 🚀</p>");
+            template.append("<p class=\"empty-message\">No tasks yet. Add one above! 🚀</p>");
         } else {
             for (Task task : tasks) {
-                template.html(TaskItemTemplate.render(task));
+                template.append(TaskItemTemplate.render(task));
             }
         }
         
