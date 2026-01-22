@@ -15,6 +15,19 @@ public class NinjaHtmlTemplate {
         String toRender = renderRawHtmlOrString(stringOrRawHtml);
         stringBuilder.append(toRender);
     }
+    
+    /**
+     * This appends a String without any html escaping (!).
+     * Only do this when you created and trust that string. 
+     * Never do this for anything that's coming from a user.
+     * 
+     * This is equivalent to append(new Html(..)...
+     * 
+     * @param htmlString The string that will be appended. No escaping is performed.
+     */
+    public void appendHtml(String htmlString) {
+        stringBuilder.append(htmlString);
+    }
         
     public void append(Object stringOrRawHtml) {
         String toRender = renderRawHtmlOrString(stringOrRawHtml);
