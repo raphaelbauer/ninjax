@@ -50,6 +50,7 @@ public class NinjaHtmlTemplateTool {
 
     protected static String renderRawHtmlOrString(Object rawHtmlOrString) {
         return switch (rawHtmlOrString) {
+            case NinjaHtmlTemplate ninjaHtmlTemplate -> ninjaHtmlTemplate.toString();
             case Html html -> html.rawHtml();
             case String s -> NinjaHtmlTemplate.escapeUnsafe(s);
             default -> NinjaHtmlTemplate.escapeUnsafe(String.valueOf(rawHtmlOrString));

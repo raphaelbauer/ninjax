@@ -1,7 +1,5 @@
 package org.ninjax.htmltemplate;
 
-import org.ninjax.htmltemplate.NinjaHtmlTemplate;
-import org.ninjax.htmltemplate.Html;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -62,6 +60,22 @@ class NinjaHtmlTemplateTest {
         assertThat(result).doesNotContain(">");
         assertThat(result).doesNotContain("\"");
         assertThat(result).contains("&lt;script&gt;alert(&#39;x&#39;);&lt;/script&gt; &amp; &quot;test&quot;");
+    }
+    
+    @Test
+    void ninjaHtmlTemplate_does_not_escape_other_NinjaHtmlTemplates() {
+        // given
+        String intentionalHtml = "<p>intentional html</p>";
+        var intentionalHtmlTemplate = new NinjaHtmlTemplate();
+        intentionalHtmlTemplate.html(new Html(intentionalHtml));
+
+        // when
+        var ninjaHtmlTemplate = new NinjaHtmlTemplate();
+        ninjaHtmlTemplate.html(intentionalHtmlTemplate);
+        var result = ninjaHtmlTemplate.toString();
+
+        // then
+        assertThat(result).isEqualTo(intentionalHtml);
     }
 
     @Test

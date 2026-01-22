@@ -35,6 +35,25 @@ class NinjaHtmlTemplateToolTest {
     }
     
     @Test
+    void replacePlaceholders_does_not_escape_html_other_NinjaHtmlTemplates() {
+        // given
+        String intentionalHtml = "<p>intentional html</p>";
+        var intentionalHtmlTemplate = new NinjaHtmlTemplate();
+        intentionalHtmlTemplate.html(new Html(intentionalHtml));
+
+        // when
+        String template = "This should include intentional html: {{intentionalHtml}}";
+        Map<String, ?> params = Map.of("intentionalHtml", intentionalHtmlTemplate);
+        
+        // when
+        String result = NinjaHtmlTemplateTool.replacePlaceholders(template, params);
+
+        // then
+        assertThat(result).isEqualTo("This should include intentional html: <p>intentional html</p>");
+    }
+    
+    
+    @Test
     void replacePlaceholders_does_not_escape_html() {
         //given
         String template = "Hello {{name}}!";
