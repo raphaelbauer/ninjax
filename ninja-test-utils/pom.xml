@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.r10r</groupId>
         <artifactId>ninjax</artifactId>
-        <version>0.2.8</version>
+        <version>0.2.9-SNAPSHOT</version>
     </parent>
 
     <artifactId>ninja-test-utils</artifactId>
