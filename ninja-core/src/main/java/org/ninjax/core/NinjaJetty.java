@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,8 +22,9 @@ import java.util.Map;
 import java.util.Optional;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import org.eclipse.jetty.ee10.servlet.FilterHolder;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import static org.ninjax.core.NinjaSessionConverter.NINJA_SESSION_COOKIE_NAME;
 import org.ninjax.core.properties.NinjaProperties;
