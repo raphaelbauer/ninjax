@@ -5,14 +5,18 @@ import com.google.common.html.HtmlEscapers;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import static org.ninjax.htmltemplate.NinjaHtmlTemplateTool.renderRawHtmlOrString;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class NinjaHtmlTemplate {
+ 
+
 
     private final StringBuilder stringBuilder = new StringBuilder();
 
-    public void append(String stringOrRawHtml) {
-        String toRender = renderRawHtmlOrString(stringOrRawHtml);
+    public void append(String string) {
+        String toRender = NinjaHtmlTemplate.escapeUnsafe(string);
         stringBuilder.append(toRender);
     }
     
@@ -30,7 +34,7 @@ public class NinjaHtmlTemplate {
     }
         
     public void append(Object stringOrRawHtml) {
-        String toRender = renderRawHtmlOrString(stringOrRawHtml);
+        String toRender = NinjaHtmlTemplateTool.renderRawHtmlOrString(stringOrRawHtml);
         stringBuilder.append(toRender);
     }
 

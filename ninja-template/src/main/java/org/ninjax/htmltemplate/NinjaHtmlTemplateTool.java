@@ -12,9 +12,21 @@ public class NinjaHtmlTemplateTool {
     // Precompiled regex for performance - used to replace {{yourParameter}} with the parameter in your map
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{\\{(.+?)}}");
 
-    public static String replacePlaceholders(String template, Map<String, ?> params) {
+    public static String readResourceFile(Class<?> clazz) {
+        String resourceName = clazz.getSimpleName() + ".html";
+        try (InputStream is = clazz.getResourceAsStream(resourceName)) {
+            if (is == null) {
+                throw new RuntimeException("Resource not found: " + resourceName);
+            }
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    
+    public static String replacePlaceholders(String templateString, Map<String, ?> params) {
 
-        Matcher matcher = PLACEHOLDER_PATTERN.matcher(template);
+        Matcher matcher = PLACEHOLDER_PATTERN.matcher(templateString);
         StringBuffer sb = new StringBuffer();
 
         while (matcher.find()) {
@@ -35,19 +47,7 @@ public class NinjaHtmlTemplateTool {
         matcher.appendTail(sb);
         return sb.toString();
     }
-
-    public static String readResourceFile(Class<?> clazz) {
-        String resourceName = clazz.getSimpleName() + ".html";
-        try (InputStream is = clazz.getResourceAsStream(resourceName)) {
-            if (is == null) {
-                throw new RuntimeException("Resource not found: " + resourceName);
-            }
-            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
+    
     protected static String renderRawHtmlOrString(Object rawHtmlOrString) {
         return switch (rawHtmlOrString) {
             case NinjaHtmlTemplate ninjaHtmlTemplate -> ninjaHtmlTemplate.toString();

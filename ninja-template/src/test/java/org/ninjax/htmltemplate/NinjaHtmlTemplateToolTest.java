@@ -1,7 +1,5 @@
 package org.ninjax.htmltemplate;
 
-import org.ninjax.htmltemplate.NinjaHtmlTemplateTool;
-import org.ninjax.htmltemplate.Html;
 import static com.google.common.truth.Truth.assertThat;
 import java.util.Map;
 import org.junit.jupiter.api.Test;

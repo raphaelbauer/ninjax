@@ -65,6 +65,7 @@ v1 BETA TODO:
 =============
 
 improve ninhahml template dev ergonomics
+- Maybe have NinjaTemplateString or so to signl parsed stuff...
 - maybe immutable and only render one ting (not String...)
 - repladce Map with List of objects that then will be rendered 
 - hide juckulaTool.replacePlceholders and integrate in template...
