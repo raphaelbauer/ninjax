@@ -36,7 +36,7 @@ public class Router {
         }
 
         public void with(ControllerMethod controllerMethod) {
-            routes.add(new Route(httpMethod, path, controllerMethod, filters));
+            routes.add(new Route(httpMethod, path, controllerMethod, List.copyOf(filters)));
         }
 
     }
@@ -63,6 +63,8 @@ public class Router {
          * This regex matches everything in between path slashes.
          */
         private final static String VARIABLE_ROUTES_DEFAULT_REGEX = "([^/]*)";
+        
+        private static final Pattern CAPTURING_GROUPS = Pattern.compile("\\(([^?].*)\\)");
 
         private final String httpMethod;
         private final String path;
@@ -72,7 +74,7 @@ public class Router {
 
         public final Map<String, RouteParameter> parameters;
 
-        public List<NinjaFilter> filters;
+        public final List<NinjaFilter> filters;
 
         public Route(String httpMethod, String path, ControllerMethod controllerMethod, List<NinjaFilter> filters) {
             this.httpMethod = httpMethod;
@@ -106,7 +108,7 @@ public class Router {
 
             // convert capturing groups in route regex to non-capturing groups
             // this is to avoid count mismatch of path params and groups in uri regex
-            Matcher groupMatcher = Pattern.compile("\\(([^?].*)\\)").matcher(rawUri);
+            Matcher groupMatcher = CAPTURING_GROUPS.matcher(rawUri);
             String converted = groupMatcher.replaceAll("\\(?:$1\\)");
 
             Matcher matcher = PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE.matcher(converted);
@@ -137,7 +139,7 @@ public class Router {
             // .. and we append the tail to complete the stringBuffer
             matcher.appendTail(stringBuffer);
 
-            return stringBuffer.toString();
+            return "^" + stringBuffer + "$";
         }
 
     }
