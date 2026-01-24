@@ -58,7 +58,7 @@ class NinjaHtmlTemplateTest {
         // given
         String intentionalHtml = "<p>intentional html</p>";
         var intentionalHtmlTemplate = new NinjaHtmlTemplate();
-        intentionalHtmlTemplate.append(new Html(intentionalHtml));
+        intentionalHtmlTemplate..appendHtml(intentionalHtml));
 
         // when
         var ninjaHtmlTemplate = new NinjaHtmlTemplate();
@@ -76,7 +76,7 @@ class NinjaHtmlTemplateTest {
 
         // when
         var ninjaHtmlTemplate = new NinjaHtmlTemplate();
-        ninjaHtmlTemplate.append(new Html(input));
+        ninjaHtmlTemplate..appendHtml(input));
         var result = ninjaHtmlTemplate.toString();
 
         // then

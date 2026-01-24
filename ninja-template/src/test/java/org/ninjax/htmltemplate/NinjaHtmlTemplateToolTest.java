@@ -37,7 +37,7 @@ class NinjaHtmlTemplateToolTest {
         // given
         String intentionalHtml = "<p>intentional html</p>";
         var intentionalHtmlTemplate = new NinjaHtmlTemplate();
-        intentionalHtmlTemplate.append(new Html(intentionalHtml));
+        intentionalHtmlTemplate..appendHtml(intentionalHtml));
 
         // when
         String template = "This should include intentional html: {{intentionalHtml}}";

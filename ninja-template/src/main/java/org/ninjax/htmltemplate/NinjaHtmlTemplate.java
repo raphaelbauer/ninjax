@@ -25,7 +25,7 @@ public class NinjaHtmlTemplate {
      * Only do this when you created and trust that string. 
      * Never do this for anything that's coming from a user.
      * 
-     * This is equivalent to append(new Html(..)...
+     * This is equivalent to .appendHtml(..)...
      * 
      * @param htmlString The string that will be appended. No escaping is performed.
      */

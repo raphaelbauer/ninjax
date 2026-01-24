@@ -53,7 +53,7 @@ public class GuestbookPage {
             String templateWithReplacedValues = NinjaHtmlTemplateTool.replacePlaceholders(
                     template, Map.of("guestbookEmail", guestbook.email, "guestbookContent", guestbook.content));
 
-            ninjaHtmlTemplate.append(new Html(templateWithReplacedValues));
+            ninjaHtmlTemplate..appendHtml(templateWithReplacedValues));
 
             
         }
