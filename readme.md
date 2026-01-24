@@ -21,7 +21,7 @@ When we started in 2012 the Java world was differnt - it was Java 7 at that time
 - Messages did not support utf8 leading to complex code
 - Even multiline strings did not exist
 
-Huhu. But times have changed. And a web Java webframework for 2026 will look very much different to anything that
+But times have changed. And a web Java webframework for 2026 will look very much different to anything that
 has been created in 2012.
 
 ## Goals and Non-Goals for NinjaX 

@@ -18,7 +18,7 @@ public class LinkTag {
                 Map.of("href", href, "innerText", innerText));
         
         NinjaHtmlTemplate ninjaHtmlTemplate = new NinjaHtmlTemplate();
-        ninjaHtmlTemplate..appendHtml(templateWithParameters));
+        ninjaHtmlTemplate.appendHtml(templateWithParameters);
 
         return ninjaHtmlTemplate;
     }

@@ -9,11 +9,11 @@ public class LayoutHtml {
 
         NinjaHtmlTemplate template = new NinjaHtmlTemplate();
 
-        template..appendHtml("<html>"));
-        template..appendHtml("<head><title>"));
-        template..appendHtml(title));
-        template..appendHtml("</title></head>"));
-        template..appendHtml("<body>"));
+        template.appendHtml("<html>");
+        template.appendHtml("<head><title>");
+        template.appendHtml(title);
+        template.appendHtml("</title></head>");
+        template.appendHtml("<body>");
 
         template.append(HeaderHtml.render());
 
