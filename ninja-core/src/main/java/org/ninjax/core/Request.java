@@ -106,14 +106,6 @@ public record Request(
                 .map(p -> URLDecoder.decode(p, StandardCharsets.UTF_8));
     }
 
-    public Optional<String> getParameter(String parameterName) {
-        return parameters.getParameter(parameterName);
-    }
-    
-    public List<String> getParameterList(String parameterName) {
-        return parameters.getParameterList(parameterName);
-    }
-
     public List<FileItem> getFiles(String fieldName) {
         return fileItemsGetter.getFileItems(fieldName);
     }
@@ -285,12 +277,12 @@ public record Request(
             this.parameters = Map.copyOf(parameters);
         }
 
-        public Optional<String> getParameter(String parameterName) {
+        public Optional<String> get(String parameterName) {
             var list = parameters.get(parameterName);
             return (list == null || list.length == 0) ? Optional.empty() : Optional.of(list[0]);
         }
 
-        public List<String> getParameterList(String parameterName) {
+        public List<String> getAll(String parameterName) {
             var arr = parameters.get(parameterName);
             return (arr == null || arr.length == 0) ? List.of() : List.of(arr);
         }
@@ -309,12 +301,12 @@ public record Request(
             this.headers = Map.copyOf(headers);
         }
 
-        public Optional<String> getHeader(String headerName) {
+        public Optional<String> get(String headerName) {
             var list = headers.get(headerName);
             return (list == null || list.isEmpty()) ? Optional.empty() : Optional.of(list.get(0));
         }
 
-        public List<String> getHeaderList(String headerName) {
+        public List<String> getAll(String headerName) {
             return headers.getOrDefault(headerName, List.of());
         }
     }

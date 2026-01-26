@@ -36,7 +36,7 @@ public class TodoController {
 
     public Result addTask(Request request) {
         try {
-            String title = request.getParameter("title").stream().findFirst().orElse("");
+            String title = request.parameters().get("title").orElse("");
             
             if (title.trim().isEmpty()) {
                 return Result.builder()
@@ -61,7 +61,7 @@ public class TodoController {
 
     public Result deleteTask(Request request) {
         try {
-            String idStr = request.getParameter("id").stream().findFirst().orElse("");
+            String idStr = request.parameters().get("id").orElse("");
             
             long id = Long.parseLong(idStr);
             taskService.delete(id);
@@ -95,7 +95,7 @@ public class TodoController {
 
     public Result toggleTaskCompletion(Request request) {
         try {
-            String idStr = request.getParameter("id").stream().findFirst().orElse("");
+            String idStr = request.parameters().get("id").orElse("");
             long id = Long.parseLong(idStr);
             boolean success = taskService.toggleCompleted(id);
             
