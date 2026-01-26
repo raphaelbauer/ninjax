@@ -6,7 +6,7 @@
 
 This is an experiment on how a Java web framework in 2026 would look like.
 
-## Thoughts on how we started with the Ninja Web Framework in 2012
+### Thoughts on how we started with the Ninja Web Framework in 2012
 
 When we started in 2012 the Java world was differnt - it was Java 7 at that time.
 
@@ -21,10 +21,10 @@ When we started in 2012 the Java world was differnt - it was Java 7 at that time
 - Messages did not support utf8 leading to complex code
 - Even multiline strings did not exist
 
-But times have changed. And a web Java webframework for 2026 will look very much different to anything that
+But times have changed. And a web Java webframework in 2026 will look very much different to anything that
 has been created in 2012.
 
-## Goals and Non-Goals for NinjaX 
+### Goals and Non-Goals for NinjaX 
 - No annotations and hidden logic (aspects)
 - Immutability wherever possible
 - Never use nulls
@@ -38,7 +38,7 @@ has been created in 2012.
   - controller methods all look the same
   - manual "Dependency Injection" (more boilerplate, but faster startup and obvious code usage).
 
-## Things we won't do or support:
+### Things we won't do or support:
 - Guice or injector. We just assemble everything on top level...
 - Injection priorities won't be part of Ninja. If you do the instantiation in Assembly correctly you don't need a priority
 - No support for circular dependencies. if you got circular dependencies you are doing it wrong.
@@ -49,7 +49,9 @@ has been created in 2012.
 - No exception based error handling to generate results
 - Ability to change server is not a goal for v1. Usung Jetty for now.
 
-## Deployment to Maven Central
+
+## Contributing
+### Deployment to Maven Central
 
     # Make sure gpg is set up properly
     mvn -Prelease release:prepare release:perform
@@ -57,14 +59,31 @@ has been created in 2012.
 
 Log in to https://central.sonatype.com/ check releases.
 
-v1 Alpha TODO:
-=========
+
+## Roadmap
+### v1 BETA TODO:
+- header => do not return null if not present...
+- add tests to all areas / documentation / fix missing proper error handling
+- add ai compatible documentation
 
 
-v1 BETA TODO:
-=============
+v2 TODO:
+====
+- send security headers by default (see e.g. play fraemwork)
+- flashscope?
+
+- how to make e.g. json configurable with json...
+- make NinjaJetty nicer
+- move from servlet to raw jetty api
+- stream to x and not toString
+
+- json
+- websockets?
+- global filter
+- i18n support...
 
 improve ninhahml template dev ergonomics
+- compiled templates without regex...
 - Maybe have NinjaTemplateString or so to signl parsed stuff...
 - maybe immutable and only render one ting (not String...)
 - repladce Map with List of objects that then will be rendered 
@@ -75,37 +94,11 @@ improve ninhahml template dev ergonomics
 - rerun security assessment and fix all open topics
 
 - add tests to db module
--- hikari
--- jdbi
--- flyway
--- jdbc
--- big fat try catch to wrap java exceptions with a 500
-
-
-- MAYBE move conf to resourcs
-- remove secret in conf - maybe
-
--flashscope?
-- header => do not return null if not present...
-- add tests to all areas / documentation / fix missing proper error handling
-- add ai compatible documentation
-- send security headers by default (see e.g. play fraemwork)
-
-
-v2 TODO:
-====
-- how to make e.g. json configurable with json...
-- make NinjaJetty nicer
-- move from servlet to raw jetty api
-- compiled templates without regex...
-- stream to x and not toString
-
-
-- json
-- websockets?
-- global filter
-- i18n support...
-
+ - hikari
+ - jdbi
+ - flyway
+ - jdbc
+ - big fat try catch to wrap java exceptions with a 500
 
 
 Q&A

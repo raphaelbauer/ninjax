@@ -22,8 +22,8 @@ public record Request(
         FileItemsGetter fileItemsGetter,
         List<NinjaCookie> ninjaCookies,
         Payload payload,
-        Map<String, List<String>> headers,
-        Map<String, String[]> parameters,
+        Headers headers,
+        Parameters parameters,
         Optional<NinjaSession> ninjaSession,
         Locale language,
         Map<String, String> pathParameters
@@ -56,8 +56,8 @@ public record Request(
             FileItemsGetter fileItemsGetter,
             List<NinjaCookie> ninjaCookies,
             Payload payload,
-            Map<String, List<String>> headers,
-            Map<String, String[]> parameters,
+            Headers headers,
+            Parameters parameters,
             Optional<NinjaSession> ninjaSession,
             Locale language,
             Map<String, String> pathParameters
@@ -69,8 +69,8 @@ public record Request(
         this.fileItemsGetter = fileItemsGetter;
         this.ninjaCookies = ImmutableList.copyOf(ninjaCookies);
         this.payload = payload;
-        this.headers = ImmutableMap.copyOf(headers);
-        this.parameters = ImmutableMap.copyOf(parameters);
+        this.headers = headers;
+        this.parameters = parameters;
         this.ninjaSession = ninjaSession;
         this.language = language;
         this.pathParameters = ImmutableMap.copyOf(pathParameters);
@@ -106,14 +106,12 @@ public record Request(
                 .map(p -> URLDecoder.decode(p, StandardCharsets.UTF_8));
     }
 
-    public ImmutableList<String> getParameter(String parameterName) {
-        var value = parameters.get(parameterName);
-
-        if (value == null || value.length == 0) {
-            return ImmutableList.of();
-        }
-
-        return ImmutableList.copyOf(value);
+    public Optional<String> getParameter(String parameterName) {
+        return parameters.getParameter(parameterName);
+    }
+    
+    public List<String> getParameterList(String parameterName) {
+        return parameters.getParameterList(parameterName);
     }
 
     public List<FileItem> getFiles(String fieldName) {
@@ -161,8 +159,8 @@ public record Request(
         private FileItemsGetter fileItemsGetter;
         private List<NinjaCookie> ninjaCookies = List.of();
         private Payload payload;
-        private Map<String, List<String>> headers = Map.of();
-        private Map<String, String[]> parameters = Map.of();
+        private Headers headers;
+        private Parameters parameters;
         private Optional<NinjaSession> ninjaSession = Optional.empty();
         private Locale language = Locale.getDefault();
         private Map<String, String> pathParameters = Map.of();
@@ -200,12 +198,12 @@ public record Request(
             return this;
         }
 
-        public Builder headers(Map<String, List<String>> headers) {
+        public Builder headers(Headers headers) {
             this.headers = headers;
             return this;
         }
 
-        public Builder parameters(Map<String, String[]> parameters) {
+        public Builder parameters(Parameters parameters) {
             this.parameters = parameters;
             return this;
         }
@@ -273,5 +271,51 @@ public record Request(
             return object instanceof String s ? Optional.of(s) : Optional.empty();
         }
 
+    }
+    
+    public final static class Parameters {
+
+        private final Map<String, String[]> parameters;
+
+        public Parameters() {
+            this.parameters = Map.of();
+        }
+                
+        public Parameters(Map<String, String[]> parameters) {
+            this.parameters = Map.copyOf(parameters);
+        }
+
+        public Optional<String> getParameter(String parameterName) {
+            var list = parameters.get(parameterName);
+            return (list == null || list.length == 0) ? Optional.empty() : Optional.of(list[0]);
+        }
+
+        public List<String> getParameterList(String parameterName) {
+            var arr = parameters.get(parameterName);
+            return (arr == null || arr.length == 0) ? List.of() : List.of(arr);
+        }
+    }
+        
+
+    public final static class Headers {
+
+        private final Map<String, List<String>> headers;
+
+        public Headers() {
+            this.headers = Map.of();
+        }
+                
+        public Headers(Map<String, List<String>> headers) {
+            this.headers = Map.copyOf(headers);
+        }
+
+        public Optional<String> getHeader(String headerName) {
+            var list = headers.get(headerName);
+            return (list == null || list.isEmpty()) ? Optional.empty() : Optional.of(list.get(0));
+        }
+
+        public List<String> getHeaderList(String headerName) {
+            return headers.getOrDefault(headerName, List.of());
+        }
     }
 }

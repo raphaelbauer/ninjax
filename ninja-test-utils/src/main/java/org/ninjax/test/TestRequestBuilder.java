@@ -218,8 +218,8 @@ public class TestRequestBuilder {
                 .fileItemsGetter(fileItemsGetter)
                 .ninjaCookies(List.copyOf(ninjaCookies))
                 .payload(payload)
-                .headers(Collections.unmodifiableMap(headers))
-                .parameters(Collections.unmodifiableMap(parameters))
+                .headers(new org.ninjax.core.Request.Headers())
+                .parameters(new org.ninjax.core.Request.Parameters(parameters))
                 .ninjaSession(ninjaSession)
                 .language(language)
                 .build();

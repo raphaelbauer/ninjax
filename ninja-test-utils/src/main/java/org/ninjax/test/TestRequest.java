@@ -26,8 +26,8 @@ public final class TestRequest {
                 .fileItemsGetter(fieldName -> List.of())
                 .ninjaCookies(List.of())
                 .payload(null) // or new Request.Payload(Map.of())
-                .headers(Map.of())
-                .parameters(Map.of())
+                .headers(new org.ninjax.core.Request.Headers())
+                .parameters(new org.ninjax.core.Request.Parameters())
                 .ninjaSession(Optional.empty())
                 .language(Locale.ENGLISH)
                 .pathParameters(Map.of())
@@ -46,11 +46,11 @@ public final class TestRequest {
                 .fileItemsGetter(fieldName -> List.of())
                 .ninjaCookies(List.of())
                 .payload(null)
-                .headers(Map.of(
+                .headers(new org.ninjax.core.Request.Headers(Map.of(
                         "Content-Type", List.of("application/json"),
                         "Content-Length", List.of(String.valueOf(bytes.length))
-                ))
-                .parameters(Map.of())
+                )))
+                .parameters(new org.ninjax.core.Request.Parameters())
                 .ninjaSession(Optional.empty())
                 .language(Locale.ENGLISH)
                 .pathParameters(Map.of())

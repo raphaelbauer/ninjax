@@ -19,7 +19,6 @@ public class LinkTag {
         
         NinjaHtmlTemplate ninjaHtmlTemplate = new NinjaHtmlTemplate();
         ninjaHtmlTemplate.appendHtml(templateWithParameters);
-
         return ninjaHtmlTemplate;
     }
 

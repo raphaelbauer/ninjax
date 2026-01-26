@@ -207,6 +207,8 @@ public class NinjaJetty {
                             route.parameters,
                             requestURI
                     );
+                    
+                    var parameters = new org.ninjax.core.Request.Parameters(httpServletRequest.getParameterMap());
 
                     var request = Request.builder()
                             .requestPath(requestURI)
@@ -217,7 +219,7 @@ public class NinjaJetty {
                             .ninjaCookies(ninjaCookies)
                             .payload(payload)
                             .headers(headers)
-                            .parameters(httpServletRequest.getParameterMap())
+                            .parameters(parameters)
                             .ninjaSession(ninjaSessionInRequest)
                             .language(httpServletRequest.getLocale())
                             .build();
@@ -319,7 +321,7 @@ public class NinjaJetty {
             return cookie;
         }
 
-        public static Map<String, List<String>> extractHeaders(HttpServletRequest httpServletRequest) {
+        public static org.ninjax.core.Request.Headers extractHeaders(HttpServletRequest httpServletRequest) {
 
             Map<String, List<String>> headersMap = new HashMap<>();
 
@@ -334,7 +336,7 @@ public class NinjaJetty {
                 headersMap.put(headerName, headerValues);
             }
 
-            return headersMap;
+            return new org.ninjax.core.Request.Headers(headersMap);
 
         }
 

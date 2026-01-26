@@ -50,8 +50,8 @@ public class RequestTestHelper {
                 .fileItemsGetter(fileItemsGetter)
                 .ninjaCookies(List.of())
                 .payload(payload)
-                .headers(Map.of())
-                .parameters(Map.of())
+                .headers(new org.ninjax.core.Request.Headers())
+                .parameters(new org.ninjax.core.Request.Parameters())
                 .ninjaSession(Optional.empty())
                 .language(Locale.ENGLISH)
                 .build();
