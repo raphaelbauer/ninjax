@@ -2,7 +2,54 @@
 
 [![Java CI with Maven](https://github.com/raphaelbauer/ninjax/actions/workflows/maven.yml/badge.svg)](https://github.com/raphaelbauer/ninjax/actions/workflows/maven.yml)
 
-## Intro
+## About
+
+NinjaX is a modern full stack web framework for Java 25+.
+Rock solid, fast, and super productive.
+
+### Business value
+Ninja makes sure that technology will not be the blocker but the enabler in your next project. 
+Ninja helps you as product owner to deliver business value faster - in stunning high quality. 
+
+###  Makes devs happy
+Doesn't matter if you build huge enterprise apps or small RESTful JSON microservices. 
+Ninja provides everything you need to get productive at once. Development, 
+testing, deployment, refactoring and maintenance.
+
+###  Rock solid
+Ninja does not reinvent the wheel - instead we are standing on the shoulders of giants. 
+Ninja is built using the most mature and solid technologies in the industry. 
+Jetty, JWT, Flyway migrations and Maven - just to name a few.
+
+###  Scalable
+Ninja uses the share nothing approach. 
+Servers do not share any common session information. 
+That means you can scale Ninja horizontally with ease.
+
+###  100% modern Java
+You get all goodies that make Java great: Excellent IDE support. 
+A statically typed language. Huge and mature eco-system. 
+First class testing support and much much more. 
+Ninja is licensed under Apache 2.0 Open Source license - our codebase will be open forever.
+
+###  Dev Joy
+Generate a new project via our Maven archetype, import it into your favorite 
+IDE with one click and start coding. Ninja's SuperDevMode will pick up
+ all your code changes immediately. Features? All there: HTML, JSON, DB and much more.
+
+###  Testing
+Ninja is fully equipped with an extensive set of test tools. 
+Run mocked tests or integration-test your complete application on a real server. 
+Running selenium tests? 
+All included. Ninja tests run locally and on any continuous integration server.
+
+###  DevOps
+Create a a standalone application, copy it to your server and start it in production. 
+Ninja is cloud-ready and has extremely low startup times. 
+It runs on Heroku, App Engine and many other providers.
+
+
+## Background
 
 This is an experiment on how a Java web framework in 2026 would look like.
 
@@ -62,13 +109,15 @@ Log in to https://central.sonatype.com/ check releases.
 
 ## Roadmap
 ### v1 BETA TODO:
-- header => do not return null if not present...
-- add tests to all areas / documentation / fix missing proper error handling
-- add ai compatible documentation
-
+- demo project
+- documentation copy and past into README.md
+- fix missing proper error handling
+- security review
 
 v2 TODO:
 ====
+- add ai compatible documentation
+- caching support?
 - send security headers by default (see e.g. play fraemwork)
 - flashscope?
 
