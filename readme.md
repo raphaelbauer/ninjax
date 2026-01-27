@@ -126,62 +126,6 @@ You'll see Ninja demo project ready to work on. That's it basically. You just cr
 > Make sure that your IDE is compiling changes as you make edits. That way Ninja's SuperDevMode will restart and pick-up all changes.
 
 
-## Contributing
-### Deployment to Maven Central
-
-    # Make sure gpg is set up properly
-    mvn -Prelease release:prepare release:perform
-    # => Everything is released automatically and should be available after few minutes globally.
-
-Log in to https://central.sonatype.com/ check releases.
-
-
-## Roadmap
-### v1 BETA TODO:
-- demo project
-- documentation copy and past into README.md
-- fix missing proper error handling
-- security review
-
-v2 TODO:
-====
-- add ai compatible documentation
-- caching support?
-- send security headers by default (see e.g. play fraemwork)
-- flashscope?
-
-- how to make e.g. json configurable with json...
-- make NinjaJetty nicer
-- move from servlet to raw jetty api
-- stream to x and not toString
-
-- json
-- websockets?
-- global filter
-- i18n support...
-
-improve ninhahml template dev ergonomics
-- compiled templates without regex...
-- Maybe have NinjaTemplateString or so to signl parsed stuff...
-- maybe immutable and only render one ting (not String...)
-- repladce Map with List of objects that then will be rendered 
-- hide juckulaTool.replacePlceholders and integrate in template...
-- new Html => Html.of(...) maybe better?
-
-
-- rerun security assessment and fix all open topics
-
-- add tests to db module
- - hikari
- - jdbi
- - flyway
- - jdbc
- - big fat try catch to wrap java exceptions with a 500
-
-
-
-# Documentation
-
 ## Session Configuration
 
 Ninja uses a session cookie that stores the session on the client side. The browser sends
@@ -206,6 +150,10 @@ ninja:generateSecret
 ```
 
 Copy this value into your `application.conf`.
+
+> [!NOTE]  
+> Ninja uses an unencrypted, but signed Json Web Token (JWT) that is set as cookie.
+> Therefore don't store sensitive information inside the Ninja Session.
 
 ### Handling
 
@@ -274,6 +222,59 @@ In code you can use
     // login.message=Welcome {0}!
     var translatedMessage = ninjaMessages.getMessage("my.key", locale, "Frank);
 
+
+
+## Contributing
+### Deployment to Maven Central
+
+    # Make sure gpg is set up properly
+    mvn -Prelease release:prepare release:perform
+    # => Everything is released automatically and should be available after few minutes globally.
+
+Log in to https://central.sonatype.com/ check releases.
+
+
+## Roadmap
+### v1 BETA TODO:
+- demo project
+- documentation copy and past into README.md
+- fix missing proper error handling
+- security review
+
+v2 TODO:
+====
+- add ai compatible documentation
+- caching support?
+- send security headers by default (see e.g. play fraemwork)
+- flashscope?
+
+- how to make e.g. json configurable with json...
+- make NinjaJetty nicer
+- move from servlet to raw jetty api
+- stream to x and not toString
+
+- json
+- websockets?
+- global filter
+- i18n support...
+
+improve ninhahml template dev ergonomics
+- compiled templates without regex...
+- Maybe have NinjaTemplateString or so to signl parsed stuff...
+- maybe immutable and only render one ting (not String...)
+- repladce Map with List of objects that then will be rendered 
+- hide juckulaTool.replacePlceholders and integrate in template...
+- new Html => Html.of(...) maybe better?
+
+
+- rerun security assessment and fix all open topics
+
+- add tests to db module
+ - hikari
+ - jdbi
+ - flyway
+ - jdbc
+ - big fat try catch to wrap java exceptions with a 500
 
 
 
