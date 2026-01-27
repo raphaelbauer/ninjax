@@ -155,7 +155,7 @@ Copy this value into your `application.conf`.
 > Ninja uses an unencrypted, but signed Json Web Token (JWT) that is set as cookie.
 > Therefore don't store sensitive information inside the Ninja Session.
 
-### Handling
+### Managing the Session Secret On Production Systems
 
 In production services it is not advisable to use an `application.conf` that is checked into a version control system.
 Instead, provide the application secret as an environment variable.
