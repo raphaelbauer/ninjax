@@ -2,6 +2,7 @@ package org.ninjax.demo.todo.tasks.views;
 
 import java.util.Map;
 import org.ninjax.demo.todo.tasks.Task;
+import org.ninjax.htmltemplate.Html;
 import org.ninjax.htmltemplate.NinjaHtmlTemplate;
 import org.ninjax.htmltemplate.NinjaHtmlTemplateTool;
 
@@ -20,7 +21,7 @@ public class TaskItemTemplate {
         var parameters = Map.of(
                 "completedClass", completedClass,
                 "completedText", completedText,
-                "title", task.title(),
+                "title", new Html(task.title()),
                 "createdAtStr", createdAtStr,
                 "completed", completed,
                 "taskId", task.id().toString(),
@@ -29,7 +30,7 @@ public class TaskItemTemplate {
         var templateWithVariables = NinjaHtmlTemplateTool.replacePlaceholders(TEMPLATE, parameters);
 
         var template = new NinjaHtmlTemplate();
-        template.append(templateWithVariables);
+        template.appendHtml(templateWithVariables);
 
         return template;
 

@@ -13,12 +13,12 @@ public class LayoutTemplate {
 
         var parameters = Map.of(
                 "title", title,
-                "content", content.toString()
+                "content", content
         );
         var templateWithVariables = NinjaHtmlTemplateTool.replacePlaceholders(TEMPLATE, parameters);
         
         var template = new NinjaHtmlTemplate();
-        template.append(templateWithVariables);
+        template.appendHtml(templateWithVariables);
 
         return template;
     }

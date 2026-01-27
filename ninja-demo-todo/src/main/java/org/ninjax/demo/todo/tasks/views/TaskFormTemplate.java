@@ -7,7 +7,7 @@ public class TaskFormTemplate {
     public static NinjaHtmlTemplate render() {
         NinjaHtmlTemplate template = new NinjaHtmlTemplate();
         
-        template.append("""
+        template.appendHtml("""
             <form method="post" action="/tasks">
                 <div class="form-group">
                     <input type="text" name="title" placeholder="Enter a new task..." required>
