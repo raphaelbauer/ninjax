@@ -123,7 +123,7 @@ You'll see Ninja demo project ready to work on. That's it basically. You just cr
 > [!NOTE]  
 > We think that fast and responsive development cycles are a key success factor for software projects. 
 > SuperDevMode is our answer to that challenge. Say goodbye to long and time consuming deployment cycles while developing.
-> Make sure that your IDE is compiling changes as you make edits. That way Ninja's SuperDevMode will restart and pickupa all changes.
+> Make sure that your IDE is compiling changes as you make edits. That way Ninja's SuperDevMode will restart and pick-up all changes.
 
 
 ## Contributing
