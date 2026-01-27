@@ -4,41 +4,8 @@
 
 ## About
 
-NinjaX is a modern full-stack web framework for Java 25+.
+NinjaX is a full-stack web framework for modern Java 25+.
 Rock solid, fast, and super productive.
-
-### Business value
-Ninja makes sure that technology is not the blocker, but the enabler in your next project.  
-Ninja helps you, as a product owner, deliver business value faster - in stunningly high quality.
-
-### Makes devs happy
-It doesn’t matter whether you build huge enterprise apps or small RESTful JSON microservices.  
-Ninja provides everything you need to get productive at once: development, testing, deployment, refactoring, and maintenance.
-
-### Rock solid
-Ninja does not reinvent the wheel - instead, we stand on the shoulders of giants.  
-Ninja is built using the most mature and solid technologies in the industry: Jetty, JWT, Flyway migrations, and Maven - just to name a few.
-
-### Scalable
-Ninja uses the share-nothing approach.  
-Servers do not share any common session information.  
-That means you can scale Ninja horizontally with ease.
-
-### 100% modern Java
-You get all the goodies that make Java great: excellent IDE support, a statically typed language, a huge and mature ecosystem, first-class testing support, and much more.  
-Ninja is licensed under the Apache 2.0 open-source license - our codebase will be open forever.
-
-### Dev Joy
-Generate a new project via our Maven archetype, import it into your favorite IDE with one click, and start coding. Ninja’s SuperDevMode will pick up all your code changes immediately. Features? All there: HTML, JSON, DB, and much more.
-
-### Testing
-Ninja is fully equipped with an extensive set of testing tools.  
-Run mocked tests or integration-test your complete application on a real server. Running Selenium tests? All included. Ninja tests run locally and on any continuous integration server.
-
-### DevOps
-Create a standalone application, copy it to your server, and start it in production.  
-Ninja is cloud-ready and has extremely low startup times.  
-It runs on Heroku, App Engine, and many other providers.
 
 ## Background
 
@@ -104,6 +71,58 @@ This is what NinjaX is about. And to be frank: it is no longer an experiment, bu
 - HTTPS is not part of NinjaX.
 - No exception-based error handling to generate results.
 - Changing the server is not a goal for V1. Using Jetty for now.
+
+
+## Getting Started
+
+You'll need just 1 thing to develop with Ninja:
+
+- JDK (Java Development Kit), version 25 and above
+
+Note: Ninja is compatible with Java 25 and we'll support future Java versions with long term support.
+
+### Installing Java
+Ninja is using the Java as programming language and the Java Virtual Machine to run your applications. 
+You have to make sure that you are running at least Java in version 25.
+
+You can check that by executing the following command:
+
+java -version
+… which prints out the following:
+
+openjdk version "25.0.1" 2025-10-21
+
+As you can see, this machine is running Java 25.0.1. 
+If you are using an older version please install the latest Java version from or vie apt-get or brew.
+
+http://www.oracle.com/technetwork/java/javase/downloads/index.html
+
+
+### Create your first application
+
+The most simple way to kickstart your NinjaX application is to download our archetype from here
+Just download the file and unzip it.
+
+Youn can also use the command line like so:
+
+    wget https://github.com/raphaelbauer/ninja-demo-todo/archive/refs/heads/main.zip
+    unzip main.zip
+
+This will create a directory called ninja-demo-todo which contains a full Ninja project that is ready to go.
+
+Starting the project is simple:
+
+    cd ninja-demo-todo
+    ./mvn clean install     // to generate the compiled classes the first time
+    ./mvn ninja:run         // to start Ninja's SuperDevMode
+
+This starts Ninja's SuperDevMode. Simply open http://localhost:8080 in your browser. 
+You'll see Ninja demo project ready to work on. That's it basically. You just created your first Ninja application!
+
+> [!NOTE]  
+> We think that fast and responsive development cycles are a key success factor for software projects. 
+> SuperDevMode is our answer to that challenge. Say goodbye to long and time consuming deployment cycles while developing.
+> Make sure that your IDE is compiling changes as you make edits. That way Ninja's SuperDevMode will restart and pickupa all changes.
 
 
 ## Contributing
