@@ -87,10 +87,11 @@ You have to make sure that you are running at least Java in version 25.
 
 You can check that by executing the following command:
 
-java -version
-… which prints out the following:
+    java -version
 
-openjdk version "25.0.1" 2025-10-21
+which prints out the following:
+
+    openjdk version "25.0.1" 2025-10-21
 
 As you can see, this machine is running Java 25.0.1. 
 If you are using an older version please install the latest Java version from or vie apt-get or brew.
