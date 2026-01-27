@@ -4,72 +4,81 @@
 
 ## About
 
-NinjaX is a modern full stack web framework for Java 25+.
+NinjaX is a modern full-stack web framework for Java 25+.
 Rock solid, fast, and super productive.
 
 ### Business value
-Ninja makes sure that technology will not be the blocker but the enabler in your next project. 
-Ninja helps you as product owner to deliver business value faster - in stunning high quality. 
+Ninja makes sure that technology is not the blocker, but the enabler in your next project.  
+Ninja helps you, as a product owner, deliver business value faster—in stunningly high quality.
 
-###  Makes devs happy
-Doesn't matter if you build huge enterprise apps or small RESTful JSON microservices. 
-Ninja provides everything you need to get productive at once. Development, 
-testing, deployment, refactoring and maintenance.
+### Makes devs happy
+It doesn’t matter whether you build huge enterprise apps or small RESTful JSON microservices.  
+Ninja provides everything you need to get productive at once: development, testing, deployment, refactoring, and maintenance.
 
-###  Rock solid
-Ninja does not reinvent the wheel - instead we are standing on the shoulders of giants. 
-Ninja is built using the most mature and solid technologies in the industry. 
-Jetty, JWT, Flyway migrations and Maven - just to name a few.
+### Rock solid
+Ninja does not reinvent the wheel—instead, we stand on the shoulders of giants.  
+Ninja is built using the most mature and solid technologies in the industry: Jetty, JWT, Flyway migrations, and Maven—just to name a few.
 
-###  Scalable
-Ninja uses the share nothing approach. 
-Servers do not share any common session information. 
+### Scalable
+Ninja uses the share-nothing approach.  
+Servers do not share any common session information.  
 That means you can scale Ninja horizontally with ease.
 
-###  100% modern Java
-You get all goodies that make Java great: Excellent IDE support. 
-A statically typed language. Huge and mature eco-system. 
-First class testing support and much much more. 
-Ninja is licensed under Apache 2.0 Open Source license - our codebase will be open forever.
+### 100% modern Java
+You get all the goodies that make Java great: excellent IDE support, a statically typed language, a huge and mature ecosystem, first-class testing support, and much more.  
+Ninja is licensed under the Apache 2.0 open-source license—our codebase will be open forever.
 
-###  Dev Joy
-Generate a new project via our Maven archetype, import it into your favorite 
-IDE with one click and start coding. Ninja's SuperDevMode will pick up
- all your code changes immediately. Features? All there: HTML, JSON, DB and much more.
+### Dev Joy
+Generate a new project via our Maven archetype, import it into your favorite IDE with one click, and start coding. Ninja’s SuperDevMode will pick up all your code changes immediately. Features? All there: HTML, JSON, DB, and much more.
 
-###  Testing
-Ninja is fully equipped with an extensive set of test tools. 
-Run mocked tests or integration-test your complete application on a real server. 
-Running selenium tests? 
-All included. Ninja tests run locally and on any continuous integration server.
+### Testing
+Ninja is fully equipped with an extensive set of testing tools.  
+Run mocked tests or integration-test your complete application on a real server. Running Selenium tests? All included. Ninja tests run locally and on any continuous integration server.
 
-###  DevOps
-Create a a standalone application, copy it to your server and start it in production. 
-Ninja is cloud-ready and has extremely low startup times. 
-It runs on Heroku, App Engine and many other providers.
-
+### DevOps
+Create a standalone application, copy it to your server, and start it in production.  
+Ninja is cloud-ready and has extremely low startup times.  
+It runs on Heroku, App Engine, and many other providers.
 
 ## Background
 
-This is an experiment on how a Java web framework in 2026 would look like.
+### Rails as a Role Model for Web Development
+In the second half of the 2000s, Rails took the web development community by storm. Rails made it very simple to ship full-stack web apps. Rails did not work against HTTP, but with it, which resulted in very clear request → do stuff → response cycles.
 
-### Thoughts on how we started with the Ninja Web Framework in 2012
+### Java Web Development Sucked in the 2000s. Hard.
+Java back then was… well… different. There was the Servlet API. There was J2EE. There were session beans. Entity beans. Lots of magic in how HTTP mapped to Java code and persistence.  
+All of that tried to hide HTTP from the developer, with varying degrees of success.
 
-When we started in 2012 the Java world was differnt - it was Java 7 at that time.
+In hindsight, it was a very academic approach to wrap something into “object-oriented dogmas” that worked much better when used plainly (HTTP). IMHO.
 
-- EJBs, WAR and Enterprise Java was still a thing
-- Spring Boot did not exist back then.
-- Servlets were important
-- Optional did not exist and Null was used widely in code. 
-- Mutability was the norm
-- The stream Api did not exist back then.
-- Easy-to-use Lambdas did not exist back then
-- Records did not exist
-- Messages did not support utf8 leading to complex code
-- Even multiline strings did not exist
+### Ninja Set Out to Combine the Best of Both Worlds
+So we started the Ninja web framework around 2010—heavily influenced by Rails, but with the ecosystem, IDEs, and language we loved so much: Java. We also added lots of innovations: stateless, scalable apps; SuperDevMode, which made developing in Java as productive as in a scripting language; and many more things.
 
-But times have changed. And a web Java webframework in 2026 will look very much different to anything that
-has been created in 2012.
+Ninja rose to some prominence, with a couple of larger companies using it. But when Spring Boot was released, it became the clear path for most Java companies.
+
+### Spring Boot Entered the Arena
+Spring Boot offered a lightweight migration from both J2EE (which was almost dead) and Spring-based applications. And today, Spring Boot is the #1 web framework for Java.
+
+### We Think Java Web Development in 2026 Is NOT Solved
+From 2012, when Ninja started, to 2026, an awful lot has happened in Javaland.
+
+Just to name a few:
+- EJBs, WAR files, and Enterprise Java are dead.
+- Servlets and servlet containers are no longer important. (Okay—people now use something conceptually similar called Kubernetes, but that’s a different story.)
+- Null is (almost) dead.
+- There’s a big push for immutability and the use of Optional.
+- Streams and mapping were introduced and add a nice functional flavor to Java.
+- Easy-to-use lambdas make calling functionals syntactically nice—finally.
+- Records are an interesting way to get immutable data classes with `hashCode` and `equals` implemented out of the box.
+- We got multiline strings. (Okay - we still don’t have template strings.)
+- Messages did not support UTF-8.
+- ...and many more things.
+
+At the same time, IDE support is still amazing. Java is more fun to code than ever.
+
+So the big question is: How would a Java web framework look in 2026 - without any baggage from the past, using all the goodies of 2026?
+
+This is what NinjaX is about. And to be frank: it is no longer an experiment, but something based on stable tech and already used in production.
 
 ### Goals and Non-Goals for NinjaX 
 - No annotations and hidden logic (aspects)
