@@ -80,28 +80,28 @@ So the big question is: How would a Java web framework look in 2026 - without an
 
 This is what NinjaX is about. And to be frank: it is no longer an experiment, but something based on stable tech and already used in production.
 
-### Goals and Non-Goals for NinjaX 
-- No annotations and hidden logic (aspects)
-- Immutability wherever possible
-- Never use nulls
-- As as few libraries and external dependencies as possible (no mockito? no matcher library?)
-- No dependency injection
-- Composition over inheritance for most cases. It's just easier to understand than inheritance.
-- No exposure of servlet api whatsoever
-- Only one way to do things (e.g. not routing file AND annotations)
-- Trading a bit of boilerplate for clarity (easyof usafe / debugging) is ok
-  - eg validation
-  - controller methods all look the same
-  - manual "Dependency Injection" (more boilerplate, but faster startup and obvious code usage).
+## Philosophy and Guiding North Star
 
-### Things we won't do or support:
-- Guice or injector. We just assemble everything on top level...
+### Goals and Non-Goals for NinjaX 
+- Be obvious. No annotations and hidden logic (e.g. aspects).
+- Immutability wherever possible.
+- No nulls. Never use nulls.
+- No dependencies. As as few libraries and external dependencies as possible (no mockito? no matcher library?)
+- No dependency injection
+- Composition over inheritance (in most cases). It's just easier to understand than inheritance.
+- No exposure of servlet API whatsoever
+- One way to do things (e.g. not routing file AND annotations)
+- Trading a bit of boilerplate for clarity (easyof usafe / debugging) is ok
+  - Balidation using a function. No mafic validatoin in controller.
+  - No magic injection of things into controller function. All controller methods receive a request and are obvious.
+  - No dependency injection. Leads to more boilerplate, but it's a lot more obvious and leads to fast startups.
+
+### Things that are not supported in V1
 - Injection priorities won't be part of Ninja. If you do the instantiation in Assembly correctly you don't need a priority
 - No support for circular dependencies. if you got circular dependencies you are doing it wrong.
 - Scheduler won't be part of NinjaX. Can be done separately
-- Freemarker won't be part of NinjaX - this is replaced by Juckula
+- Freemarker won't be part of NinjaX - this is replaced by Ninja Templates
 - https is not part of NinjaX
-- No injected Path into controller method. Context as default and only "thing". Keep it simple. one way to do things. simple debugging and tracing.
 - No exception based error handling to generate results
 - Ability to change server is not a goal for v1. Usung Jetty for now.
 
