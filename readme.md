@@ -235,14 +235,14 @@ Log in to https://central.sonatype.com/ check releases.
 
 
 ## Roadmap
-### v1 BETA TODO:
-- demo project
-- documentation copy and past into README.md
+### v1 BETA
+- DONE demo project
+- documentation copy and paste into README.md
 - fix missing proper error handling
 - security review
 
-v2 TODO:
-====
+### v2
+
 - add ai compatible documentation
 - caching support?
 - send security headers by default (see e.g. play fraemwork)
