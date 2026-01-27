@@ -9,15 +9,15 @@ Rock solid, fast, and super productive.
 
 ### Business value
 Ninja makes sure that technology is not the blocker, but the enabler in your next project.  
-Ninja helps you, as a product owner, deliver business value faster—in stunningly high quality.
+Ninja helps you, as a product owner, deliver business value faster - in stunningly high quality.
 
 ### Makes devs happy
 It doesn’t matter whether you build huge enterprise apps or small RESTful JSON microservices.  
 Ninja provides everything you need to get productive at once: development, testing, deployment, refactoring, and maintenance.
 
 ### Rock solid
-Ninja does not reinvent the wheel—instead, we stand on the shoulders of giants.  
-Ninja is built using the most mature and solid technologies in the industry: Jetty, JWT, Flyway migrations, and Maven—just to name a few.
+Ninja does not reinvent the wheel - instead, we stand on the shoulders of giants.  
+Ninja is built using the most mature and solid technologies in the industry: Jetty, JWT, Flyway migrations, and Maven - just to name a few.
 
 ### Scalable
 Ninja uses the share-nothing approach.  
@@ -26,7 +26,7 @@ That means you can scale Ninja horizontally with ease.
 
 ### 100% modern Java
 You get all the goodies that make Java great: excellent IDE support, a statically typed language, a huge and mature ecosystem, first-class testing support, and much more.  
-Ninja is licensed under the Apache 2.0 open-source license—our codebase will be open forever.
+Ninja is licensed under the Apache 2.0 open-source license - our codebase will be open forever.
 
 ### Dev Joy
 Generate a new project via our Maven archetype, import it into your favorite IDE with one click, and start coding. Ninja’s SuperDevMode will pick up all your code changes immediately. Features? All there: HTML, JSON, DB, and much more.
@@ -51,24 +51,24 @@ All of that tried to hide HTTP from the developer, with varying degrees of succe
 
 In hindsight, it was a very academic approach to wrap something into “object-oriented dogmas” that worked much better when used plainly (HTTP). IMHO.
 
-### Ninja Set Out to Combine the Best of Both Worlds
-So we started the Ninja web framework around 2010—heavily influenced by Rails, but with the ecosystem, IDEs, and language we loved so much: Java. We also added lots of innovations: stateless, scalable apps; SuperDevMode, which made developing in Java as productive as in a scripting language; and many more things.
+### Ninja Set Out to Combine the Best of Both Worlds in 2010
+So we started the Ninja web framework around 2010 - heavily influenced by Rails, but with the ecosystem, IDEs, and language we loved so much: Java. We also added lots of innovations: stateless, scalable apps; SuperDevMode, which made developing in Java as productive as in a scripting language; and many more things.
 
 Ninja rose to some prominence, with a couple of larger companies using it. But when Spring Boot was released, it became the clear path for most Java companies.
 
-### Spring Boot Entered the Arena
+### Spring Boot Entering the Arena
 Spring Boot offered a lightweight migration from both J2EE (which was almost dead) and Spring-based applications. And today, Spring Boot is the #1 web framework for Java.
 
-### We Think Java Web Development in 2026 Is NOT Solved
+### Java Web Development in 2026 Can Be Different. And More Beautiful.
 From 2012, when Ninja started, to 2026, an awful lot has happened in Javaland.
 
 Just to name a few:
 - EJBs, WAR files, and Enterprise Java are dead.
-- Servlets and servlet containers are no longer important. (Okay—people now use something conceptually similar called Kubernetes, but that’s a different story.)
+- Servlets and servlet containers are no longer important. (Okay - people now use something conceptually similar called Kubernetes, but that’s a different story.)
 - Null is (almost) dead.
 - There’s a big push for immutability and the use of Optional.
 - Streams and mapping were introduced and add a nice functional flavor to Java.
-- Easy-to-use lambdas make calling functionals syntactically nice—finally.
+- Easy-to-use lambdas make calling functionals syntactically nice - finally.
 - Records are an interesting way to get immutable data classes with `hashCode` and `equals` implemented out of the box.
 - We got multiline strings. (Okay - we still don’t have template strings.)
 - Messages did not support UTF-8.
