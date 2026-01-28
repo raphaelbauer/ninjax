@@ -34,7 +34,7 @@ public class Json {
      * 
      * If there&#39;s an error during serialization you will get an empty Optional.
      * 
-     * @param &lt;A&gt; The class you want to deserialize
+     * @param <A> The class you want to deserialize
      * @param request The request that contains a link to the input stream that then will be deserialized to Json
      * @param typeRef The TypeReference that allows you to deserialize more complex generics.
      * @return s The class that was created from the Json.
