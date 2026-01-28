@@ -1,6 +1,5 @@
 package org.ninjax.core;
 
-import com.google.common.collect.ImmutableMap;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -46,7 +45,7 @@ public class NinjaMessages {
             modifiableBundle.put(defaultLocale, ResourceBundle.getBundle(BASE_NAME, defaultLocale));
         }
 
-        bundles = ImmutableMap.copyOf(modifiableBundle);
+        bundles = Map.copyOf(modifiableBundle);
 
     }
 

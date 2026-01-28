@@ -1,15 +1,14 @@
 package org.ninjax.db.jdbc;
 
-import com.google.common.collect.ImmutableList;
 import java.util.List;
 
 
 public class NinjaDatasources {
-    
+
     private final List<NinjaDatasource> ninjaDatasources;
-    
+
     public NinjaDatasources(List<NinjaDatasource> datasources) {
-        this.ninjaDatasources = ImmutableList.copyOf(datasources);
+        this.ninjaDatasources = List.copyOf(datasources);
     }
 
     public List<NinjaDatasource> getDatasources() {

@@ -1,6 +1,5 @@
 package org.ninjax.core;
 
-import com.google.common.io.ByteStreams;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
@@ -60,7 +59,7 @@ public class AssetsController {
                 .contentType(mimeType)
                 .stream(out -> {
                     try (InputStream in = resourceStream) {
-                        ByteStreams.copy(in, out);
+                        in.transferTo(out);
                     } catch (IOException e) {
                         logger.error("Error streaming static resource {}", resourcePathString, e);
                         throw new RuntimeException("Error streaming static resource", e);

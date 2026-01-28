@@ -1,10 +1,11 @@
 package org.ninjax.core.properties;
 
-import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import org.slf4j.Logger;
@@ -14,7 +15,7 @@ public class NinjaProperties {
 
     private static final Logger logger = LoggerFactory.getLogger(NinjaProperties.class);
 
-    private final ImmutableMap<String, String> properties;
+    private final Map<String, String> properties;
 
     public static final String DEFAULT_LOCATION_OF_APPLICATION_CONF = "conf/application.conf";
 
@@ -26,11 +27,11 @@ public class NinjaProperties {
         return Optional.ofNullable(properties.get(propertyName));
     }
 
-    public ImmutableMap<String, String> getAllProperties() {
+    public Map<String, String> getAllProperties() {
         return this.properties;
     }
 
-    private ImmutableMap loadProperties() {
+    private Map<String, String> loadProperties() {
 
         Properties properties = new Properties();
 
@@ -52,8 +53,16 @@ public class NinjaProperties {
         // Add all properties '-Dmy.property=...'
         // This overrides existing properties
         ////////////////////////////////////////////////////////////////////////
-        properties.putAll(System.getProperties());
+        System.getProperties().forEach((key, value) ->
+            properties.put(String.valueOf(key), String.valueOf(value))
+        );
 
-        return ImmutableMap.copyOf(properties);
+        // Convert Properties to Map<String, String>
+        Map<String, String> stringMap = new HashMap<>();
+        properties.forEach((key, value) ->
+            stringMap.put(String.valueOf(key), String.valueOf(value))
+        );
+
+        return Map.copyOf(stringMap);
     }
 }

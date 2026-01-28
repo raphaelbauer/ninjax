@@ -1,11 +1,12 @@
 package org.ninjax.jetty;
 
-import com.google.common.collect.ImmutableMap;
 import io.jsonwebtoken.Jwts;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -68,11 +69,11 @@ public class NinjaSessionConverter {
                 return Optional.empty();
             }
 
-            var mapBuilder = ImmutableMap.<String, String>builder();
+            Map<String, String> sessionMap = new HashMap<>();
             for (var e : claims.entrySet()) {
-                mapBuilder.put(e.getKey(), e.getValue().toString());
+                sessionMap.put(e.getKey(), e.getValue().toString());
             }
-            var ninjaSession = new NinjaSession(mapBuilder.build());
+            var ninjaSession = new NinjaSession(sessionMap);
 
             return Optional.of(ninjaSession);
         } catch (Exception e) {

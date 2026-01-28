@@ -1,7 +1,6 @@
 package org.ninjax.db.jdbc;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -50,7 +49,7 @@ import org.ninjax.core.properties.NinjaProperties;
         }
 
         // assemble the datasources in a nice way, so we can build datasources from it
-        List<NinjaDatasourceProperties> ninjaDatasources = Lists.newArrayList();
+        List<NinjaDatasourceProperties> ninjaDatasources = new ArrayList<>();
         for (String datasourceName : datasourceNames) {
             
             String name = datasourceName;
@@ -115,8 +114,8 @@ import org.ninjax.core.properties.NinjaProperties;
                 theseProperties.put(keyWithoutDatasourceNamePrefix, (String) entry.getValue());
             }
         });
-        
-        return ImmutableMap.copyOf(theseProperties);
+
+        return Map.copyOf(theseProperties);
     }
 
 }

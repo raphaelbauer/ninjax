@@ -1,7 +1,5 @@
 package org.ninjax.core;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import java.io.InputStream;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -65,13 +63,13 @@ public record Request(
         this.inputStreamGetter = inputStreamGetter;
         this.fileItemGetter = fileItemGetter;
         this.fileItemsGetter = fileItemsGetter;
-        this.ninjaCookies = ImmutableList.copyOf(ninjaCookies);
+        this.ninjaCookies = List.copyOf(ninjaCookies);
         this.payload = payload;
         this.headers = headers;
         this.parameters = parameters;
         this.ninjaSession = ninjaSession;
         this.language = language;
-        this.pathParameters = ImmutableMap.copyOf(pathParameters);
+        this.pathParameters = Map.copyOf(pathParameters);
     }
 
     // ----- Original methods, adapted to the record style -----
