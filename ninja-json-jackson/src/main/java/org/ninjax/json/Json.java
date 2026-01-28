@@ -29,12 +29,12 @@ public class Json {
     /**
      * This method returns an Optional of your class.
      * 
-     * Optional<List<TestRecord>> result = json.getJsonBody(request, new TypeReference<List<TestRecord>>() {});
+     * Optional&lt;List&lt;TestRecord&gt;&gt; result = json.getJsonBody(request, new TypeReference&lt;List&lt;TestRecord&gt;&gt;() {});
      * The TypeReference allows to use Generics freely in your deserializations.
      * 
-     * If there's an error during serialization you will get an empty Optional.
+     * If there&#39;s an error during serialization you will get an empty Optional.
      * 
-     * @param <A> The class you want to deserialize
+     * @param &lt;A&gt; The class you want to deserialize
      * @param request The request that contains a link to the input stream that then will be deserialized to Json
      * @param typeRef The TypeReference that allows you to deserialize more complex generics.
      * @return s The class that was created from the Json.
