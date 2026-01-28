@@ -1,12 +1,20 @@
-package org.ninjax.core;
+package org.ninjax.jetty;
 
 import com.google.common.collect.ImmutableMap;
 import io.jsonwebtoken.Jwts;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Optional;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import org.ninjax.core.HttpOnly;
+import org.ninjax.core.NinjaConstants;
+import org.ninjax.core.NinjaCookie;
+import org.ninjax.core.NinjaSession;
+import org.ninjax.core.Secure;
+import org.ninjax.core.properties.NinjaProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,10 +24,30 @@ public class NinjaSessionConverter {
 
     public static final String NINJA_SESSION_COOKIE_NAME = "NINJA_SESSION";
     private static final String NINJA_SESSION_PATH = "/";
+    
+    
+    private final Optional<Long> sessionExpiryTimeInSeconds;
+    private final boolean sessionCookieSecure;
+    
+    private final SecretKey secretKeyForSessionEncryption;
+    
+    
+    public NinjaSessionConverter(NinjaProperties ninjaProperties) {
+        
+        String encodedSecret = ninjaProperties.get(NinjaConstants.NINJA_APPLICATION_SECRET_KEY).orElseThrow(() -> {
+            return new RuntimeException(String.format("Missing key '%s' in 'conf/application.conf'. Can't start without a secret. Please create the secret using e.g. 'mvn ninja:generateSecret'.", NinjaConstants.NINJA_APPLICATION_SECRET_KEY));
+        });
 
-    public static Optional<NinjaSession> extractSessionFromCookie(
-            NinjaCookie ninjaSessionCookie,
-            SecretKey secretKeyForSessionEncryption) {
+        byte[] decodedKey = Base64.getDecoder().decode(encodedSecret);
+        this.secretKeyForSessionEncryption = new SecretKeySpec(decodedKey, 0, decodedKey.length, "HmacSHA256");
+
+        this.sessionExpiryTimeInSeconds = ninjaProperties.get("application.session.expire_time_in_seconds").map(v -> Long.valueOf(v));
+        this.sessionCookieSecure = ninjaProperties.get("application.session.cookie.secure")
+                .map(v -> Boolean.parseBoolean(v))
+                .orElse(true); // Default to true (secure) if not specified
+    }
+
+    public Optional<NinjaSession> extractSessionFromCookie(NinjaCookie ninjaSessionCookie) {
 
         var now = System.currentTimeMillis();
 
@@ -54,7 +82,7 @@ public class NinjaSessionConverter {
 
     }
 
-    public static NinjaCookie createCookieToRemoveNinjaSession(boolean secure) {
+    public NinjaCookie createCookieToRemoveNinjaSession() {
         int REMOVE_SESSION_MAX_AGE = 0;
         var cookie = new NinjaCookie(
                 NINJA_SESSION_COOKIE_NAME,
@@ -62,17 +90,13 @@ public class NinjaSessionConverter {
                 Optional.empty(),
                 REMOVE_SESSION_MAX_AGE,
                 Optional.of(NINJA_SESSION_PATH),
-                secure ? Secure.Yes : Secure.No,
+                sessionCookieSecure ? Secure.Yes : Secure.No,
                 HttpOnly.Yes);
 
         return cookie;
     }
 
-    public static NinjaCookie createCookieWithInformationOfNinjaSession(
-            NinjaSession ninjaSession,
-            SecretKey secretKeyForSessionEncryption,
-            Optional<Long> sessionExpiryTimeInSeconds,
-            boolean secure) {
+    public NinjaCookie createCookieWithInformationOfNinjaSession(NinjaSession ninjaSession) {
 
         // some setup
         Instant now = Instant.now();
@@ -110,7 +134,7 @@ public class NinjaSessionConverter {
                 Optional.empty(),
                 maxAge,
                 Optional.of(NINJA_SESSION_PATH),
-                secure ? Secure.Yes : Secure.No,
+                sessionCookieSecure ? Secure.Yes : Secure.No,
                 HttpOnly.Yes);
 
         return cookie;

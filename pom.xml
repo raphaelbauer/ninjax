@@ -122,6 +122,11 @@
             </dependency>
             <dependency>
                 <groupId>org.r10r</groupId>
+                <artifactId>ninja-jetty</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninja-db-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -365,6 +370,7 @@
     <!-- List of child modules (directories under this pom) -->
     <modules>
         <module>ninja-core</module>
+        <module>ninja-jetty</module>
         <module>ninja-json-jackson</module>
         <module>ninja-db-common</module>
         <module>ninja-db-hikari</module>

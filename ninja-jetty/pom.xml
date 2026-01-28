@@ -9,95 +9,65 @@
         <version>0.2.14-SNAPSHOT</version>
     </parent>
 
-    <artifactId>ninja-core</artifactId>
+    <artifactId>ninja-jetty</artifactId>
     <packaging>jar</packaging>
-    <name>ninja-core</name>
+    <name>ninja-jetty</name>
+    <description>Jetty server integration for NinjaX framework</description>
 
     <dependencies>
+        <!-- Core framework dependency -->
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
-        
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-impl</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-jackson</artifactId>
-            <scope>runtime</scope>
+            <groupId>org.r10r</groupId>
+            <artifactId>ninja-core</artifactId>
         </dependency>
 
-        <!-- Logback is the successor of log4j. We use it: -->
+        <!-- Jetty dependencies -->
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.ee10</groupId>
+            <artifactId>jetty-ee10-servlet</artifactId>
+        </dependency>
+
+        <!-- Note: JJWT dependencies stay in ninja-core (JWT sessions are a framework feature) -->
+        <!-- They come transitively through ninja-core dependency -->
+
+        <!-- Logging -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
         </dependency>
-		
-        <!-- Replace commons-logging with slf4j bridge (that will use logback)-->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
         </dependency>
-        
-        <!-- Replace log4j with slf4j bridge (that will use logback)-->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
         </dependency>
 
+        <!-- Testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <scope>test</scope>
         </dependency>
-        
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-params</artifactId>
-            <scope>test</scope>
-        </dependency>
-        
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
         </dependency>
-        
         <dependency>
             <groupId>com.google.truth</groupId>
             <artifactId>truth</artifactId>
             <scope>test</scope>
         </dependency>
-        
     </dependencies>
 
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/java</directory>
-                <includes>
-                    <include>**/*</include>
-                </includes>
-                <excludes>
-                    <exclude>**/*.java</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>**/*</include>
-                </includes>
-            </resource>
-        </resources>
         <plugins>
-            <!-- If you used pluginManagement in parent, you can omit version here -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
@@ -105,4 +75,3 @@
     </build>
 
 </project>
-

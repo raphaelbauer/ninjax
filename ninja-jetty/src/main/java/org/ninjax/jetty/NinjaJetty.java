@@ -1,4 +1,4 @@
-package org.ninjax.core;
+package org.ninjax.jetty;
 
 import jakarta.servlet.MultipartConfigElement;
 import jakarta.servlet.ServletException;
@@ -26,10 +26,24 @@ import org.eclipse.jetty.ee10.servlet.FilterHolder;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import static org.ninjax.core.NinjaSessionConverter.NINJA_SESSION_COOKIE_NAME;
+import static org.ninjax.jetty.NinjaSessionConverter.NINJA_SESSION_COOKIE_NAME;
 import org.ninjax.core.properties.NinjaProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+// Imports from ninja-core
+import org.ninjax.core.Router;
+import org.ninjax.core.RouteFinder;
+import org.ninjax.core.Request;
+import org.ninjax.core.Result;
+import org.ninjax.core.NinjaCookie;
+import org.ninjax.core.NinjaSession;
+import org.ninjax.core.FileItem;
+import org.ninjax.core.FilterChain;
+import org.ninjax.core.PathParameterExtractor;
+import org.ninjax.core.Secure;
+import org.ninjax.core.HttpOnly;
+import org.ninjax.core.NinjaConstants;
 
 public class NinjaJetty {
 
@@ -38,21 +52,16 @@ public class NinjaJetty {
     public final RouteFinder routeFinder;
     public final NinjaProperties ninjaProperties;
 
-    private final Optional<Long> sessionExpiryTimeInSeconds;
-    private final boolean sessionCookieSecure;
-
-    public static final String NINJA_APPLICATION_SECRET_KEY = "application.secret";
-
     private final int jettyServerPort;
-
-    private final SecretKey secretKeyForSessionEncryption;
+    
+    private final NinjaSessionConverter ninjaSessionConverter;
 
     private static final String NINJA_LOGO
                 = """
                       _______  .___ _______        ____.  _____  ____  ___
                       \\      \\ |   |\\      \\      |    | /  _  \\ \\   \\/  /
-                      /   |   \\|   |/   |   \\     |    |/  /_\\  \\ \\     / 
-                     /    |    \\   /    |    \\/\\__|    /    |    \\/     \\ 
+                      /   |   \\|   |/   |   \\     |    |/  /_\\  \\ \\     /
+                     /    |    \\   /    |    \\/\\__|    /    |    \\/     \\
                      \\____|__  /___\\____|__  /\\________\\____|__  /___/\\  \\
                              \\/            \\/                  \\/      \\_/
                 """;
@@ -62,19 +71,8 @@ public class NinjaJetty {
         this.ninjaProperties = ninjaProperties;
 
         this.jettyServerPort = Integer.parseInt(ninjaProperties.get("ninja.port").orElse("8080"));
-
-        String encodedSecret = ninjaProperties.get(NINJA_APPLICATION_SECRET_KEY).orElseThrow(() -> {
-            return new RuntimeException(String.format("Missing key '%s' in 'conf/application.conf'. Can't start without a secret. Please create the secret using e.g. 'mvn ninja:generateSecret'.", NINJA_APPLICATION_SECRET_KEY));
-        });
-
-        byte[] decodedKey = Base64.getDecoder().decode(encodedSecret);
-        this.secretKeyForSessionEncryption = new SecretKeySpec(decodedKey, 0, decodedKey.length, "HmacSHA256");
-
-        this.sessionExpiryTimeInSeconds = ninjaProperties.get("application.session.expire_time_in_seconds").map(v -> Long.valueOf(v));
-        this.sessionCookieSecure = ninjaProperties.get("application.session.cookie.secure")
-                .map(v -> Boolean.parseBoolean(v))
-                .orElse(true); // Default to true (secure) if not specified
-
+        this.ninjaSessionConverter = new NinjaSessionConverter(ninjaProperties);
+        
         try {
             start();
         } catch (Exception exception) {
@@ -141,7 +139,7 @@ public class NinjaJetty {
                             .findFirst();
 
                     Optional<NinjaSession> ninjaSessionInRequest = ninjaSessionCookie
-                            .map(c -> NinjaSessionConverter.extractSessionFromCookie(c, secretKeyForSessionEncryption))
+                            .map(c -> ninjaSessionConverter.extractSessionFromCookie(c))
                             .orElseGet(() -> Optional.empty());
 
                     Request.InputStreamGetter inputStreamGetter = () -> {
@@ -207,7 +205,7 @@ public class NinjaJetty {
                             route.parameters,
                             requestURI
                     );
-                    
+
                     var parameters = new org.ninjax.core.Request.Parameters(httpServletRequest.getParameterMap());
 
                     var request = Request.builder()
@@ -239,15 +237,11 @@ public class NinjaJetty {
                     switch (result.ninjaSessionState()) {
                         case Result.Exists exists -> {
                             NinjaSession ninjaSessionForResponse = exists.getSession();
-                            var cookie = NinjaSessionConverter.createCookieWithInformationOfNinjaSession(
-                                    ninjaSessionForResponse,
-                                    secretKeyForSessionEncryption,
-                                    sessionExpiryTimeInSeconds,
-                                    sessionCookieSecure);
+                            var cookie = ninjaSessionConverter.createCookieWithInformationOfNinjaSession(ninjaSessionForResponse);
                             httpServletResponse.addCookie(NinjaJettyHelper.convertNinjaCookieToServletCookie(cookie));
                         }
                         case Result.Remove remove -> {
-                            var cookie = NinjaSessionConverter.createCookieToRemoveNinjaSession(sessionCookieSecure);
+                            var cookie = ninjaSessionConverter.createCookieToRemoveNinjaSession();
                             httpServletResponse.addCookie(NinjaJettyHelper.convertNinjaCookieToServletCookie(cookie));
                         }
                         case Result.UnknownButDontTouch unknown -> {

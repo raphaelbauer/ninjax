@@ -32,6 +32,11 @@
         </dependency>
         <dependency>
             <groupId>org.r10r</groupId>
+            <artifactId>ninja-jetty</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.r10r</groupId>
             <artifactId>ninja-db-hikari</artifactId>
             <scope>test</scope>
         </dependency>

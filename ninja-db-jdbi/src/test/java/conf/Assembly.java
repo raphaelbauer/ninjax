@@ -2,7 +2,7 @@ package conf;
 
 import controller.GuestbookController;
 import org.ninjax.core.AssetsController;
-import org.ninjax.core.NinjaJetty;
+import org.ninjax.jetty.NinjaJetty;
 import org.ninjax.core.Router;
 import org.ninjax.core.properties.NinjaProperties;
 import org.ninjax.db.flyway.NinjaFlywayMigrator;

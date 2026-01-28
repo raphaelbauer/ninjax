@@ -79,27 +79,3 @@ public record NinjaCookie(
         }
     }
 }
-
-enum Secure {
-    Yes, No;
-
-    public static Secure ofBoolean(boolean secure) {
-        return secure ? Yes : No;
-    }
-
-    public boolean toBoolean() {
-        return this == Yes;
-    }
-}
-
-enum HttpOnly {
-    Yes, No;
-
-    public static HttpOnly ofBoolean(boolean httpOnly) {
-        return httpOnly ? Yes : No;
-    }
-
-    public boolean toBoolean() {
-        return this == Yes;
-    }
-}

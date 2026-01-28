@@ -20,6 +20,10 @@
         </dependency>
         <dependency>
             <groupId>org.r10r</groupId>
+            <artifactId>ninja-jetty</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.r10r</groupId>
             <artifactId>ninja-json-jackson</artifactId>
         </dependency>
         
