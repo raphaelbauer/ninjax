@@ -5,7 +5,6 @@ import java.util.Optional;
 public record NinjaCookie(
         String name,
         String value,
-        Optional<String> comment,
         Optional<String> domain,
         int maxAge,
         Optional<String> path,
@@ -21,7 +20,6 @@ public record NinjaCookie(
         private final String name;
         private final String value;
 
-        private String comment;
         private String domain;
         private int maxAge = -1; // or whatever default you want
         private String path;
@@ -31,11 +29,6 @@ public record NinjaCookie(
         public Builder(String name, String value) {
             this.name = name;
             this.value = value;
-        }
-
-        public Builder comment(String comment) {
-            this.comment = comment;
-            return this;
         }
 
         public Builder domain(String domain) {
@@ -77,7 +70,6 @@ public record NinjaCookie(
             return new NinjaCookie(
                     name,
                     value,
-                    Optional.ofNullable(comment),
                     Optional.ofNullable(domain),
                     maxAge,
                     Optional.ofNullable(path),

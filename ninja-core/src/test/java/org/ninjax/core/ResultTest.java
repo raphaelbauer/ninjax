@@ -131,19 +131,17 @@ class ResultTest {
 
         }
         Foo foo = new Foo("abc", 123);
-
-        Result r = Result.builder().json(foo).build();
+        
+        org.ninjax.core.Result.OutputStreamRenderer dummyOutputStreamRenderer = outputStream -> {
+            // just a dummy. In reality you'd use someting that can render Json.
+        };
+        
+        Result r = Result.builder().json(dummyOutputStreamRenderer).build();
 
         assertThat(r.contentType()).isEqualTo(Result.APPLICATION_JSON);
         assertThat(r.outputStreamRenderer()).isPresent();
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        r.outputStreamRenderer().get().streamTo(baos);
-
-        String json = baos.toString(StandardCharsets.UTF_8);
-        // don’t depend on property order, just do simple contains checks
-        assertThat(json).contains("abc");
-        assertThat(json).contains("123");
+        
+        assertThat(r.outputStreamRenderer().get()).isEqualTo(dummyOutputStreamRenderer);
     }
 
     @Test

@@ -5,15 +5,18 @@ import org.ninjax.core.Result;
 import org.ninjax.demo.todo.tasks.views.TodoTemplateService;
 
 import java.util.List;
+import org.ninjax.json.Json;
 
 public class TodoController {
 
     private final TaskService taskService;
     private final TodoTemplateService templateService;
+    private final Json json;
 
-    public TodoController(TaskService taskService) {
+    public TodoController(TaskService taskService, Json json) {
         this.taskService = taskService;
         this.templateService = new TodoTemplateService();
+        this.json = json;
     }
 
     public Result showTasks(Request request) {
@@ -83,7 +86,7 @@ public class TodoController {
             
             return Result.builder()
                     .status(Result.SC_200_OK)
-                    .json(tasks)
+                    .json(json.json(tasks))
                     .build();
         } catch (Exception e) {
             return Result.builder()

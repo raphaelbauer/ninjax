@@ -15,7 +15,6 @@ class NinjaCookieTest {
         assertThat(cookie.value()).isEqualTo("abc");
 
         // optionals default to empty
-        assertThat(cookie.comment()).isEmpty();
         assertThat(cookie.domain()).isEmpty();
         assertThat(cookie.path()).isEmpty();
 
@@ -28,7 +27,6 @@ class NinjaCookieTest {
     @Test
     void builder_full_setsAllFields() {
         NinjaCookie cookie = NinjaCookie.builder("sid", "xyz")
-                .comment("session id")
                 .domain("example.test")
                 .maxAge(3600)
                 .path("/app")
@@ -38,7 +36,6 @@ class NinjaCookieTest {
 
         assertThat(cookie.name()).isEqualTo("sid");
         assertThat(cookie.value()).isEqualTo("xyz");
-        assertThat(cookie.comment()).isEqualTo(Optional.of("session id"));
         assertThat(cookie.domain()).isEqualTo(Optional.of("example.test"));
         assertThat(cookie.maxAge()).isEqualTo(3600);
         assertThat(cookie.path()).isEqualTo(Optional.of("/app"));

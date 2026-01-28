@@ -1,9 +1,7 @@
 package org.ninjax.core;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -79,16 +77,6 @@ public record Request(
     // ----- Original methods, adapted to the record style -----
     public List<NinjaCookie> getNinjaCookies() {
         return ninjaCookies;
-    }
-
-    public <A> Optional<A> getJsonBody() {
-        try (var inputStream = inputStreamGetter.get()) {
-            return Optional.of(Json.objectMapper.readValue(inputStream, new TypeReference<A>() {
-            }));
-        } catch (IOException ex) {
-            logger.error("Opsi", ex);
-            return Optional.empty();
-        }
     }
 
     public Optional<NinjaSession> getNinjaSession() {

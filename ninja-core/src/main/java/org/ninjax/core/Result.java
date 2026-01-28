@@ -259,15 +259,9 @@ public record Result(
             return this;
         }
 
-        public Builder json(Object objectToRenderAsJson) {
+        public Builder json(OutputStreamRenderer outputStreamRenderer) {
             this.contentType = APPLICATION_JSON;
-            this.outputStreamRenderer = outputStream -> {
-                try {
-                    Json.objectMapper.writeValue(outputStream, objectToRenderAsJson);
-                } catch (IOException e) {
-                    logger.error("Rendering went wrong. Ouch! ", e);
-                }
-            };
+            this.outputStreamRenderer = outputStreamRenderer;
             return this;
         }
 

@@ -60,7 +60,6 @@ public class NinjaSessionConverter {
                 NINJA_SESSION_COOKIE_NAME,
                 "",
                 Optional.empty(),
-                Optional.empty(),
                 REMOVE_SESSION_MAX_AGE,
                 Optional.of(NINJA_SESSION_PATH),
                 secure ? Secure.Yes : Secure.No,
@@ -108,7 +107,6 @@ public class NinjaSessionConverter {
         var cookie = new NinjaCookie(
                 NINJA_SESSION_COOKIE_NAME,
                 jws,
-                Optional.empty(),
                 Optional.empty(),
                 maxAge,
                 Optional.of(NINJA_SESSION_PATH),

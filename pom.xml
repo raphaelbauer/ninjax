@@ -147,6 +147,11 @@
             </dependency>
             <dependency>
                 <groupId>org.r10r</groupId>
+                <artifactId>ninja-json-jackson</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninja-maven-plugin</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -360,6 +365,7 @@
     <!-- List of child modules (directories under this pom) -->
     <modules>
         <module>ninja-core</module>
+        <module>ninja-json-jackson</module>
         <module>ninja-db-common</module>
         <module>ninja-db-hikari</module>
         <module>ninja-db-flyway</module>

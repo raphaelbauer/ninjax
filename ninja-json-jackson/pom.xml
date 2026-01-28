@@ -9,60 +9,45 @@
         <version>0.2.13-SNAPSHOT</version>
     </parent>
 
-    <artifactId>ninja-core</artifactId>
+    <artifactId>ninja-json-jackson</artifactId>
     <packaging>jar</packaging>
-    <name>ninja-core</name>
+    <name>ninja-json-jackson</name>
+    <description>NinjaX JSON module using Jackson</description>
 
     <dependencies>
-        <!-- Keep only what belongs to core; you can trim Flyway/Hikari/etc if moving them out. -->
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-        </dependency>
         
         <dependency>
-            <groupId>org.eclipse.jetty.ee10</groupId>
-            <artifactId>jetty-ee10-servlet</artifactId>
+            <groupId>org.r10r</groupId>
+            <artifactId>ninja-core</artifactId>
         </dependency>
-        
+    
+        <!-- Jackson dependencies -->
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
-        
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-impl</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-jackson</artifactId>
-            <scope>runtime</scope>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
         </dependency>
 
-        <!-- Logback is the successor of log4j. We use it: -->
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-        </dependency>
-		
-        <!-- Replace commons-logging with slf4j bridge (that will use logback)-->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
         </dependency>
         
-        <!-- Replace log4j with slf4j bridge (that will use logback)-->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jdk8</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
         </dependency>
 
+        <!-- Test dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -87,6 +72,11 @@
             <scope>test</scope>
         </dependency>
         
+        <dependency>
+            <groupId>org.r10r</groupId>
+            <artifactId>ninja-test-utils</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -108,7 +98,6 @@
             </resource>
         </resources>
         <plugins>
-            <!-- If you used pluginManagement in parent, you can omit version here -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
@@ -116,4 +105,3 @@
     </build>
 
 </project>
-

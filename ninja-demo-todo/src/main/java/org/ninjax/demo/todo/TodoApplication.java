@@ -11,6 +11,7 @@ import org.ninjax.db.jdbi.NinjaJdbiImpl;
 import org.ninjax.db.hikari.NinjaDbHikariProvider;
 import org.ninjax.db.flyway.NinjaFlywayMigrator;
 import org.ninjax.db.jdbc.NinjaDatasourcePropertiesExtractor;
+import org.ninjax.json.Json;
 
 public class TodoApplication {
 
@@ -25,9 +26,10 @@ public class TodoApplication {
         var ninjaJdbiImpl = new NinjaJdbiImpl(ninjaDbHikariProvider.get());
 
         // App wiring
+        var json = new Json();
         var taskRepository = new TaskRepository(ninjaJdbiImpl);
         var taskService = mockableComponents.taskService.orElseGet(() -> new TaskService(taskRepository));
-        var todoController = new TodoController(taskService);
+        var todoController = new TodoController(taskService, json);
 
         var router = new Router();
         router.GET("/").with(todoController::showTasks);

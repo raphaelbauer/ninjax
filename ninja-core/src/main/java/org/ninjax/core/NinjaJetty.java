@@ -299,7 +299,6 @@ public class NinjaJetty {
             return new org.ninjax.core.NinjaCookie(
                     cookie.getName(),
                     cookie.getValue(),
-                    Optional.ofNullable(cookie.getComment()),
                     Optional.ofNullable(cookie.getDomain()),
                     cookie.getMaxAge(),
                     Optional.ofNullable(cookie.getPath()),
@@ -311,7 +310,6 @@ public class NinjaJetty {
 
             var cookie = new Cookie(ninjaCookie.name(), ninjaCookie.value());
 
-            ninjaCookie.comment().ifPresent(c -> cookie.setComment(c));
             ninjaCookie.domain().ifPresent(d -> cookie.setDomain(d));
             cookie.setMaxAge(ninjaCookie.maxAge());
             ninjaCookie.path().ifPresent(p -> cookie.setPath(p));
