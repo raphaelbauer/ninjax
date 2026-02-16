@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.r10r.ninjax</groupId>
+        <groupId>com.r10r</groupId>
         <artifactId>ninjax</artifactId>
         <version>0.2.15-SNAPSHOT</version>
     </parent>
@@ -15,7 +15,7 @@
     <dependencies>
         <!-- Ninja Core -->
         <dependency>
-            <groupId>com.r10r.ninjax</groupId>
+            <groupId>com.r10r</groupId>
             <artifactId>ninjax-core</artifactId>
         </dependency>
 
