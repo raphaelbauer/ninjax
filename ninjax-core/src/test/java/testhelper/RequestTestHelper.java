@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import com.ninjaxframework.core.PathParameterExtractor;
-import com.ninjaxframework.core.Request;
-import com.ninjaxframework.core.Result;
-import com.ninjaxframework.core.Router;
+import com.r10r.ninjax.core.PathParameterExtractor;
+import com.r10r.ninjax.core.Request;
+import com.r10r.ninjax.core.Result;
+import com.r10r.ninjax.core.Router;
 
 public class RequestTestHelper {
 
@@ -40,7 +40,7 @@ public class RequestTestHelper {
         Request.FileItemGetter fileItemGetter = fieldName -> Optional.empty();
         Request.FileItemsGetter fileItemsGetter = fieldName -> List.of();
 
-        var payload = new com.ninjaxframework.core.Request.Payload(Map.of());
+        var payload = new com.r10r.ninjax.core.Request.Payload(Map.of());
 
         return Request.builder()
                 .requestPath(requestPath)
@@ -50,8 +50,8 @@ public class RequestTestHelper {
                 .fileItemsGetter(fileItemsGetter)
                 .ninjaCookies(List.of())
                 .payload(payload)
-                .headers(new com.ninjaxframework.core.Request.Headers())
-                .parameters(new com.ninjaxframework.core.Request.Parameters())
+                .headers(new com.r10r.ninjax.core.Request.Headers())
+                .parameters(new com.r10r.ninjax.core.Request.Parameters())
                 .ninjaSession(Optional.empty())
                 .language(Locale.ENGLISH)
                 .build();

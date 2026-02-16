@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.ninjaxframework</groupId>
+        <groupId>com.r10r.ninjax</groupId>
         <artifactId>ninjax</artifactId>
         <version>0.2.15-SNAPSHOT</version>
     </parent>
@@ -14,7 +14,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.ninjaxframework</groupId>
+            <groupId>com.r10r.ninjax</groupId>
             <artifactId>ninjax-db-common</artifactId>
         </dependency>
         <dependency>
@@ -26,27 +26,27 @@
             <artifactId>jdbi3-sqlobject</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ninjaxframework</groupId>
+            <groupId>com.r10r.ninjax</groupId>
             <artifactId>ninjax-core</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.ninjaxframework</groupId>
+            <groupId>com.r10r.ninjax</groupId>
             <artifactId>ninjax-jetty</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.ninjaxframework</groupId>
+            <groupId>com.r10r.ninjax</groupId>
             <artifactId>ninjax-db-hikari</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.ninjaxframework</groupId>
+            <groupId>com.r10r.ninjax</groupId>
             <artifactId>ninjax-db-flyway</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.ninjaxframework</groupId>
+            <groupId>com.r10r.ninjax</groupId>
             <artifactId>ninjax-template</artifactId>
             <scope>test</scope>
         </dependency>

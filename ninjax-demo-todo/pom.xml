@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.ninjaxframework</groupId>
+        <groupId>com.r10r.ninjax</groupId>
         <artifactId>ninjax</artifactId>
         <version>0.2.15-SNAPSHOT</version>
     </parent>
@@ -15,33 +15,33 @@
     <dependencies>
         <!-- Core NinjaX framework -->
         <dependency>
-            <groupId>com.ninjaxframework</groupId>
+            <groupId>com.r10r.ninjax</groupId>
             <artifactId>ninjax-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ninjaxframework</groupId>
+            <groupId>com.r10r.ninjax</groupId>
             <artifactId>ninjax-jetty</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ninjaxframework</groupId>
+            <groupId>com.r10r.ninjax</groupId>
             <artifactId>ninjax-json-jackson</artifactId>
         </dependency>
         
         <!-- Template engine -->
         <dependency>
-            <groupId>com.ninjaxframework</groupId>
+            <groupId>com.r10r.ninjax</groupId>
             <artifactId>ninjax-template</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ninjaxframework</groupId>
+            <groupId>com.r10r.ninjax</groupId>
             <artifactId>ninjax-db-jdbi</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ninjaxframework</groupId>
+            <groupId>com.r10r.ninjax</groupId>
             <artifactId>ninjax-db-flyway</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ninjaxframework</groupId>
+            <groupId>com.r10r.ninjax</groupId>
             <artifactId>ninjax-db-hikari</artifactId>
         </dependency>
         <!-- External dependencies -->
@@ -106,12 +106,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.ninjaxframework</groupId>
+            <groupId>com.r10r.ninjax</groupId>
             <artifactId>ninjax-test-utils</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.ninjaxframework</groupId>
+            <groupId>com.r10r.ninjax</groupId>
             <artifactId>ninjax-test-db-utils</artifactId>
             <scope>test</scope>
         </dependency>
@@ -146,7 +146,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
             <plugin>
-                <groupId>com.ninjaxframework</groupId>
+                <groupId>com.r10r.ninjax</groupId>
                 <artifactId>ninjax-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <configuration>

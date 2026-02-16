@@ -289,7 +289,7 @@ public class LayoutTemplate {
 NinjaX has built-in JSON support. You can easily serialize objects to JSON responses.
 
 ```java
-import com.ninjaxframework.json.Json;
+import com.r10r.ninjax.json.Json;
 
 public class TodoController {
     
