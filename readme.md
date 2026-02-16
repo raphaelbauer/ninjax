@@ -67,7 +67,7 @@ This is what NinjaX is about. And to be frank: it is no longer an experiment, bu
 - Injection priorities won’t be part of NinjaX. If instantiation in the Assembly is done correctly, you don’t need priorities.
 - No support for circular dependencies. If you have circular dependencies, you’re doing it wrong.
 - A scheduler won’t be part of NinjaX. This can be done separately.
-- Freemarker won’t be part of NinjaX—this is replaced by Ninja Templates.
+- Freemarker won’t be part of NinjaX—this is replaced by NinjaX Templates.
 - HTTPS is not part of NinjaX.
 - No exception-based error handling to generate results.
 - Changing the server is not a goal for V1. Using Jetty for now.
@@ -75,215 +75,299 @@ This is what NinjaX is about. And to be frank: it is no longer an experiment, bu
 
 ## Getting Started
 
-You'll need just 1 thing to develop with Ninja:
+You'll need just 1 thing to develop with NinjaX:
 
 - JDK (Java Development Kit), version 25 and above
 
-Note: Ninja is compatible with Java 25 and we'll support future Java versions with long term support.
+Note: NinjaX is compatible with Java 25 and we'll support future Java versions with long term support.
 
 ### Installing Java
-Ninja is using the Java as programming language and the Java Virtual Machine to run your applications. 
+NinjaX is using the Java as programming language and the Java Virtual Machine to run your applications. 
 You have to make sure that you are running at least Java in version 25.
 
 You can check that by executing the following command:
 
     java -version
 
-which prints out the following:
+Which prints out the following:
 
     openjdk version "25.0.1" 2025-10-21
 
-As you can see, this machine is running Java 25.0.1. 
-If you are using an older version please install the latest Java version from or vie apt-get or brew.
-
-http://www.oracle.com/technetwork/java/javase/downloads/index.html
-
+If you are using an older version please install the latest Java version from or via apt-get or brew.
 
 ### Create your first application
 
-The most simple way to kickstart your NinjaX application is to download our archetype from here
-Just download the file and unzip it.
+The most simple way to kickstart your NinjaX application is to download our archetype from here.
 
-Youn can also use the command line like so:
+You can also use the command line like so:
 
-    wget https://github.com/raphaelbauer/ninja-demo-todo/archive/refs/heads/main.zip
-    unzip main.zip
+```bash
+wget https://github.com/raphaelbauer/ninja-demo-todo/archive/refs/heads/main.zip
+unzip main.zip
+```
 
-This will create a directory called ninja-demo-todo which contains a full Ninja project that is ready to go.
+This will create a directory called `ninja-demo-todo` which contains a full NinjaX project that is ready to go.
+
+### Running the application
 
 Starting the project is simple:
 
-    cd ninja-demo-todo
-    ./mvn clean install     // to generate the compiled classes the first time
-    ./mvn ninja:run         // to start Ninja's SuperDevMode
+```bash
+cd ninja-demo-todo
+./mvn clean install     # to generate the compiled classes the first time
+./mvn ninja:run         # to start Ninja's SuperDevMode
+```
 
 This starts Ninja's SuperDevMode. Simply open http://localhost:8080 in your browser. 
-You'll see Ninja demo project ready to work on. That's it basically. You just created your first Ninja application!
+You'll see the NinjaX demo project ready to work on.
 
 > [!NOTE]  
 > We think that fast and responsive development cycles are a key success factor for software projects. 
 > SuperDevMode is our answer to that challenge. Say goodbye to long and time consuming deployment cycles while developing.
 > Make sure that your IDE is compiling changes as you make edits. That way Ninja's SuperDevMode will restart and pick-up all changes.
 
+### A Hello World Example
 
-## Session Configuration
+A basic NinjaX application looks like this:
 
-Ninja uses a session cookie that stores the session on the client side. The browser sends
-the cookie back to the server with each request, which allows the server to re-identify a user.
-
-### The Session Secret
-
-Keeping the session client side is convenient because you don't need any server-side caching technology, and scaling
-with many Ninja instances is trivial.
-
-In order to verify that a cookie has been issued by a server, it is digitally signed and verified
-using a secret that can be set in your `application.conf` file:
-
-```properties
-application.secret=YOUR_SECRET
-```
-
-You can generate a new secret easily using the Ninja plugin:
-
-```bash
-ninja:generateSecret
-```
-
-Copy this value into your `application.conf`.
-
-> [!NOTE]  
-> Ninja uses an unencrypted, but signed Json Web Token (JWT) that is set as cookie.
-> Therefore don't store sensitive information inside the Ninja Session.
-
-### Managing the Session Secret On Production Systems
-
-In production services it is not advisable to use an `application.conf` that is checked into a version control system.
-Instead, provide the application secret as an environment variable.
-
-You can easily set the secret as an environment variable:
-
-```bash
-# Set variable manually or using built-in tooling of your cloud provider:
-export APPLICATION_SECRET=generated_application_secret
-
-java -jar -Dninja.port=5000 \
-       -Dapplication.secret=${APPLICATION_SECRET} \
-       ... more system variables \
-       my-app.jar
-```
-
-Most cloud providers (such as AWS or Heroku) allow you to globally set environment variables, which
-lets you start multiple instances that all use the same secret. 
-This allows you to run multiple Ninja instances behind a load balancer; 
-it does not matter which instance handles which request.
-Any instance can handle and verify any session cookie.
-
-
-### Session Cookie Security
-
-By default, session cookies are created with the `Secure` flag enabled, which means they will only be transmitted over HTTPS connections. This is the recommended setting for production environments.
-
-To configure the Secure flag, add the following to your application.conf:
-
-    # Set to true (default) to only send session cookies over HTTPS
-    # Set to false to allow session cookies over HTTP (not recommended for production)
-    application.session.cookie.secure=true
-
-If not specified, the default value is `true`.
-
-### Session Expiry Time
-
-To configure session expiry time in seconds:
-
-    application.session.expire_time_in_seconds=3600
-
-If not specified, session cookies will be session-only (expire when browser closes).
-
-## Messages and I18N
-
-- messages bundles in "root" (Java convention) (messages.properties, messages_de.properties and so on)
-- message bundles should be utf-8
-- message bundles use the message format where you can use localization and placeholders as defined by the Java Message format
-- Define your supported messages in application.conf and key application.languages=en,de
-- the first message in application.languages will be the fallback message
-- if requested locale is not available the default locale will be used
-- if a key cannot be found a warn will be logged and the message key will be used instead
-
-In code you can use
-
-    // to get the locale
-    var locale = request.getLocale() (defuced from either accept-languages header OR a cookie to override that
-
-    // and to get the message for a key
-    // login.message=Welcome!
-    var translatedMessage = ninjaMessages.getMessage("login.message", locale);
-
-    // or if the message contains parameters
-    // login.message=Welcome {0}!
-    var translatedMessage = ninjaMessages.getMessage("my.key", locale, "Frank);
-
-
-
-## Contributing
-### Deployment to Maven Central
-
-    # Make sure gpg is set up properly
-    mvn -Prelease release:prepare release:perform
-    # => Everything is released automatically and should be available after few minutes globally.
-
-Log in to https://central.sonatype.com/ check releases.
-
-
-## Roadmap
-### v1 BETA
-- DONE demo project
-- documentation copy and paste into README.md
-- fix missing proper error handling
-- security review
-
-### v2
-
-- add ai compatible documentation
-- caching support?
-- send security headers by default (see e.g. play fraemwork)
-- flashscope?
-
-- how to make e.g. json configurable with json...
-- make NinjaJetty nicer
-- move from servlet to raw jetty api
-- stream to x and not toString
-
-- json
-- websockets?
-- global filter
-- i18n support...
-
-improve ninhahml template dev ergonomics
-- compiled templates without regex...
-- Maybe have NinjaTemplateString or so to signl parsed stuff...
-- maybe immutable and only render one ting (not String...)
-- repladce Map with List of objects that then will be rendered 
-- hide juckulaTool.replacePlceholders and integrate in template...
-- new Html => Html.of(...) maybe better?
-
-
-- rerun security assessment and fix all open topics
-
-- add tests to db module
- - hikari
- - jdbi
- - flyway
- - jdbc
- - big fat try catch to wrap java exceptions with a 500
-
-
-
+```java
+public class Application {
     
+    public static void main(String[] args) {
+        var ninjaProperties = new NinjaProperties();
+        var router = new Router();
+        
+        router.GET("/").with(request -> 
+            Result.builder()
+                .status(Result.SC_200_OK)
+                .text("Hello World")
+                .build()
+        );
+        
+        new NinjaJetty(router, ninjaProperties);
+    }
+}
+```
 
+## Basic concepts
 
+### HTML templating
 
+NinjaX includes a typesafe, compiled HTML templating system called **NinjaX Templates**. It favors Java code over template logic.
 
+Templates are basically Java classes that generate HTML strings. You can compose them easily.
 
+**Example View Composition:**
 
+```java
+public class TodoTemplateService {
+    
+    public String generateTodoPage(List<Task> tasks) {
+        // Generate dynamic content fragment
+        NinjaHtmlTemplate dynamicContent = TaskListTemplate.render(tasks);
+        
+        // Wrap it in a layout
+        NinjaHtmlTemplate fullPage = LayoutTemplate.render("Todo List", dynamicContent);
+        
+        return fullPage.toString();
+    }
+}
+```
 
+**Layout Template:**
 
+```java
+public class LayoutTemplate {
+    public static NinjaHtmlTemplate render(String title, NinjaHtmlTemplate content) {
+        // ... implementation that wraps content in <html><body>...</body></html>
+    }
+}
+```
+
+### Working with JSON
+
+NinjaX has built-in JSON support. You can easily serialize objects to JSON responses.
+
+```java
+import com.ninjaxframework.json.Json;
+
+public class TodoController {
+    
+    private final Json json;
+    
+    public TodoController(Json json) {
+        this.json = json;
+    }
+
+    public Result getTasksJson(Request request) {
+        List<Task> tasks = taskService.findAll();
+        
+        return Result.builder()
+                .status(Result.SC_200_OK)
+                .json(json.json(tasks))
+                .build();
+    }
+}
+```
+
+## Advanced topics
+
+### Validation
+Validation in NinjaX is explicit. There is no "magic" validation behind annotations. You validate data inside your controller methods.
+
+```java
+public Result addTask(Request request) {
+    String title = request.parameters().get("title").orElse("");
+    
+    if (title.trim().isEmpty()) {
+        return Result.builder()
+                .badRequest()
+                .text("Title cannot be empty")
+                .build();
+    }
+    
+    // Proceed with logic...
+}
+```
+
+### Uploading files
+File uploads are supported via `Request.getFileItem()`. Ensure your form uses `enctype="multipart/form-data"`.
+
+```java
+public Result uploadFile(Request request) {
+    Optional<FileItem> fileItem = request.getFileItem("profile_picture");
+    
+    if (fileItem.isPresent()) {
+        FileItem file = fileItem.get();
+        // Process input stream: file.getInputStream()
+        // Check content type: file.getContentType()
+    }
+    
+    return Result.ok().build();
+}
+```
+
+### Working with relational DBs
+NinjaX integrates well with `JDBI`, `HikariCP`, and `Flyway` for a robust database stack.
+
+**Setup in `Application.java`:**
+
+```java
+// DB configuration
+var ninjaDatasourceConfigProvider = new NinjaDatasourcePropertiesExtractor(ninjaProperties);
+var ninjaFlywayMigrator = new NinjaFlywayMigrator(ninjaDatasourceConfigProvider.get());
+var ninjaDbHikariProvider = new NinjaDbHikariProvider(ninjaDatasourceConfigProvider.get());
+var ninjaJdbiImpl = new NinjaJdbiImpl(ninjaDbHikariProvider.get());
+
+// Pass ninjaJdbiImpl to your repositories
+var taskRepository = new TaskRepository(ninjaJdbiImpl);
+```
+
+**Repository Example (JDBI):**
+
+```java
+public class TaskRepository {
+    private final Jdbi jdbi;
+
+    public TaskRepository(NinjaJdbi ninjaJdbi) {
+        this.jdbi = ninjaJdbi.getJdbi("default");
+    }
+
+    public List<Task> findAll() {
+        return jdbi.withHandle(handle ->
+            handle.createQuery("SELECT * FROM tasks")
+                  .mapTo(Task.class)
+                  .list()
+        );
+    }
+}
+```
+
+### Internationalization
+NinjaX supports I18N via message bundles.
+
+- Messages bundles in "root" (Java convention) (e.g., `messages.properties`, `messages_de.properties`)
+- Message bundles should be UTF-8.
+- Define supported languages in `application.conf`: `application.languages=en,de`
+
+```java
+// In your controller
+var locale = request.getLocale();
+var message = ninjaMessages.getMessage("login.welcome", locale, "User");
+```
+
+### Static assets
+Serving static assets (CSS, JS, Images) from the jar is not supported in V1.
+It is recommended to serve static assets via a reverse proxy (like Nginx) or a CDN in production.
+
+For development, you can use external services or CDN links in your templates.
+
+### Logging
+NinjaX uses SLF4J and Logback. You can configure logging via `src/main/resources/logback.xml`.
+
+```xml
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+  <root level="INFO">
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>
+```
+
+### Custom routing
+Routing is defined explicitly in code using the `Router` class.
+
+```java
+var router = new Router();
+router.GET("/").with(controller::index);
+router.POST("/users").with(controller::createUser);
+
+// Path parameters
+router.GET("/users/{id}").with(controller::getUser);
+
+// Regex constraints
+router.GET("/users/{id: [0-9]+}").with(controller::getUserById);
+```
+
+### Testing
+NinjaX applications are easy to test using `HttpTestClient` for integration tests.
+
+```java
+@Test
+void testCreateTask() throws IOException {
+    HttpTestClient client = HttpTestClient.localhost(TEST_PORT);
+    
+    var response = client.post("/tasks", Map.of("title", "Buy milk"));
+    
+    assertThat(response.statusCode()).isEqualTo(303);
+}
+```
+
+### Debugging
+Since NinjaX is just plain Java, you can debug it like any other Java application.
+1. Run `TodoApplication.main()` in Debug mode in your IDE.
+2. Set breakpoints in your controllers or services.
+3. Enjoy full introspection.
+
+## Deployment
+
+NinjaX applications are packaged as standard FAT JARs (or simple JARs with dependencies).
+
+1. Build the project:
+   ```bash
+   mvn clean package
+   ```
+2. Run the generated JAR:
+   ```bash
+   java -jar target/my-app-1.0-SNAPSHOT.jar
+   ```
+
+You can configure the port and secret via system properties:
+
+```bash
+java -Dninja.port=9000 -Dapplication.secret=prod_secret -jar my-app.jar
+```
