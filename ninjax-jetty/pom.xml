@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.r10r.ninjax</groupId>
         <artifactId>ninjax</artifactId>
-        <version>0.2.15</version>
+        <version>0.2.16-SNAPSHOT</version>
     </parent>
 
     <artifactId>ninjax-jetty</artifactId>
