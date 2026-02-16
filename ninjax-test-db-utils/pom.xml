@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.ninjaxframework</groupId>
+        <artifactId>ninjax</artifactId>
+        <version>0.2.15-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>ninjax-test-db-utils</artifactId>
+    <name>ninjax-test-db-utils</name>
+    <description>Database testing utilities for Ninja framework applications</description>
+
+    <dependencies>
+        <!-- Ninja Test Utils -->
+        <dependency>
+            <groupId>com.ninjaxframework</groupId>
+            <artifactId>ninjax-test-utils</artifactId>
+        </dependency>
+
+        <!-- Ninja DB Modules -->
+        <dependency>
+            <groupId>com.ninjaxframework</groupId>
+            <artifactId>ninjax-db-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ninjaxframework</groupId>
+            <artifactId>ninjax-db-hikari</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ninjaxframework</groupId>
+            <artifactId>ninjax-db-jdbi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ninjaxframework</groupId>
+            <artifactId>ninjax-db-flyway</artifactId>
+        </dependency>
+
+        <!-- TestContainers -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Database Drivers -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- JDBI -->
+        <dependency>
+            <groupId>org.jdbi</groupId>
+            <artifactId>jdbi3-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jdbi</groupId>
+            <artifactId>jdbi3-sqlobject</artifactId>
+        </dependency>
+
+        <!-- HikariCP -->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+        </dependency>
+
+        <!-- Flyway -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+
+        <!-- JUnit 5 -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Google Truth -->
+        <dependency>
+            <groupId>com.google.truth</groupId>
+            <artifactId>truth</artifactId>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+</project>

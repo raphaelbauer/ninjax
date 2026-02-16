@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     
-    <groupId>org.r10r</groupId>
+    <groupId>com.ninjaxframework</groupId>
     <artifactId>ninjax</artifactId>
     <version>0.2.15-SNAPSHOT</version>
     
@@ -115,59 +115,59 @@
             </dependency>
             
             <dependency>
-                <groupId>org.r10r</groupId>
-                <artifactId>ninja-core</artifactId>
+                <groupId>com.ninjaxframework</groupId>
+                <artifactId>ninjax-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.r10r</groupId>
-                <artifactId>ninja-jetty</artifactId>
+                <groupId>com.ninjaxframework</groupId>
+                <artifactId>ninjax-jetty</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.r10r</groupId>
-                <artifactId>ninja-db-common</artifactId>
+                <groupId>com.ninjaxframework</groupId>
+                <artifactId>ninjax-db-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.r10r</groupId>
-                <artifactId>ninja-db-hikari</artifactId>
+                <groupId>com.ninjaxframework</groupId>
+                <artifactId>ninjax-db-hikari</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.r10r</groupId>
-                <artifactId>ninja-db-flyway</artifactId>
+                <groupId>com.ninjaxframework</groupId>
+                <artifactId>ninjax-db-flyway</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.r10r</groupId>
-                <artifactId>ninja-db-jdbi</artifactId>
+                <groupId>com.ninjaxframework</groupId>
+                <artifactId>ninjax-db-jdbi</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.r10r</groupId>
-                <artifactId>ninja-template</artifactId>
+                <groupId>com.ninjaxframework</groupId>
+                <artifactId>ninjax-template</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.r10r</groupId>
-                <artifactId>ninja-json-jackson</artifactId>
+                <groupId>com.ninjaxframework</groupId>
+                <artifactId>ninjax-json-jackson</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.r10r</groupId>
-                <artifactId>ninja-maven-plugin</artifactId>
+                <groupId>com.ninjaxframework</groupId>
+                <artifactId>ninjax-maven-plugin</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.r10r</groupId>
-                <artifactId>ninja-test-utils</artifactId>
+                <groupId>com.ninjaxframework</groupId>
+                <artifactId>ninjax-test-utils</artifactId>
                 <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.r10r</groupId>
-                <artifactId>ninja-test-db-utils</artifactId>
+                <groupId>com.ninjaxframework</groupId>
+                <artifactId>ninjax-test-db-utils</artifactId>
                 <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
@@ -368,17 +368,17 @@
     
     <!-- List of child modules (directories under this pom) -->
     <modules>
-        <module>ninja-core</module>
-        <module>ninja-jetty</module>
-        <module>ninja-json-jackson</module>
-        <module>ninja-db-common</module>
-        <module>ninja-db-hikari</module>
-        <module>ninja-db-flyway</module>
-        <module>ninja-db-jdbi</module>
-        <module>ninja-template</module>
-        <module>ninja-maven-plugin</module>
-        <module>ninja-test-utils</module>
-        <module>ninja-test-db-utils</module>
-        <module>ninja-demo-todo</module>
+        <module>ninjax-core</module>
+        <module>ninjax-jetty</module>
+        <module>ninjax-json-jackson</module>
+        <module>ninjax-db-common</module>
+        <module>ninjax-db-hikari</module>
+        <module>ninjax-db-flyway</module>
+        <module>ninjax-db-jdbi</module>
+        <module>ninjax-template</module>
+        <module>ninjax-maven-plugin</module>
+        <module>ninjax-test-utils</module>
+        <module>ninjax-test-db-utils</module>
+        <module>ninjax-demo-todo</module>
     </modules>
 </project>
