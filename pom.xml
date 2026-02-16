@@ -8,7 +8,6 @@
     
     <packaging>pom</packaging>
     
-    <name>ninja-parent</name>
     <url>https://github.com/raphaelbauer/ninjax</url>
     <description>NinjaX is a full stack web framework for Java. Simple. Immutable. Fast and dev friendly.</description>
     
