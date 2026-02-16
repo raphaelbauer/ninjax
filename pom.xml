@@ -5,6 +5,7 @@
     <groupId>org.r10r</groupId>
     <artifactId>ninjax</artifactId>
     <version>0.2.16-SNAPSHOT</version>
+    <name>ninjax</name>
     
     <packaging>pom</packaging>
     
