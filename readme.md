@@ -126,6 +126,10 @@ You'll see the NinjaX demo project ready to work on.
 > SuperDevMode is our answer to that challenge. Say goodbye to long and time consuming deployment cycles while developing.
 > Make sure that your IDE is compiling changes as you make edits. That way Ninja's SuperDevMode will restart and pick-up all changes.
 
+In Netbeans that feature is called ["compile on save"](https://netbeans.apache.org/tutorial/main/kb/docs/java/javase-intro/).
+
+## Basic concepts
+
 ### A Hello World Example
 
 A basic NinjaX application looks like this:
@@ -134,9 +138,13 @@ A basic NinjaX application looks like this:
 public class Application {
     
     public static void main(String[] args) {
+        // Read application properties from file conf/application.conf
         var ninjaProperties = new NinjaProperties();
+
+        // Create router to handle incoming requests
         var router = new Router();
         
+        // return "Hello World" to a request coming to http://localhost:8080/
         router.GET("/").with(request -> 
             Result.builder()
                 .status(Result.SC_200_OK)
@@ -144,12 +152,104 @@ public class Application {
                 .build()
         );
         
+        // Start the server and handle all incoming requests...
         new NinjaJetty(router, ninjaProperties);
     }
 }
 ```
 
-## Basic concepts
+### Real Application Layout
+
+The core principles of NinjaX stay the same. For large and small applications alike:
+- conf/application.conf contains all configuration as simple key value pairs
+- A main application file (e.g. TodoApplication contains all routes and wires together
+all application components (services, repositories etc).
+- By convention ...Controller classes contain all controller like logic and render the output.
+- html of view classes is next to their Java classes that render the output.
+- Following a Domain Driven Design e.g. putting anything related to a domain into a package is recommended (see tasks).
+
+In the demo project (with database and one domain) this looks like the following:
+
+```bash
+├── pom.xml
+└── src
+    ├── main
+    │   ├── java
+    │   │   └── com
+    │   │       └── ninjaxframework
+    │   │           └── demo
+    │   │               └── todo
+    │   │                   ├── TodoApplication.java
+    │   │                   ├── tasks
+    │   │                   │   ├── Task.java
+    │   │                   │   ├── TaskRepository.java
+    │   │                   │   ├── TaskService.java
+    │   │                   │   ├── TodoController.java
+    │   │                   │   └── views
+    │   │                   │       ├── TaskFormTemplate.java
+    │   │                   │       ├── TaskItemTemplate.html
+    │   │                   │       ├── TaskItemTemplate.java
+    │   │                   │       ├── TaskListTemplate.java
+    │   │                   │       ├── TodoTemplateService.java
+    │   │                   │       └── TodoTemplateService.html
+    │   │                   └── views
+    │   │                       ├── LayoutTemplate.html
+    │   │                       └── LayoutTemplate.java
+    │   │   
+    │   └── resources
+    │       ├── conf
+    │       │   └── application.conf
+    │       ├── logback.xml
+    │       └── migrations
+    │           └── default
+    │               └── V1__Create_tasks_table.sql
+    └── test
+        ├── java
+        │   ├── com
+        │   │   └── ninjaxframework
+        │   │       └── demo
+        │   │           └── todo
+        │   │               ├── TaskRepositoryTest.java
+        │   │               ├── TaskServiceTest.java
+        │   │               ├── TodoApplicationIntegrationTest.java
+        │   │               └── TodoControllerTest.java
+        │   └── org
+        └── resources
+            └── conf
+                └── application.conf
+```
+
+
+
+### Configuration properties
+
+#### Basics
+
+`conf/application.conf` contains all application logic. There's no magic here. Just simple-value pairs.
+If you want to override these properties, you can use Java system properties.
+
+#### Configuration properties in production
+Override properties in application.conf is needed when running a server in production
+ and selectively overwriting e.g. port and setting credentials:
+
+```bash
+java -jar -Dninja.port=5000 \
+          -Dapplication.secret=${APPLICATION_SECRET} \
+          -Dapplication.datasource.default.url=${DATABASE_JDBC_URL} \
+          -Dapplication.datasource.default.username=${DATABASE_USERNAME} \
+          -Dapplication.datasource.default.password=${DATABASE_PASSWORD} \
+          -Dapplication.datasource.default.migration.username=${DATABASE_USERNAME} \
+          -Dapplication.datasource.default.migration.password=${DATABASE_PASSWORD} \
+          target/app.jar
+```
+
+In that case `${APPLICATION_SECRET}` would be set by your container and used as a Java system propery.
+It would override application.secret in your application.conf file.
+
+#### Configuration Properties in tests
+
+In tests you can use a file in test/resources/conf/application.conf that will take
+predecence over the real application.conf file.
 
 ### HTML templating
 
@@ -371,3 +471,13 @@ You can configure the port and secret via system properties:
 ```bash
 java -Dninja.port=9000 -Dapplication.secret=prod_secret -jar my-app.jar
 ```
+
+
+## Contributing
+### Deployment to Maven Central
+
+    # Make sure gpg is set up properly
+    mvn -Prelease release:prepare release:perform
+    # => Everything is released automatically and should be available after few minutes globally.
+
+Log in to https://central.sonatype.com/ check releases.
