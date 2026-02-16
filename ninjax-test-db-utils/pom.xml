@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.r10r</groupId>
+        <groupId>org.r10r</groupId>
         <artifactId>ninjax</artifactId>
         <version>0.2.16-SNAPSHOT</version>
     </parent>
@@ -15,25 +15,25 @@
     <dependencies>
         <!-- Ninja Test Utils -->
         <dependency>
-            <groupId>com.r10r</groupId>
+            <groupId>org.r10r</groupId>
             <artifactId>ninjax-test-utils</artifactId>
         </dependency>
 
         <!-- Ninja DB Modules -->
         <dependency>
-            <groupId>com.r10r</groupId>
+            <groupId>org.r10r</groupId>
             <artifactId>ninjax-db-common</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.r10r</groupId>
+            <groupId>org.r10r</groupId>
             <artifactId>ninjax-db-hikari</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.r10r</groupId>
+            <groupId>org.r10r</groupId>
             <artifactId>ninjax-db-jdbi</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.r10r</groupId>
+            <groupId>org.r10r</groupId>
             <artifactId>ninjax-db-flyway</artifactId>
         </dependency>
 

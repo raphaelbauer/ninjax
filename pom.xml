@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     
-    <groupId>com.r10r</groupId>
+    <groupId>org.r10r</groupId>
     <artifactId>ninjax</artifactId>
     <version>0.2.16-SNAPSHOT</version>
     
@@ -115,58 +115,58 @@
             </dependency>
             
             <dependency>
-                <groupId>com.r10r</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninjax-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.r10r</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninjax-jetty</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.r10r</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninjax-db-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.r10r</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninjax-db-hikari</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.r10r</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninjax-db-flyway</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.r10r</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninjax-db-jdbi</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.r10r</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninjax-template</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.r10r</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninjax-json-jackson</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.r10r</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninjax-maven-plugin</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.r10r</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninjax-test-utils</artifactId>
                 <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>com.r10r</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninjax-test-db-utils</artifactId>
                 <version>${project.version}</version>
                 <scope>test</scope>

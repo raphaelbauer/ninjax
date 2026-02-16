@@ -175,8 +175,8 @@ In the demo project (with database and one domain) this looks like the following
 └── src
     ├── main
     │   ├── java
-    │   │   └── com
-    │   │       └── ninjaxframework
+    │   │   └── org
+    │   │       └── r10r
     │   │           └── demo
     │   │               └── todo
     │   │                   ├── TodoApplication.java
@@ -205,8 +205,8 @@ In the demo project (with database and one domain) this looks like the following
     │               └── V1__Create_tasks_table.sql
     └── test
         ├── java
-        │   ├── com
-        │   │   └── ninjaxframework
+        │   ├── org
+        │   │   └── r10r
         │   │       └── demo
         │   │           └── todo
         │   │               ├── TaskRepositoryTest.java
@@ -289,7 +289,7 @@ public class LayoutTemplate {
 NinjaX has built-in JSON support. You can easily serialize objects to JSON responses.
 
 ```java
-import com.r10r.ninjax.json.Json;
+import org.r10r.ninjax.json.Json;
 
 public class TodoController {
     

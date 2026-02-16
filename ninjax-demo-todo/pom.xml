@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.r10r</groupId>
+        <groupId>org.r10r</groupId>
         <artifactId>ninjax</artifactId>
         <version>0.2.16-SNAPSHOT</version>
     </parent>
@@ -15,33 +15,33 @@
     <dependencies>
         <!-- Core NinjaX framework -->
         <dependency>
-            <groupId>com.r10r</groupId>
+            <groupId>org.r10r</groupId>
             <artifactId>ninjax-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.r10r</groupId>
+            <groupId>org.r10r</groupId>
             <artifactId>ninjax-jetty</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.r10r</groupId>
+            <groupId>org.r10r</groupId>
             <artifactId>ninjax-json-jackson</artifactId>
         </dependency>
         
         <!-- Template engine -->
         <dependency>
-            <groupId>com.r10r</groupId>
+            <groupId>org.r10r</groupId>
             <artifactId>ninjax-template</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.r10r</groupId>
+            <groupId>org.r10r</groupId>
             <artifactId>ninjax-db-jdbi</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.r10r</groupId>
+            <groupId>org.r10r</groupId>
             <artifactId>ninjax-db-flyway</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.r10r</groupId>
+            <groupId>org.r10r</groupId>
             <artifactId>ninjax-db-hikari</artifactId>
         </dependency>
         <!-- External dependencies -->
@@ -106,12 +106,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.r10r</groupId>
+            <groupId>org.r10r</groupId>
             <artifactId>ninjax-test-utils</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.r10r</groupId>
+            <groupId>org.r10r</groupId>
             <artifactId>ninjax-test-db-utils</artifactId>
             <scope>test</scope>
         </dependency>
@@ -146,11 +146,11 @@
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
             <plugin>
-                <groupId>com.r10r</groupId>
+                <groupId>org.r10r</groupId>
                 <artifactId>ninjax-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <configuration>
-                    <mainClass>org.ninjax.demo.todo.TodoApplication</mainClass>
+                    <mainClass>org.r10r.ninjax.demo.todo.TodoApplication</mainClass>
                 </configuration>
             </plugin>
             <plugin>
@@ -158,7 +158,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.5.0</version>
                 <configuration>
-                    <mainClass>org.ninjax.demo.todo.TodoApplication</mainClass>
+                    <mainClass>org.r10r.ninjax.demo.todo.TodoApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>

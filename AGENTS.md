@@ -40,7 +40,7 @@ mvn -B package --file pom.xml
 ## Code Style Guidelines
 
 ### Naming Conventions
-- **Packages:** `com.r10r.ninjax.*` (lowercase)
+- **Packages:** `org.r10r.ninjax.*` (lowercase)
 - **Classes:** PascalCase (e.g., `NinjaJetty`, `Request`, `Result`)
 - **Methods:** camelCase (e.g., `getNinjaSession`, `build`)
 - **Constants:** SCREAMING_SNAKE_CASE
