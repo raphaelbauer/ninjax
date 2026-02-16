@@ -13,15 +13,12 @@ import org.eclipse.jetty.server.Server;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import org.eclipse.jetty.ee10.servlet.FilterHolder;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.server.ServerConnector;
@@ -43,7 +40,6 @@ import org.ninjax.core.FilterChain;
 import org.ninjax.core.PathParameterExtractor;
 import org.ninjax.core.Secure;
 import org.ninjax.core.HttpOnly;
-import org.ninjax.core.NinjaConstants;
 
 public class NinjaJetty {
 
@@ -245,7 +241,7 @@ public class NinjaJetty {
                             httpServletResponse.addCookie(NinjaJettyHelper.convertNinjaCookieToServletCookie(cookie));
                         }
                         case Result.UnknownButDontTouch unknown -> {
-                            // Intntionally don't do anything
+                            // Intentionally don't do anything
                         }
                     }
 
