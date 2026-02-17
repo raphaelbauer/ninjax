@@ -137,12 +137,12 @@ A basic NinjaX application looks like this:
 ```java
 public class Application {
     
-    public static void main(String[] args) {
+    public void main() {
         // Read application properties from file conf/application.conf
         var ninjaProperties = new NinjaProperties();
 
         // Create router to handle incoming requests
-        var router = new Router();
+        var router = new Router(); 
         
         // return "Hello World" to a request coming to http://localhost:8080/
         router.GET("/").with(request -> 

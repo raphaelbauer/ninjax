@@ -50,7 +50,7 @@ public class TodoApplication {
         this(MockableComponents.nothingMocked());
     }
 
-    public static void main(String[] args) {
+    public void main() {
         new TodoApplication();
     }
     
