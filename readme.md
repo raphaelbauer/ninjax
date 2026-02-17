@@ -114,8 +114,8 @@ Starting the project is simple:
 
 ```bash
 cd ninja-demo-todo
-./mvn clean install     # to generate the compiled classes the first time
-./mvn ninja:run         # to start Ninja's SuperDevMode
+./mvnw clean install     # to generate the compiled classes the first time
+./mvnw ninjax:run         # to start Ninja's SuperDevMode
 ```
 
 This starts Ninja's SuperDevMode. Simply open http://localhost:8080 in your browser. 
