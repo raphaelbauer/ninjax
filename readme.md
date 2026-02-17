@@ -102,18 +102,18 @@ The most simple way to kickstart your NinjaX application is to download our arch
 You can also use the command line like so:
 
 ```bash
-wget https://github.com/raphaelbauer/ninja-demo-todo/archive/refs/heads/main.zip
+wget https://github.com/raphaelbauer/ninjax-demo-todo/archive/refs/heads/main.zip
 unzip main.zip
 ```
 
-This will create a directory called `ninja-demo-todo` which contains a full NinjaX project that is ready to go.
+This will create a directory called `ninjax-demo-todo` which contains a full NinjaX project that is ready to go.
 
 ### Running the application
 
 Starting the project is simple:
 
 ```bash
-cd ninja-demo-todo
+cd ninjax-demo-todo
 ./mvnw clean install     # to generate the compiled classes the first time
 ./mvnw ninjax:run         # to start Ninja's SuperDevMode
 ```
@@ -309,11 +309,15 @@ public class TaskItemTemplate {
 
 NinjaX has built-in JSON support. You can easily serialize objects to JSON responses.
 
+But in reality that's just a very think wrapper around the [Jackson ObjectMapper](https://github.com/FasterXML/jackson-databind) library.
+If you have need special configuration you can easily use Jackson ObjectMapper yourself.
+
+
 ```java
 import org.r10r.ninjax.json.Json;
 
 public class TodoController {
-    
+
     private final Json json;
     
     public TodoController(Json json) {
@@ -334,7 +338,8 @@ public class TodoController {
 ## Advanced topics
 
 ### Validation
-Validation in NinjaX is explicit. There is no "magic" validation behind annotations. You validate data inside your controller methods.
+Validation in NinjaX is explicit. There is no "magic" validation behind annotations. 
+You validate data inside your controller methods.
 
 ```java
 public Result addTask(Request request) {
@@ -369,7 +374,11 @@ public Result uploadFile(Request request) {
 ```
 
 ### Working with relational DBs
-NinjaX integrates well with `JDBI`, `HikariCP`, and `Flyway` for a robust database stack.
+NinjaX supports relational databases out of the box using [Flyway](https://github.com/flyway/flyway) for migrations,
+[Hikari](https://github.com/brettwooldridge/HikariCP) for connection pooling and JDBI for creating SQL.
+
+NinjaX deliberately does not support JPA right now. [JDBI](https://jdbi.org/) is an excellent alternative to create SQL.
+And it does not add any magic that is hard to reason about (as withn JPA).
 
 **Setup in `Application.java`:**
 
@@ -408,7 +417,7 @@ public class TaskRepository {
 NinjaX supports I18N via message bundles.
 
 - Messages bundles in "root" (Java convention) (e.g., `messages.properties`, `messages_de.properties`)
-- Message bundles should be UTF-8.
+- Message bundles are UTF-8.
 - Define supported languages in `application.conf`: `application.languages=en,de`
 
 ```java
@@ -418,13 +427,35 @@ var message = ninjaMessages.getMessage("login.welcome", locale, "User");
 ```
 
 ### Static assets
-Serving static assets (CSS, JS, Images) from the jar is not supported in V1.
-It is recommended to serve static assets via a reverse proxy (like Nginx) or a CDN in production.
 
-For development, you can use external services or CDN links in your templates.
+Static assets are served from `src/main/assets/**` using NinjaX's AssetsController.
+The AssetController can be used like any other controller. 
+
+An example usage would can be seen below.
+
+```java
+public class Application {
+    
+    public void main() {
+        // Read application properties from file conf/application.conf
+        var ninjaProperties = new NinjaProperties();
+
+        // Create router to handle incoming requests
+        var router = new Router(); 
+
+        AssetsController assetsController = new AssetsController();
+
+        router.GET("/favicon.ico").with(assetsController::serveStatic);
+        router.GET("/assets/{fileName: .*}").with(assetsController::serveStatic);
+        
+        // Start the server and handle all incoming requests...
+        new NinjaJetty(router, ninjaProperties);
+    }
+}
+```
 
 ### Logging
-NinjaX uses SLF4J and Logback. You can configure logging via `src/main/resources/logback.xml`.
+NinjaX uses SLF4J and Logback. You can configure logging via `logback.xml`.
 
 ```xml
 <configuration>
@@ -454,6 +485,18 @@ router.GET("/users/{id}").with(controller::getUser);
 router.GET("/users/{id: [0-9]+}").with(controller::getUserById);
 ```
 
+```java
+public Result doStuff(Request request) {
+
+    Optional<String> email = request.parameters().get("email");
+
+    // do stuff
+
+    return Result.ok();
+}
+```
+
+
 ### Testing
 NinjaX applications are easy to test using `HttpTestClient` for integration tests.
 
@@ -476,7 +519,8 @@ Since NinjaX is just plain Java, you can debug it like any other Java applicatio
 
 ## Deployment
 
-NinjaX applications are packaged as standard FAT JARs (or simple JARs with dependencies).
+NinjaX applications are packaged as FAT jars using the 
+[maven-shade-plugin](https://maven.apache.org/plugins/maven-shade-plugin/) plugin.
 
 1. Build the project:
    ```bash
@@ -487,12 +531,12 @@ NinjaX applications are packaged as standard FAT JARs (or simple JARs with depen
    java -jar target/my-app-1.0-SNAPSHOT.jar
    ```
 
-You can configure the port and secret via system properties:
+In production environments you'd override certain properties in your application.conf´
+using system variables which you can do with -Dkey=value
 
 ```bash
 java -Dninja.port=9000 -Dapplication.secret=prod_secret -jar my-app.jar
 ```
-
 
 ## Contributing
 ### Deployment to Maven Central
