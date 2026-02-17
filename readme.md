@@ -175,51 +175,48 @@ In the demo project (with database and one domain) this looks like the following
 └── src
     ├── main
     │   ├── java
+    │   │   ├── conf
+    │   │   │   └── application.conf
+    │   │   ├── logback.xml
+    │   │   ├── migrations
+    │   │   │   └── default
+    │   │   │       └── V1__Create_tasks_table.sql
     │   │   └── org
-    │   │       └── r10r
-    │   │           └── demo
-    │   │               └── todo
-    │   │                   ├── TodoApplication.java
-    │   │                   ├── tasks
-    │   │                   │   ├── Task.java
-    │   │                   │   ├── TaskRepository.java
-    │   │                   │   ├── TaskService.java
-    │   │                   │   ├── TodoController.java
-    │   │                   │   └── views
-    │   │                   │       ├── TaskFormTemplate.java
-    │   │                   │       ├── TaskItemTemplate.html
-    │   │                   │       ├── TaskItemTemplate.java
-    │   │                   │       ├── TaskListTemplate.java
-    │   │                   │       ├── TodoTemplateService.java
-    │   │                   │       └── TodoTemplateService.html
-    │   │                   └── views
-    │   │                       ├── LayoutTemplate.html
-    │   │                       └── LayoutTemplate.java
-    │   │   
+    │   │       └── r10r
+    │   │           └── ninjax
+    │   │               └── demo
+    │   │                   └── todo
+    │   │                       ├── TodoApplication.java
+    │   │                       ├── tasks
+    │   │                       │   ├── Task.java
+    │   │                       │   ├── TaskRepository.java
+    │   │                       │   ├── TaskService.java
+    │   │                       │   ├── TodoController.java
+    │   │                       │   └── views
+    │   │                       │       ├── TaskFormTemplate.java
+    │   │                       │       ├── TaskItemTemplate.html
+    │   │                       │       ├── TaskItemTemplate.java
+    │   │                       │       ├── TaskListTemplate.java
+    │   │                       │       └── TodoTemplateService.java
+    │   │                       └── views
+    │   │                           ├── LayoutTemplate.html
+    │   │                           └── LayoutTemplate.java
     │   └── resources
-    │       ├── conf
-    │       │   └── application.conf
-    │       ├── logback.xml
-    │       └── migrations
-    │           └── default
-    │               └── V1__Create_tasks_table.sql
     └── test
         ├── java
-        │   ├── org
-        │   │   └── r10r
-        │   │       └── demo
-        │   │           └── todo
-        │   │               ├── TaskRepositoryTest.java
-        │   │               ├── TaskServiceTest.java
-        │   │               ├── TodoApplicationIntegrationTest.java
-        │   │               └── TodoControllerTest.java
         │   └── org
+        │       └── r10r
+        │           └── ninjax
+        │               └── demo
+        │                   └── todo
+        │                       ├── TaskRepositoryTest.java
+        │                       ├── TaskServiceTest.java
+        │                       ├── TodoApplicationIntegrationTest.java
+        │                       └── TodoControllerTest.java
         └── resources
             └── conf
                 └── application.conf
 ```
-
-
 
 ### Configuration properties
 
@@ -253,34 +250,58 @@ predecence over the real application.conf file.
 
 ### HTML templating
 
-NinjaX includes a typesafe, compiled HTML templating system called **NinjaX Templates**. It favors Java code over template logic.
+NinjaX includes a typesafe, compiled HTML templating system called **NinjaX Templates**. 
+It favors Java code over template logic.
 
 Templates are basically Java classes that generate HTML strings. You can compose them easily.
 
+What NinjaX Templates can do:
+- Replacing of variables in .html file using {{...}}
+- Escaping of unsafe content by default. Use new Html(...) to not escape it.
+
+What NinjaX Templates can't do:
+- No control logic. You can freely iterate and assemble your templates. But you have to do this
+in the Java class that reads the html.
+
+This simplicity allows Ninja Templates to live without any special compiler support. At the same time
+they are really simple and easy to understand.
+
 **Example View Composition:**
 
-```java
-public class TodoTemplateService {
-    
-    public String generateTodoPage(List<Task> tasks) {
-        // Generate dynamic content fragment
-        NinjaHtmlTemplate dynamicContent = TaskListTemplate.render(tasks);
-        
-        // Wrap it in a layout
-        NinjaHtmlTemplate fullPage = LayoutTemplate.render("Todo List", dynamicContent);
-        
-        return fullPage.toString();
-    }
-}
+```html
+<div class="task">
+    <strong>{{completedText}} {{title}}</strong>
+</div>
 ```
 
 **Layout Template:**
 
 ```java
-public class LayoutTemplate {
-    public static NinjaHtmlTemplate render(String title, NinjaHtmlTemplate content) {
-        // ... implementation that wraps content in <html><body>...</body></html>
+public class TaskItemTemplate {
+
+    // Read template string only once
+    private final static String TEMPLATE = NinjaHtmlTemplateTool.readResourceFile(TaskItemTemplate.class);
+
+    public static NinjaHtmlTemplate render(Task task) {
+
+        String completedText = task.completed() ? "✅ " : "⏳ ";
+
+        var parameters = Map.of(
+                "completedText", completedText,    // Add the text. Escaped by default.
+                "title", new Html(task.title()),   // Do not escape the title. Only do this for strings you control. Never
+                                                   // do it for customer supplied strings.
+        );
+        
+        // Replace placeholders {{ ... }} with your parameters. Escaped by default. Unsafe when you use new Html(...)
+        var templateWithVariables = NinjaHtmlTemplateTool.replacePlaceholders(TEMPLATE, parameters);
+
+        var template = new NinjaHtmlTemplate();
+        template.appendHtml(templateWithVariables);
+
+        return template;
+
     }
+
 }
 ```
 
