@@ -176,9 +176,9 @@ In the demo project (with database and one domain) this looks like the following
     ├── main
     │   ├── java
     │   │   ├── conf
-    │   │   │   └── application.conf
-    │   │   ├── logback.xml
-    │   │   ├── migrations
+    │   │   │   └── application.conf                                 # Default location for NinjaX configuration
+    │   │   ├── logback.xml                                          # Logging configuration
+    │   │   ├── migrations                                           # Flyway database migrations
     │   │   │   └── default
     │   │   │       └── V1__Create_tasks_table.sql
     │   │   └── org
@@ -186,23 +186,23 @@ In the demo project (with database and one domain) this looks like the following
     │   │           └── ninjax
     │   │               └── demo
     │   │                   └── todo
-    │   │                       ├── TodoApplication.java
-    │   │                       ├── tasks
-    │   │                       │   ├── Task.java
-    │   │                       │   ├── TaskRepository.java
-    │   │                       │   ├── TaskService.java
-    │   │                       │   ├── TodoController.java
-    │   │                       │   └── views
+    │   │                       ├── TodoApplication.java             # Main bootstrapping class
+    │   │                       ├── tasks                            # Domain tasks
+    │   │                       │   ├── Task.java                
+    │   │                       │   ├── TaskRepository.java          # DB repository
+    │   │                       │   ├── TaskService.java             
+    │   │                       │   ├── TodoController.java          # Controller - referenced from TodoApplications
+    │   │                       │   └── views                        # All views for this html app
     │   │                       │       ├── TaskFormTemplate.java
     │   │                       │       ├── TaskItemTemplate.html
     │   │                       │       ├── TaskItemTemplate.java
     │   │                       │       ├── TaskListTemplate.java
     │   │                       │       └── TodoTemplateService.java
-    │   │                       └── views
+    │   │                       └── views                            # Enclosing layout for all templates
     │   │                           ├── LayoutTemplate.html
     │   │                           └── LayoutTemplate.java
     │   └── resources
-    └── test
+    └── test                                                         # Tests live here
         ├── java
         │   └── org
         │       └── r10r
@@ -213,7 +213,7 @@ In the demo project (with database and one domain) this looks like the following
         │                       ├── TaskServiceTest.java
         │                       ├── TodoApplicationIntegrationTest.java
         │                       └── TodoControllerTest.java
-        └── resources
+        └── resources                                                # Test config will override normal config
             └── conf
                 └── application.conf
 ```
