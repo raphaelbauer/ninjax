@@ -166,12 +166,6 @@
                 <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
-            <dependency>
-                <groupId>org.r10r</groupId>
-                <artifactId>ninjax-test-db-utils</artifactId>
-                <version>${project.version}</version>
-                <scope>test</scope>
-            </dependency>
 
             <!-- External database libraries -->
             <dependency>
