@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.r10r</groupId>
+        <artifactId>ninjax</artifactId>
+        <version>0.2.18-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>ninjax-jetty-demo-todo</artifactId>
+    <name>ninjax-jetty-demo-todo</name>
+    <description>Demo application showcasing NinjaX framework with JDBI, H2, and templating using Jetty</description>
+
+    <dependencies>
+        <!-- Core NinjaX framework -->
+        <dependency>
+            <groupId>org.r10r</groupId>
+            <artifactId>ninjax-jetty</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.r10r</groupId>
+            <artifactId>ninjax-json-jackson</artifactId>
+        </dependency>
+        
+        <!-- Template engine -->
+        <dependency>
+            <groupId>org.r10r</groupId>
+            <artifactId>ninjax-template</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.r10r</groupId>
+            <artifactId>ninjax-db-jdbi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.r10r</groupId>
+            <artifactId>ninjax-db-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.r10r</groupId>
+            <artifactId>ninjax-db-hikari</artifactId>
+        </dependency>
+        <!-- External dependencies -->
+        <dependency>
+            <groupId>org.jdbi</groupId>
+            <artifactId>jdbi3-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jdbi</groupId>
+            <artifactId>jdbi3-sqlobject</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        
+        <!-- Logging -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>log4j-over-slf4j</artifactId>
+        </dependency>
+        
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.truth</groupId>
+            <artifactId>truth</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.r10r</groupId>
+            <artifactId>ninjax-test-utils</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.r10r</groupId>
+            <artifactId>ninjax-test-db-utils</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>  
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.r10r</groupId>
+                <artifactId>ninjax-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <configuration>
+                    <mainClass>org.r10r.ninjax.demo.todo.TodoApplication</mainClass>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <mainClass>org.r10r.ninjax.demo.todo.TodoApplication</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

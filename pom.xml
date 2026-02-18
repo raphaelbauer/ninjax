@@ -370,7 +370,6 @@
     <!-- List of child modules (directories under this pom) -->
     <modules>
         <module>ninjax-core</module>
-        <module>ninjax-jetty</module>
         <module>ninjax-json-jackson</module>
         <module>ninjax-db-common</module>
         <module>ninjax-db-hikari</module>
@@ -380,5 +379,8 @@
         <module>ninjax-maven-plugin</module>
         <module>ninjax-test-utils</module>
         <module>ninjax-demo-todo</module>
+        <!-- Could ne removed later as Ninja now works without Jetty -->
+        <module>ninjax-jetty</module>
+        <module>ninjax-jetty-demo-todo</module>
     </modules>
 </project>
