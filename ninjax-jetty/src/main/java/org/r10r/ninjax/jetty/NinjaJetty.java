@@ -23,7 +23,6 @@ import org.eclipse.jetty.ee10.servlet.FilterHolder;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import static org.r10r.ninjax.jetty.NinjaSessionConverter.NINJA_SESSION_COOKIE_NAME;
 import org.r10r.ninjax.core.properties.NinjaProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +39,8 @@ import org.r10r.ninjax.core.FilterChain;
 import org.r10r.ninjax.core.PathParameterExtractor;
 import org.r10r.ninjax.core.Secure;
 import org.r10r.ninjax.core.HttpOnly;
+import org.r10r.ninjax.core.NinjaSessionConverter;
+import static org.r10r.ninjax.core.NinjaSessionConverter.NINJA_SESSION_COOKIE_NAME;
 
 public class NinjaJetty {
 

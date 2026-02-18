@@ -1,4 +1,4 @@
-package org.r10r.ninjax.jetty;
+package org.r10r.ninjax.core;
 
 import io.jsonwebtoken.Jwts;
 import java.time.Duration;
