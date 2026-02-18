@@ -4,9 +4,9 @@ import org.r10r.ninjax.demo.todo.tasks.TaskService;
 import org.r10r.ninjax.demo.todo.tasks.TodoController;
 import org.r10r.ninjax.demo.todo.tasks.TaskRepository;
 import java.util.Optional;
-import org.r10r.ninjax.jetty.NinjaJetty;
 import org.r10r.ninjax.core.Router;
 import org.r10r.ninjax.core.properties.NinjaProperties;
+import org.r10r.ninjax.core.server.NinjaHttpServer;
 import org.r10r.ninjax.db.jdbi.NinjaJdbiImpl;
 import org.r10r.ninjax.db.hikari.NinjaDbHikariProvider;
 import org.r10r.ninjax.db.flyway.NinjaFlywayMigrator;
@@ -40,7 +40,7 @@ public class TodoApplication {
 
         // NinjaJetty startup
         try {
-            new NinjaJetty(router, ninjaProperties);
+            new NinjaHttpServer(router, ninjaProperties);
         } catch (Exception e) {
             throw new RuntimeException("Failed to start NinjaJetty", e);
         }

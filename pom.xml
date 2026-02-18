@@ -379,7 +379,6 @@
         <module>ninjax-template</module>
         <module>ninjax-maven-plugin</module>
         <module>ninjax-test-utils</module>
-        <module>ninjax-test-db-utils</module>
         <module>ninjax-demo-todo</module>
     </modules>
 </project>
