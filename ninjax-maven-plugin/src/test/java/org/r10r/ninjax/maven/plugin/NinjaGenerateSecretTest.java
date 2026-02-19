@@ -40,7 +40,7 @@ class NinjaGenerateSecretTest {
 
         // then
         assertThat(captured).hasSize(2);
-        assertThat(captured.get(0)).startsWith("Generated secret that is useful as '");
+        assertThat(captured.get(0)).startsWith("Generated HS256 secret that is useful as '");
         assertThat(captured.get(1)).isNotEmpty();
     }
 

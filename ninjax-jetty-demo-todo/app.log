@@ -1,0 +1,320 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------< org.ninja:ninja-demo-todo >----------------------
+[INFO] Building ninja-demo-todo 10.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- exec:3.5.0:java (default-cli) @ ninja-demo-todo ---
+18:28:14.012 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.scanner.classpath.ClassPathScanner -- Scanning for classpath resources at 'classpath:db/callback' ...
+18:28:14.014 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.scanner.classpath.ClassPathScanner -- Determining location urls for classpath:db/callback using ClassLoader org.codehaus.mojo.exec.URLClassLoaderBuilder$ExecJavaClassLoader@1debc91c ...
+18:28:14.014 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.scanner.classpath.ClassPathScanner -- Unable to resolve location classpath:db/callback.
+18:28:14.014 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.scanner.classpath.ClassPathScanner -- Scanning for classpath resources at 'classpath:migrations/default' ...
+18:28:14.014 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.scanner.classpath.ClassPathScanner -- Determining location urls for classpath:migrations/default using ClassLoader org.codehaus.mojo.exec.URLClassLoaderBuilder$ExecJavaClassLoader@1debc91c ...
+18:28:14.014 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.scanner.classpath.ClassPathScanner -- Scanning URL: file:/Users/ra/workspace/ninjax/ninja-demo-todo/target/classes/migrations/default
+18:28:14.014 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.scanner.classpath.FileSystemClassPathLocationScanner -- Scanning starting at classpath root in filesystem: /Users/ra/workspace/ninjax/ninja-demo-todo/target/classes/
+18:28:14.014 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.scanner.classpath.FileSystemClassPathLocationScanner -- Scanning for resources in path: /Users/ra/workspace/ninjax/ninja-demo-todo/target/classes/migrations/default (migrations/default)
+18:28:14.015 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.scanner.classpath.ClassPathScanner -- Found resource: migrations/default/V1__Create_tasks_table.sql
+18:28:14.015 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.scanner.classpath.ClassPathScanner -- Scanning for classes at classpath:migrations/default
+18:28:14.082 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.resource.ResourceNameValidator -- Validating V1__Create_tasks_table.sql
+18:28:14.096 [org.ninjax.demo.todo.TodoApplication.main()] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:h2:mem:todo (H2 2.3)
+18:28:14.096 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.FlywayExecutor -- Database Type: H2
+18:28:14.096 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.FlywayExecutor -- Driver: H2 JDBC Driver 2.3.232 (2024-08-11)
+18:28:14.096 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.FlywayExecutor -- DDL Transactions Supported: false
+18:28:14.096 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.schemahistory.SchemaHistoryFactory -- Schemas: 
+18:28:14.096 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.schemahistory.SchemaHistoryFactory -- Default schema: null
+18:28:14.099 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.FlywayExecutor -- Scanning for script callbacks ...
+18:28:14.099 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.callback.SqlScriptCallbackFactory -- Scanning for SQL callbacks ...
+18:28:14.103 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.command.DbValidate -- Validating migrations ...
+18:28:14.104 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.api.configuration.ClassicConfiguration -- CherryPickConfigurationExtension not found
+18:28:14.108 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.scanner.Scanner -- Filtering out resource: migrations/default/V1__Create_tasks_table.sql (filename: V1__Create_tasks_table.sql)
+18:28:14.108 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.scanner.Scanner -- Filtering out resource: migrations/default/V1__Create_tasks_table.sql (filename: V1__Create_tasks_table.sql)
+18:28:14.108 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.scanner.Scanner -- Filtering out resource: migrations/default/V1__Create_tasks_table.sql (filename: V1__Create_tasks_table.sql)
+18:28:14.108 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.scanner.Scanner -- Filtering out resource: migrations/default/V1__Create_tasks_table.sql (filename: V1__Create_tasks_table.sql)
+18:28:14.109 [org.ninjax.demo.todo.TodoApplication.main()] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Schema history table "PUBLIC"."flyway_schema_history" does not exist yet
+18:28:14.111 [org.ninjax.demo.todo.TodoApplication.main()] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 1 migration (execution time 00:00.007s)
+18:28:14.112 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.command.DbSchemas -- Skipping creation of existing schema: "PUBLIC"
+18:28:14.114 [org.ninjax.demo.todo.TodoApplication.main()] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Creating Schema History table "PUBLIC"."flyway_schema_history" ...
+18:28:14.115 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.parser.Parser -- Parsing  ...
+18:28:14.120 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.sqlscript.ParserSqlScript -- Found statement at line 1: CREATE TABLE IF NOT EXISTS "PUBLIC"."flyway_schema_history" (
+    "installed_rank" INT NOT NULL,
+    "version" VARCHAR(50),
+    "description" VARCHAR(200) NOT NULL,
+    "type" VARCHAR(20) NOT NULL,
+    "script" VARCHAR(1000) NOT NULL,
+    "checksum" INT,
+    "installed_by" VARCHAR(100) NOT NULL,
+    "installed_on" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "execution_time" INT NOT NULL,
+    "success" BOOLEAN NOT NULL,
+    CONSTRAINT "flyway_schema_history_pk" PRIMARY KEY ("installed_rank")
+) AS SELECT -1, NULL, '<< Flyway Schema History table created >>', 'TABLE', '', NULL, 'SA', CURRENT_TIMESTAMP, 0, TRUE
+18:28:14.120 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.sqlscript.ParserSqlScript -- Found statement at line 14: CREATE INDEX "PUBLIC"."flyway_schema_history_s_idx" ON "PUBLIC"."flyway_schema_history" ("success")
+18:28:14.120 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor -- Executing SQL: CREATE TABLE IF NOT EXISTS "PUBLIC"."flyway_schema_history" (
+    "installed_rank" INT NOT NULL,
+    "version" VARCHAR(50),
+    "description" VARCHAR(200) NOT NULL,
+    "type" VARCHAR(20) NOT NULL,
+    "script" VARCHAR(1000) NOT NULL,
+    "checksum" INT,
+    "installed_by" VARCHAR(100) NOT NULL,
+    "installed_on" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "execution_time" INT NOT NULL,
+    "success" BOOLEAN NOT NULL,
+    CONSTRAINT "flyway_schema_history_pk" PRIMARY KEY ("installed_rank")
+) AS SELECT -1, NULL, '<< Flyway Schema History table created >>', 'TABLE', '', NULL, 'SA', CURRENT_TIMESTAMP, 0, TRUE
+18:28:14.123 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor -- 0 rows affected
+18:28:14.123 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor -- Executing SQL: CREATE INDEX "PUBLIC"."flyway_schema_history_s_idx" ON "PUBLIC"."flyway_schema_history" ("success")
+18:28:14.124 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor -- 0 rows affected
+18:28:14.124 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Created Schema History table "PUBLIC"."flyway_schema_history"
+18:28:14.126 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.api.configuration.ClassicConfiguration -- CherryPickConfigurationExtension not found
+18:28:14.128 [org.ninjax.demo.todo.TodoApplication.main()] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "PUBLIC": << Empty Schema >>
+18:28:14.128 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.parser.Parser -- Parsing V1__Create_tasks_table.sql ...
+18:28:14.130 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.sqlscript.ParserSqlScript -- Found statement at line 1: CREATE TABLE IF NOT EXISTS tasks (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    completed BOOLEAN NOT NULL DEFAULT FALSE
+)
+18:28:14.130 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.command.DbMigrate -- Starting migration of schema "PUBLIC" to version "1 - Create tasks table" ...
+18:28:14.131 [org.ninjax.demo.todo.TodoApplication.main()] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "PUBLIC" to version "1 - Create tasks table"
+18:28:14.131 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor -- Executing SQL: CREATE TABLE IF NOT EXISTS tasks (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    completed BOOLEAN NOT NULL DEFAULT FALSE
+)
+18:28:14.133 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor -- 0 rows affected
+18:28:14.133 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.command.DbMigrate -- Successfully completed migration of schema "PUBLIC" to version "1 - Create tasks table"
+18:28:14.135 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Schema History table "PUBLIC"."flyway_schema_history" successfully updated to reflect changes
+18:28:14.135 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.api.configuration.ClassicConfiguration -- CherryPickConfigurationExtension not found
+18:28:14.139 [org.ninjax.demo.todo.TodoApplication.main()] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 1 migration to schema "PUBLIC", now at version v1 (execution time 00:00.003s)
+18:28:14.140 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.flywaydb.core.FlywayExecutor -- Memory usage: 40 of 56M
+18:28:14.143 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.util.UtilityElf -- Class org.h2.Driver found in Thread context class loader org.codehaus.mojo.exec.URLClassLoaderBuilder$ExecJavaClassLoader@1debc91c
+18:28:14.144 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- HikariPool-1 - configuration:
+18:28:14.145 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- allowPoolSuspension.............false
+18:28:14.145 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- autoCommit......................true
+18:28:14.145 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- catalog.........................none
+18:28:14.145 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- connectionInitSql...............none
+18:28:14.145 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- connectionTestQuery.............none
+18:28:14.145 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- connectionTimeout...............30000
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- credentials.....................com.zaxxer.hikari.util.Credentials@4d11a8e4
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- credentialsProvider.............none
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- credentialsProviderClassName....none
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- dataSource......................none
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- dataSourceClassName.............none
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- dataSourceJNDI..................none
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- dataSourceProperties............{password=<masked>}
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- driverClassName................."org.h2.Driver"
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- exceptionOverride...............none
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- exceptionOverrideClassName......none
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- healthCheckProperties...........{}
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- healthCheckRegistry.............none
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- idleTimeout.....................600000
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- initializationFailTimeout.......1
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- isolateInternalQueries..........false
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- jdbcUrl.........................jdbc:h2:mem:todo;DB_CLOSE_DELAY=-1
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- keepaliveTime...................120000
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- leakDetectionThreshold..........0
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- maxLifetime.....................1800000
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- maximumPoolSize.................10
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- metricRegistry..................none
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- metricsTrackerFactory...........none
+18:28:14.146 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- minimumIdle.....................10
+18:28:14.147 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- password........................<masked>
+18:28:14.147 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- poolName........................"HikariPool-1"
+18:28:14.147 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- readOnly........................false
+18:28:14.147 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- registerMbeans..................false
+18:28:14.147 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- scheduledExecutor...............none
+18:28:14.147 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- schema..........................none
+18:28:14.147 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- threadFactory...................internal
+18:28:14.147 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- transactionIsolation............default
+18:28:14.147 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- username........................"sa"
+18:28:14.147 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.HikariConfig -- validationTimeout...............5000
+18:28:14.148 [org.ninjax.demo.todo.TodoApplication.main()] INFO com.zaxxer.hikari.HikariDataSource -- HikariPool-1 - Starting...
+18:28:14.153 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Attempting to create/setup new connection (47ced1e2-7ee6-493f-9d6d-358e642c6633)
+18:28:14.154 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Established new connection (47ced1e2-7ee6-493f-9d6d-358e642c6633)
+18:28:14.155 [org.ninjax.demo.todo.TodoApplication.main()] INFO com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - Added connection conn2: url=jdbc:h2:mem:todo user=SA
+18:28:14.155 [org.ninjax.demo.todo.TodoApplication.main()] INFO com.zaxxer.hikari.HikariDataSource -- HikariPool-1 - Start completed.
+     _______  .___ _______        ____.  _____
+     \      \ |   |\      \      |    | /  _  \
+     /   |   \|   |/   |   \     |    |/  /_\  \
+    /    |    \   /    |    \/\__|    /    |    \
+    \____|__  /___\____|__  /\________\____|__  /
+            \/            \/                  \/
+
+18:28:14.197 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- QueuedThreadPool[qtp2059105348]@7abb7444{STOPPED,8<=0<=200,i=0,r=-1,t=-63177507ms,q=0}[NO_TRY] added {org.eclipse.jetty.util.thread.ThreadPoolBudget@63dc145b,POJO}
+18:28:14.199 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- Server@557e5e77{STOPPED}[11.0.25,sto=0] added {QueuedThreadPool[qtp2059105348]@7abb7444{STOPPED,8<=0<=200,i=0,r=-1,t=-63177511ms,q=0}[NO_TRY],AUTO}
+18:28:14.201 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- Server@557e5e77{STOPPED}[11.0.25,sto=0] added {AttributeContainerMap@2e11d768{size=0},AUTO}
+18:28:14.208 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- HttpConnectionFactory@7be3af5[HTTP/1.1] added {HttpConfiguration@140bae39{32768/8192,8192/8192,https://:0,[]},POJO}
+18:28:14.209 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- ServerConnector@25232057{null, ()}{0.0.0.0:0} added {QueuedThreadPool[qtp2059105348]@7abb7444{STOPPED,8<=0<=200,i=0,r=-1,t=-63177519ms,q=0}[NO_TRY],AUTO}
+18:28:14.210 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- ServerConnector@25232057{null, ()}{0.0.0.0:0} added {ScheduledExecutorScheduler@3f84899e{STOPPED},AUTO}
+18:28:14.217 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- Server@557e5e77{STOPPED}[11.0.25,sto=0] added {LogarithmicArrayByteBufferPool@351f4d60{minBufferCapacity=0, maxBufferCapacity=65536, maxQueueLength=-1, factor=4096},POJO}
+18:28:14.218 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- ServerConnector@25232057{null, ()}{0.0.0.0:0} added {LogarithmicArrayByteBufferPool@351f4d60{minBufferCapacity=0, maxBufferCapacity=65536, maxQueueLength=-1, factor=4096},UNMANAGED}
+18:28:14.218 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- ServerConnector@25232057{null, ()}{0.0.0.0:0} added {org.eclipse.jetty.io.LogarithmicArrayByteBufferPool$LogarithmicRetainablePool@718915b5{min=0,max=65536,buckets=17,heap=0/-1,direct=0/-1},POJO}
+18:28:14.218 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- ServerConnector@25232057{null, ()}{0.0.0.0:0} added {org.eclipse.jetty.server.AbstractConnector$1@186634e5,POJO}
+18:28:14.218 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- ServerConnector@25232057{null, (http/1.1)}{0.0.0.0:0} added {HttpConnectionFactory@7be3af5[HTTP/1.1],AUTO}
+18:28:14.218 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.server.AbstractConnector -- ServerConnector@25232057{HTTP/1.1, (http/1.1)}{0.0.0.0:0} added HttpConnectionFactory@7be3af5[HTTP/1.1]
+18:28:14.219 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- ServerConnector@25232057{HTTP/1.1, (http/1.1)}{0.0.0.0:0} added {SelectorManager@ServerConnector@25232057{HTTP/1.1, (http/1.1)}{0.0.0.0:0},MANAGED}
+18:28:14.219 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- Server@557e5e77{STOPPED}[11.0.25,sto=0] added {ServerConnector@25232057{HTTP/1.1, (http/1.1)}{0.0.0.0:8080},AUTO}
+18:28:14.225 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- o.e.j.s.ServletContextHandler@5138fe28{/,null,STOPPED} added {SymlinkAllowedResourceAliasChecker@448104c5{base=null,protected=[]},MANAGED}
+18:28:14.227 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- o.e.j.s.ServletContextHandler@5138fe28{/,null,STOPPED} added {ServletHandler@435438ef{STOPPED},MANAGED}
+18:28:14.227 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- Server@557e5e77{STOPPED}[11.0.25,sto=0] added {o.e.j.s.ServletContextHandler@5138fe28{/,null,STOPPED},MANAGED}
+18:28:14.229 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- ServletHandler@435438ef{STOPPED} added {org.ninjax.core.NinjaJetty$NinjaServletFilter-1173daa1==org.ninjax.core.NinjaJetty$NinjaServletFilter@1173daa1{inst=false,async=true,src=EMBEDDED:null},AUTO}
+18:28:14.229 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- ServletHandler@435438ef{STOPPED} added {[/*]/[]/[]=>org.ninjax.core.NinjaJetty$NinjaServletFilter-1173daa1,POJO}
+18:28:14.230 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.AbstractLifeCycle -- STARTING Server@557e5e77{STOPPED}[11.0.25,sto=0]
+18:28:14.230 [org.ninjax.demo.todo.TodoApplication.main()] DEBUG org.eclipse.jetty.util.component.ContainerLifeCycle -- Server@557e5e77{STARTING}[11.0.25,sto=0] added {ErrorHandler@13d060a9{STOPPED},AUTO}
+18:28:14.231 [org.ninjax.demo.todo.TodoApplication.main()] INFO org.eclipse.jetty.server.Server -- jetty-11.0.25; built: 2025-03-13T00:15:57.301Z; git: a2e9fae3ad8320f2a713d4fa29bba356a99d1295; jvm 25.0.1
+18:28:14.242 [org.ninjax.demo.todo.TodoApplication.main()] WARN org.eclipse.jetty.util.component.AbstractLifeCycle -- FAILED Server@557e5e77{FAILED}[11.0.25,sto=0]: java.io.IOException: Failed to bind to 0.0.0.0/0.0.0.0:8080
+java.io.IOException: Failed to bind to 0.0.0.0/0.0.0.0:8080
+	at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:344)
+	at org.eclipse.jetty.server.ServerConnector.open(ServerConnector.java:304)
+	at org.eclipse.jetty.server.Server.lambda$doStart$0(Server.java:402)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:186)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:214)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:1024)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:570)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:560)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:153)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:176)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:265)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:632)
+	at org.eclipse.jetty.server.Server.doStart(Server.java:398)
+	at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:93)
+	at org.ninjax.core.NinjaJetty.start(NinjaJetty.java:120)
+	at org.ninjax.core.NinjaJetty.<init>(NinjaJetty.java:89)
+	at org.ninjax.demo.todo.TodoApplication.<init>(TodoApplication.java:37)
+	at org.ninjax.demo.todo.TodoApplication.main(TodoApplication.java:40)
+	at org.codehaus.mojo.exec.ExecJavaMojo.doMain(ExecJavaMojo.java:375)
+	at org.codehaus.mojo.exec.ExecJavaMojo.doExec(ExecJavaMojo.java:364)
+	at org.codehaus.mojo.exec.ExecJavaMojo.lambda$execute$0(ExecJavaMojo.java:286)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+Caused by: java.net.BindException: Address already in use
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:522)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.netBind(ServerSocketChannelImpl.java:335)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:297)
+	at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:339)
+	... 22 common frames omitted
+[WARNING] 
+java.lang.RuntimeException: java.io.IOException: Failed to bind to 0.0.0.0/0.0.0.0:8080
+    at org.ninjax.core.NinjaJetty.<init> (NinjaJetty.java:91)
+    at org.ninjax.demo.todo.TodoApplication.<init> (TodoApplication.java:37)
+    at org.ninjax.demo.todo.TodoApplication.main (TodoApplication.java:40)
+    at org.codehaus.mojo.exec.ExecJavaMojo.doMain (ExecJavaMojo.java:375)
+    at org.codehaus.mojo.exec.ExecJavaMojo.doExec (ExecJavaMojo.java:364)
+    at org.codehaus.mojo.exec.ExecJavaMojo.lambda$execute$0 (ExecJavaMojo.java:286)
+    at java.lang.Thread.run (Thread.java:1474)
+Caused by: java.io.IOException: Failed to bind to 0.0.0.0/0.0.0.0:8080
+    at org.eclipse.jetty.server.ServerConnector.openAcceptChannel (ServerConnector.java:344)
+    at org.eclipse.jetty.server.ServerConnector.open (ServerConnector.java:304)
+    at org.eclipse.jetty.server.Server.lambda$doStart$0 (Server.java:402)
+    at java.util.stream.ForEachOps$ForEachOp$OfRef.accept (ForEachOps.java:186)
+    at java.util.stream.ReferencePipeline$3$1.accept (ReferencePipeline.java:214)
+    at java.util.stream.ReferencePipeline$2$1.accept (ReferencePipeline.java:197)
+    at java.util.Spliterators$ArraySpliterator.forEachRemaining (Spliterators.java:1024)
+    at java.util.stream.AbstractPipeline.copyInto (AbstractPipeline.java:570)
+    at java.util.stream.AbstractPipeline.wrapAndCopyInto (AbstractPipeline.java:560)
+    at java.util.stream.ForEachOps$ForEachOp.evaluateSequential (ForEachOps.java:153)
+    at java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential (ForEachOps.java:176)
+    at java.util.stream.AbstractPipeline.evaluate (AbstractPipeline.java:265)
+    at java.util.stream.ReferencePipeline.forEach (ReferencePipeline.java:632)
+    at org.eclipse.jetty.server.Server.doStart (Server.java:398)
+    at org.eclipse.jetty.util.component.AbstractLifeCycle.start (AbstractLifeCycle.java:93)
+    at org.ninjax.core.NinjaJetty.start (NinjaJetty.java:120)
+    at org.ninjax.core.NinjaJetty.<init> (NinjaJetty.java:89)
+    at org.ninjax.demo.todo.TodoApplication.<init> (TodoApplication.java:37)
+    at org.ninjax.demo.todo.TodoApplication.main (TodoApplication.java:40)
+    at org.codehaus.mojo.exec.ExecJavaMojo.doMain (ExecJavaMojo.java:375)
+    at org.codehaus.mojo.exec.ExecJavaMojo.doExec (ExecJavaMojo.java:364)
+    at org.codehaus.mojo.exec.ExecJavaMojo.lambda$execute$0 (ExecJavaMojo.java:286)
+    at java.lang.Thread.run (Thread.java:1474)
+Caused by: java.net.BindException: Address already in use
+    at sun.nio.ch.Net.bind0 (Native Method)
+    at sun.nio.ch.Net.bind (Net.java:522)
+    at sun.nio.ch.ServerSocketChannelImpl.netBind (ServerSocketChannelImpl.java:335)
+    at sun.nio.ch.ServerSocketChannelImpl.bind (ServerSocketChannelImpl.java:297)
+    at org.eclipse.jetty.server.ServerConnector.openAcceptChannel (ServerConnector.java:339)
+    at org.eclipse.jetty.server.ServerConnector.open (ServerConnector.java:304)
+    at org.eclipse.jetty.server.Server.lambda$doStart$0 (Server.java:402)
+    at java.util.stream.ForEachOps$ForEachOp$OfRef.accept (ForEachOps.java:186)
+    at java.util.stream.ReferencePipeline$3$1.accept (ReferencePipeline.java:214)
+    at java.util.stream.ReferencePipeline$2$1.accept (ReferencePipeline.java:197)
+    at java.util.Spliterators$ArraySpliterator.forEachRemaining (Spliterators.java:1024)
+    at java.util.stream.AbstractPipeline.copyInto (AbstractPipeline.java:570)
+    at java.util.stream.AbstractPipeline.wrapAndCopyInto (AbstractPipeline.java:560)
+    at java.util.stream.ForEachOps$ForEachOp.evaluateSequential (ForEachOps.java:153)
+    at java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential (ForEachOps.java:176)
+    at java.util.stream.AbstractPipeline.evaluate (AbstractPipeline.java:265)
+    at java.util.stream.ReferencePipeline.forEach (ReferencePipeline.java:632)
+    at org.eclipse.jetty.server.Server.doStart (Server.java:398)
+    at org.eclipse.jetty.util.component.AbstractLifeCycle.start (AbstractLifeCycle.java:93)
+    at org.ninjax.core.NinjaJetty.start (NinjaJetty.java:120)
+    at org.ninjax.core.NinjaJetty.<init> (NinjaJetty.java:89)
+    at org.ninjax.demo.todo.TodoApplication.<init> (TodoApplication.java:37)
+    at org.ninjax.demo.todo.TodoApplication.main (TodoApplication.java:40)
+    at org.codehaus.mojo.exec.ExecJavaMojo.doMain (ExecJavaMojo.java:375)
+    at org.codehaus.mojo.exec.ExecJavaMojo.doExec (ExecJavaMojo.java:364)
+    at org.codehaus.mojo.exec.ExecJavaMojo.lambda$execute$0 (ExecJavaMojo.java:286)
+    at java.lang.Thread.run (Thread.java:1474)
+18:28:14.258 [HikariPool-1:housekeeper] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - Pool stats (total=1/10, idle=1/10, active=0, waiting=0)
+18:28:14.258 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Attempting to create/setup new connection (0ab59274-f771-4940-b227-1efc729f6ff1)
+18:28:14.258 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Established new connection (0ab59274-f771-4940-b227-1efc729f6ff1)
+18:28:14.258 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - Added connection conn3: url=jdbc:h2:mem:todo user=SA
+18:28:14.290 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - After adding stats (total=2/10, idle=2/10, active=0, waiting=0)
+18:28:14.291 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Attempting to create/setup new connection (3bc0075b-ebb8-4da4-acd6-d1c7934a755b)
+18:28:14.291 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Established new connection (3bc0075b-ebb8-4da4-acd6-d1c7934a755b)
+18:28:14.291 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - Added connection conn4: url=jdbc:h2:mem:todo user=SA
+18:28:14.326 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - After adding stats (total=3/10, idle=3/10, active=0, waiting=0)
+18:28:14.327 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Attempting to create/setup new connection (1b00b0ce-323f-48b5-99ab-18f46654846c)
+18:28:14.327 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Established new connection (1b00b0ce-323f-48b5-99ab-18f46654846c)
+18:28:14.327 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - Added connection conn5: url=jdbc:h2:mem:todo user=SA
+18:28:14.362 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - After adding stats (total=4/10, idle=4/10, active=0, waiting=0)
+18:28:14.362 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Attempting to create/setup new connection (36d6b3b8-0903-4c1e-88eb-8e5c550cdab1)
+18:28:14.363 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Established new connection (36d6b3b8-0903-4c1e-88eb-8e5c550cdab1)
+18:28:14.363 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - Added connection conn6: url=jdbc:h2:mem:todo user=SA
+18:28:14.398 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - After adding stats (total=5/10, idle=5/10, active=0, waiting=0)
+18:28:14.398 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Attempting to create/setup new connection (d41cf842-7b1d-4479-b666-32ce641b5a26)
+18:28:14.399 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Established new connection (d41cf842-7b1d-4479-b666-32ce641b5a26)
+18:28:14.399 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - Added connection conn7: url=jdbc:h2:mem:todo user=SA
+18:28:14.434 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - After adding stats (total=6/10, idle=6/10, active=0, waiting=0)
+18:28:14.434 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Attempting to create/setup new connection (36dd7dc9-e1cf-4beb-baed-f7f4e43ee03d)
+18:28:14.434 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Established new connection (36dd7dc9-e1cf-4beb-baed-f7f4e43ee03d)
+18:28:14.434 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - Added connection conn8: url=jdbc:h2:mem:todo user=SA
+18:28:14.469 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - After adding stats (total=7/10, idle=7/10, active=0, waiting=0)
+18:28:14.470 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Attempting to create/setup new connection (91381fee-f6e3-4113-9f44-88e6a374e911)
+18:28:14.470 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Established new connection (91381fee-f6e3-4113-9f44-88e6a374e911)
+18:28:14.470 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - Added connection conn9: url=jdbc:h2:mem:todo user=SA
+18:28:14.505 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - After adding stats (total=8/10, idle=8/10, active=0, waiting=0)
+18:28:14.506 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Attempting to create/setup new connection (fed724b0-3660-4b7a-ba5b-e01dffaad1a0)
+18:28:14.506 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Established new connection (fed724b0-3660-4b7a-ba5b-e01dffaad1a0)
+18:28:14.506 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - Added connection conn10: url=jdbc:h2:mem:todo user=SA
+18:28:14.541 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - After adding stats (total=9/10, idle=9/10, active=0, waiting=0)
+18:28:14.542 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Attempting to create/setup new connection (69a1b233-d590-4f51-8de0-04229ee20837)
+18:28:14.542 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Established new connection (69a1b233-d590-4f51-8de0-04229ee20837)
+18:28:14.542 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - Added connection conn11: url=jdbc:h2:mem:todo user=SA
+18:28:14.577 [HikariPool-1:connection-adder] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - After adding stats (total=10/10, idle=10/10, active=0, waiting=0)
+18:28:15.856 [Thread-2] INFO com.zaxxer.hikari.HikariDataSource -- HikariPool-1 - Shutdown initiated...
+18:28:15.856 [Thread-2] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - Before shutdown stats (total=10/10, idle=10/10, active=0, waiting=0)
+18:28:15.857 [HikariPool-1:connection-closer] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Closing connection conn2: url=jdbc:h2:mem:todo user=SA: (connection evicted)
+18:28:15.857 [HikariPool-1:connection-closer] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Closing connection conn3: url=jdbc:h2:mem:todo user=SA: (connection evicted)
+18:28:15.857 [HikariPool-1:connection-closer] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Closing connection conn4: url=jdbc:h2:mem:todo user=SA: (connection evicted)
+18:28:15.857 [HikariPool-1:connection-closer] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Closing connection conn5: url=jdbc:h2:mem:todo user=SA: (connection evicted)
+18:28:15.857 [HikariPool-1:connection-closer] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Closing connection conn6: url=jdbc:h2:mem:todo user=SA: (connection evicted)
+18:28:15.857 [HikariPool-1:connection-closer] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Closing connection conn7: url=jdbc:h2:mem:todo user=SA: (connection evicted)
+18:28:15.857 [HikariPool-1:connection-closer] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Closing connection conn8: url=jdbc:h2:mem:todo user=SA: (connection evicted)
+18:28:15.857 [HikariPool-1:connection-closer] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Closing connection conn9: url=jdbc:h2:mem:todo user=SA: (connection evicted)
+18:28:15.857 [HikariPool-1:connection-closer] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Closing connection conn10: url=jdbc:h2:mem:todo user=SA: (connection evicted)
+18:28:15.857 [HikariPool-1:connection-closer] DEBUG com.zaxxer.hikari.pool.PoolBase -- HikariPool-1 - Closing connection conn11: url=jdbc:h2:mem:todo user=SA: (connection evicted)
+18:28:15.857 [Thread-2] DEBUG com.zaxxer.hikari.pool.HikariPool -- HikariPool-1 - After  shutdown stats (total=0/10, idle=0/10, active=0, waiting=0)
+18:28:15.857 [Thread-2] WARN com.zaxxer.hikari.HikariDataSource -- HikariPool-1 - Interrupted during closing
+java.lang.InterruptedException: null
+	at java.base/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:1789)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.awaitTermination(ThreadPoolExecutor.java:1421)
+	at com.zaxxer.hikari.pool.HikariPool.shutdown(HikariPool.java:246)
+	at com.zaxxer.hikari.HikariDataSource.close(HikariDataSource.java:350)
+	at org.ninjax.db.hikari.NinjaDbHikariProvider.lambda$new$0(NinjaDbHikariProvider.java:39)
+	at java.base/java.lang.Thread.run(Thread.java:1474)

@@ -1,6 +1,5 @@
 package org.r10r.ninjax.core;
 
-import io.jsonwebtoken.Jwts;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
@@ -10,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import org.r10r.ninjax.core.jwt.Jwts;
 import org.r10r.ninjax.core.properties.NinjaProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
