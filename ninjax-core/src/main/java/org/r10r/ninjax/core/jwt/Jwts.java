@@ -64,8 +64,8 @@ public final class Jwts {
             header.put("typ", "JWT");
             header.put("alg", "HS256");
 
-            String headerJson = JsonParser.minifyAndSerializeObject(header);
-            String payloadJson = JsonParser.minifyAndSerializeObject(claims);
+            String headerJson = JwtJsonParser.minifyAndSerializeObject(header);
+            String payloadJson = JwtJsonParser.minifyAndSerializeObject(claims);
 
             String headerB64 = Base64Url.encode(headerJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             String payloadB64 = Base64Url.encode(payloadJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));

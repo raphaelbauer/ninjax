@@ -3,7 +3,7 @@ package org.r10r.ninjax.core.jwt;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-final class JsonParser {
+final class JwtJsonParser {
 
     // Hard limits to reduce DoS surface.
     private static final int MAX_DEPTH = 8;
@@ -213,5 +213,5 @@ final class JsonParser {
         }
     }
 
-    private JsonParser() {}
+    private JwtJsonParser() {}
 }

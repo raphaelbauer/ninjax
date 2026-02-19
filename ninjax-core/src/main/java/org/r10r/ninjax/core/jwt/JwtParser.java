@@ -45,7 +45,7 @@ public final class JwtParser {
         if (headerJson.length() > MAX_JSON_CHARS) throw new JwtException("Header JSON too large");
         if (payloadJson.length() > MAX_JSON_CHARS) throw new JwtException("Payload JSON too large");
 
-        Map<String, Object> header = JsonParser.parseObject(headerJson);
+        Map<String, Object> header = JwtJsonParser.parseObject(headerJson);
 
         // (3) + (general) strict header checks
         Object alg = header.get("alg");
@@ -63,7 +63,7 @@ public final class JwtParser {
             throw new JwtException("Invalid signature");
         }
 
-        Map<String, Object> payload = JsonParser.parseObject(payloadJson);
+        Map<String, Object> payload = JwtJsonParser.parseObject(payloadJson);
         Claims claims = Claims.from(payload);
 
         return new Jws<>(claims);

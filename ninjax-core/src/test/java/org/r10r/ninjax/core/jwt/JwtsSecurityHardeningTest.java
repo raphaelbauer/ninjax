@@ -198,13 +198,13 @@ public class JwtsSecurityHardeningTest {
 
     @Test
     void jsonRejectsArrays() {
-        JwtException ex = assertThrows(JwtException.class, () -> JsonParser.parseObject("{\"a\":[1,2,3]}"));
+        JwtException ex = assertThrows(JwtException.class, () -> JwtJsonParser.parseObject("{\"a\":[1,2,3]}"));
         assertTrue(ex.getMessage().toLowerCase().contains("arrays"));
     }
 
     @Test
     void jsonRejectsDuplicateKeys() {
-        JwtException ex = assertThrows(JwtException.class, () -> JsonParser.parseObject("{\"a\":1,\"a\":2}"));
+        JwtException ex = assertThrows(JwtException.class, () -> JwtJsonParser.parseObject("{\"a\":1,\"a\":2}"));
         assertTrue(ex.getMessage().contains("Duplicate JSON key"));
     }
 
@@ -215,14 +215,14 @@ public class JwtsSecurityHardeningTest {
             s = "{\"a\":" + s + "}";
         }
         final var tooLargeObject = s;
-        JwtException ex = assertThrows(JwtException.class, () -> JsonParser.parseObject(tooLargeObject));
+        JwtException ex = assertThrows(JwtException.class, () -> JwtJsonParser.parseObject(tooLargeObject));
         assertTrue(ex.getMessage().toLowerCase().contains("nesting too deep"));
     }
 
     @Test
     void jsonRejectsVeryLongString() {
         String json = "{\"a\":\"" + repeat('z', 3000) + "\"}";
-        JwtException ex = assertThrows(JwtException.class, () -> JsonParser.parseObject(json));
+        JwtException ex = assertThrows(JwtException.class, () -> JwtJsonParser.parseObject(json));
         assertTrue(ex.getMessage().toLowerCase().contains("string too long"));
     }
 
