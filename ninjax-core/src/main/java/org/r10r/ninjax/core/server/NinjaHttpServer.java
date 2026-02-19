@@ -485,12 +485,12 @@ public class NinjaHttpServer {
                 throw new PayloadTooLargeException("Content-Length " + cl.getAsLong() + " exceeds maxUploadBytes=" + maxUploadBytes);
             }
 
-            Map<String, List<String>> accParams = new LinkedHashMap<>();
+            Map<String, List<String>> parameters = new LinkedHashMap<>();
 
             // Query params
-            String rawQuery = exchange.getRequestURI().getRawQuery();
-            if (rawQuery != null && !rawQuery.isBlank()) {
-                parseUrlEncodedInto(accParams, rawQuery, StandardCharsets.UTF_8);
+            String rawQueryStringUrlEncoded = exchange.getRequestURI().getRawQuery();
+            if (rawQueryStringUrlEncoded != null && !rawQueryStringUrlEncoded.isBlank()) {
+                parseUrlEncodedIntoParameters(parameters, rawQueryStringUrlEncoded, StandardCharsets.UTF_8);
             }
 
             Map<String, List<MultipartFile>> filesByField = new LinkedHashMap<>();
@@ -511,7 +511,7 @@ public class NinjaHttpServer {
                     byte[] body = readAllBytes(limited);
                     String raw = new String(body, cs);
                     if (!raw.isBlank()) {
-                        parseUrlEncodedInto(accParams, raw, cs);
+                        parseUrlEncodedIntoParameters(parameters, raw, cs);
                     }
 
                 } else {
@@ -520,7 +520,7 @@ public class NinjaHttpServer {
 
                     for (var e : m.fields.entrySet()) {
                         for (String v : e.getValue()) {
-                            accParams.computeIfAbsent(e.getKey(), _k -> new ArrayList<>()).add(v);
+                            parameters.computeIfAbsent(e.getKey(), _k -> new ArrayList<>()).add(v);
                         }
                     }
                     filesByField.putAll(m.filesByField);
@@ -528,7 +528,7 @@ public class NinjaHttpServer {
             }
 
             Map<String, String[]> parameterMap = new LinkedHashMap<>();
-            for (var e : accParams.entrySet()) {
+            for (var e : parameters.entrySet()) {
                 parameterMap.put(e.getKey(), e.getValue().toArray(String[]::new));
             }
 
@@ -557,26 +557,40 @@ public class NinjaHttpServer {
                     || "PATCH".equalsIgnoreCase(method);
         }
 
-        private static void parseUrlEncodedInto(Map<String, List<String>> acc, String raw, Charset cs) {
-            String[] pairs = raw.split("&");
-            for (String pair : pairs) {
+        private static void parseUrlEncodedIntoParameters(
+                Map<String, List<String>> parameters,
+                String rawQueryStringUrlEncoded,
+                Charset charset) {
+
+            for (String pair : rawQueryStringUrlEncoded.split("&")) {
                 if (pair.isEmpty()) {
                     continue;
                 }
+
                 int eq = pair.indexOf('=');
-                String k = eq >= 0 ? pair.substring(0, eq) : pair;
-                String v = eq >= 0 ? pair.substring(eq + 1) : "";
-                String key = urlDecode(k, cs);
-                String val = urlDecode(v, cs);
-                acc.computeIfAbsent(key, _k -> new ArrayList<>()).add(val);
+
+                String keyUrlEncoded;
+                String valueUrlEncoded;
+                if (eq >= 0) {
+                    keyUrlEncoded = pair.substring(0, eq);
+                    valueUrlEncoded = pair.substring(eq + 1);
+                } else {
+                    keyUrlEncoded = pair;
+                    valueUrlEncoded = "";
+                }
+
+                String key = urlDecode(keyUrlEncoded, charset);
+                String val = urlDecode(valueUrlEncoded, charset);
+                parameters.computeIfAbsent(key, __ -> new ArrayList<>()).add(val);
             }
         }
 
-        private static String urlDecode(String s, Charset cs) {
+
+        private static String urlDecode(String urlEncodedString, Charset charset) {
             try {
-                return URLDecoder.decode(s, cs);
+                return URLDecoder.decode(urlEncodedString, charset);
             } catch (Exception e) {
-                return s;
+                return urlEncodedString;
             }
         }
 
