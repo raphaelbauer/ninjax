@@ -24,8 +24,8 @@ import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.r10r.ninjax.core.properties.NinjaProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 // Imports from ninja-core
 import org.r10r.ninjax.core.Router;
@@ -44,7 +44,7 @@ import static org.r10r.ninjax.core.NinjaSessionConverter.NINJA_SESSION_COOKIE_NA
 
 public class NinjaJetty {
 
-    private static final Logger logger = LoggerFactory.getLogger(NinjaJetty.class);
+    private static final Logger logger = Logger.getLogger(NinjaJetty.class.getName());
 
     public final RouteFinder routeFinder;
     public final NinjaProperties ninjaProperties;
@@ -159,7 +159,7 @@ public class NinjaJetty {
                                 ));
                             }
                         } catch (Exception e) {
-                            logger.error("Opsi", e);
+                            logger.log(Level.SEVERE, "Opsi", e);
                         }
                         return Optional.empty();
                     };
@@ -188,7 +188,7 @@ public class NinjaJetty {
                                 }
                             }
                         } catch (Exception e) {
-                            logger.error("Opsi", e);
+                            logger.log(Level.SEVERE, "Opsi", e);
                         }
                         return result;
                     };
@@ -265,7 +265,7 @@ public class NinjaJetty {
                 }
 
             } catch (Throwable t) {
-                logger.error("OMG! Something really bad happened. Time to investigate...", t);
+                logger.log(Level.SEVERE, "OMG! Something really bad happened. Time to investigate...", t);
 
                 try {
                     // try to return result. it may not be possible...
@@ -277,7 +277,7 @@ public class NinjaJetty {
                     httpServletResponse.setStatus(status);
                     httpServletResponse.getWriter().println(text);
                 } catch (Throwable e) {
-                    logger.debug("I was not able to send a message via http to the user. That may be expected depending on the error", e);
+                    logger.log(Level.FINE, "I was not able to send a message via http to the user. That may be expected depending on the error", e);
                 }
             }
         }

@@ -193,25 +193,31 @@
                 <artifactId>h2</artifactId>
                 <version>${h2.version}</version>
             </dependency>
-            
-            <!-- Logback is the successor of log4j. We use it: -->
+
+            <!-- Logging for ninjax-jetty-demo-todo -->
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
                 <version>1.5.18</version>
             </dependency>
-		
-            <!-- Replace commons-logging with slf4j bridge (that will use logback)-->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>jcl-over-slf4j</artifactId>
                 <version>${slf4j.version}</version>
             </dependency>
-        
-            <!-- Replace log4j with slf4j bridge (that will use logback)-->
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>log4j-over-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jul-to-slf4j</artifactId>
                 <version>${slf4j.version}</version>
             </dependency>
             

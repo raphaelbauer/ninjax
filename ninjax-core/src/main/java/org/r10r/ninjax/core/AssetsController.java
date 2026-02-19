@@ -6,12 +6,12 @@ import java.net.URLConnection;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AssetsController {
 
-    private static final Logger logger = LoggerFactory.getLogger(AssetsController.class);
+    private static final Logger logger = Logger.getLogger(AssetsController.class.getName());
 
     private static final String FILENAME_PATH_PARAM = "fileName";
     private static final Path BASE_DIR = Paths.get("assets");
@@ -21,7 +21,7 @@ public class AssetsController {
                 .orElseGet(request::getRequestPath);
 
         if (requestedPath == null || requestedPath.isEmpty()) {
-            logger.warn("No requested file found based on param '{}'.", FILENAME_PATH_PARAM);
+            logger.log(Level.WARNING, "No requested file found based on param '{0}'.", FILENAME_PATH_PARAM);
             return Result.builder().notFound().build();
         }
 
@@ -37,7 +37,7 @@ public class AssetsController {
 
         // prevent directory traversal
         if (normalized.isAbsolute() || normalized.startsWith("..")) {
-            logger.warn("Rejected potentially dangerous static file request: {}", requestedPath);
+            logger.log(Level.WARNING, "Rejected potentially dangerous static file request: {0}", requestedPath);
             return Result.builder().notFound().build();
         }
 
@@ -46,7 +46,7 @@ public class AssetsController {
 
         InputStream resourceStream = getClass().getResourceAsStream(resourcePathString);
         if (resourceStream == null) {
-            logger.debug("Static resource not found: {}", resourcePathString);
+            logger.log(Level.FINE, "Static resource not found: {0}", resourcePathString);
             return Result.builder().notFound().build();
         }
 
@@ -61,7 +61,7 @@ public class AssetsController {
                     try (InputStream in = resourceStream) {
                         in.transferTo(out);
                     } catch (IOException e) {
-                        logger.error("Error streaming static resource {}", resourcePathString, e);
+                        logger.log(Level.SEVERE, "Error streaming static resource " + resourcePathString, e);
                         throw new RuntimeException("Error streaming static resource", e);
                     }
                 })

@@ -9,12 +9,12 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import org.r10r.ninjax.core.properties.NinjaProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class NinjaMessages {
 
-    private static final Logger logger = LoggerFactory.getLogger(NinjaMessages.class);
+    private static final Logger logger = Logger.getLogger(NinjaMessages.class.getName());
 
     private static final String APPLICATION_LANGUAGES = "application.languages";
     private static final String BASE_NAME = "messages";
@@ -62,11 +62,11 @@ public class NinjaMessages {
                 try {
                     pattern = bundles.get(defaultLocale).getString(key);
                 } catch (MissingResourceException ex) {
-                    logger.warn("Cannot find key in your translation messages file. That's something you should look into.", ex);
+                    logger.log(Level.WARNING, "Cannot find key in your translation messages file. That's something you should look into.", ex);
                     return key;
                 }
             } else {
-                logger.warn("Cannot find key in your translation messages file. That's something you should look into.");
+                logger.log(Level.WARNING, "Cannot find key in your translation messages file. That's something you should look into.");
                 return key;
             }
         }

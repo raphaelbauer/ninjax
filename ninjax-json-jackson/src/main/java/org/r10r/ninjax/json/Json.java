@@ -9,8 +9,8 @@ import java.util.Optional;
 import org.r10r.ninjax.core.Request;
 import org.r10r.ninjax.core.Result;
 import static org.r10r.ninjax.core.Result.APPLICATION_JSON;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Very simple and basic Json rendering.
@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Json {
     
-    private static final Logger logger = LoggerFactory.getLogger(Json.class);
+    private static final Logger logger = Logger.getLogger(Json.class.getName());
 
     private final static ObjectMapper objectMapper = new ObjectMapper()
             .registerModule(new Jdk8Module())
@@ -43,7 +43,7 @@ public class Json {
         try (var inputStream = request.inputStreamGetter().get()) {
             return Optional.of(objectMapper.readValue(inputStream, typeRef));
         } catch (IOException ex) {
-            logger.error("Opsi", ex);
+            logger.log(Level.SEVERE, "Opsi", ex);
             return Optional.empty();
         }
     }
@@ -53,7 +53,7 @@ public class Json {
                 try {
                     Json.objectMapper.writeValue(outputStream, objectToRenderAsJson);
                 } catch (IOException e) {
-                    logger.error("Rendering went wrong. Ouch! ", e);
+                    logger.log(Level.SEVERE, "Rendering went wrong. Ouch! ", e);
                 }
             };
             return outputStreamRenderer;

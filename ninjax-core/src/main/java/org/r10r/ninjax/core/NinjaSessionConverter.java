@@ -11,12 +11,12 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import org.r10r.ninjax.core.jwt.Jwts;
 import org.r10r.ninjax.core.properties.NinjaProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class NinjaSessionConverter {
 
-    private static final Logger logger = LoggerFactory.getLogger(NinjaSessionConverter.class);
+    private static final Logger logger = Logger.getLogger(NinjaSessionConverter.class.getName());
 
     public static final String NINJA_SESSION_COOKIE_NAME = "NINJA_SESSION";
     private static final String NINJA_SESSION_PATH = "/";
@@ -72,7 +72,7 @@ public class NinjaSessionConverter {
 
             return Optional.of(ninjaSession);
         } catch (Exception e) {
-            logger.debug("Opsi. Error parsing Ninja Session. I am ignoring this session.", e);
+            logger.log(Level.FINE, "Opsi. Error parsing Ninja Session. I am ignoring this session.", e);
             return Optional.empty();
         }
 

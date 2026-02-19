@@ -16,8 +16,8 @@ import org.r10r.ninjax.core.RouteFinder;
 import org.r10r.ninjax.core.Router;
 import org.r10r.ninjax.core.Secure;
 import org.r10r.ninjax.core.properties.NinjaProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -52,7 +52,7 @@ import org.r10r.ninjax.core.NinjaSessionConverter;
  */
 public class NinjaHttpServer {
 
-    private static final Logger logger = LoggerFactory.getLogger(NinjaHttpServer.class);
+    private static final Logger logger = Logger.getLogger(NinjaHttpServer.class.getName());
 
     public final RouteFinder routeFinder;
     public final NinjaProperties ninjaProperties;
@@ -124,7 +124,7 @@ public class NinjaHttpServer {
         httpServer.start();
         this.server = httpServer;
 
-        logger.info("NinjaHttpServer started on port {}", serverPort);
+        logger.log(Level.INFO, "NinjaHttpServer started on port {0}", "" + serverPort);
 
         // Ensure "constructor join" is released on Ctrl+C / SIGTERM
         Runtime.getRuntime().addShutdownHook(Thread.ofPlatform().unstarted(() -> {
@@ -153,7 +153,7 @@ public class NinjaHttpServer {
             s.stop(1);
         }
         stopLatch.countDown();
-        logger.info("NinjaHttpServer stopped");
+        logger.log(Level.INFO, "NinjaHttpServer stopped");
     }
 
     private final class NinjaHandler implements HttpHandler {
@@ -277,11 +277,11 @@ public class NinjaHttpServer {
             } catch (NinjaHttpServerHelper.PayloadTooLargeException tooLarge) {
                 sendPlain(exchange, 413, "Payload too large");
             } catch (Throwable t) {
-                logger.error("OMG! Something really bad happened. Time to investigate...", t);
+                logger.log(Level.SEVERE, "OMG! Something really bad happened. Time to investigate...", t);
                 try {
                     sendPlain(exchange, 500, "Wow. Something really bad happened. Ask the owner of this server if error persists...");
                 } catch (Throwable e) {
-                    logger.debug("I was not able to send a message via http to the user. That may be expected depending on the error", e);
+                    logger.log(Level.FINE, "I was not able to send a message via http to the user. That may be expected depending on the error", e);
                 }
             } finally {
                 for (Path p : tempFilesToDelete) {

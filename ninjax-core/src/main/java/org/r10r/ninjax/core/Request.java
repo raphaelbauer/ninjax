@@ -8,8 +8,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 public record Request(
         String requestPath,
@@ -25,7 +24,7 @@ public record Request(
         Map<String, String> pathParameters
         ) {
 
-    private static final Logger logger = LoggerFactory.getLogger(Request.class);
+    private static final Logger logger = Logger.getLogger(Request.class.getName());
 
     public interface InputStreamGetter {
 

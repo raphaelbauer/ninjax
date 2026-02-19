@@ -8,12 +8,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class NinjaProperties {
 
-    private static final Logger logger = LoggerFactory.getLogger(NinjaProperties.class);
+    private static final Logger logger = Logger.getLogger(NinjaProperties.class.getName());
 
     private final Map<String, String> properties;
 
@@ -41,12 +41,12 @@ public class NinjaProperties {
         try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(DEFAULT_LOCATION_OF_APPLICATION_CONF);
              InputStreamReader inputStreamReader = new java.io.InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
             if (inputStream == null) {
-                logger.error("Sorry, unable to find " + DEFAULT_LOCATION_OF_APPLICATION_CONF);
+                logger.log(Level.SEVERE, "Sorry, unable to find " + DEFAULT_LOCATION_OF_APPLICATION_CONF);
             } else {
                 properties.load(inputStreamReader);
             }
         } catch (IOException e) {
-            logger.error("Opsi. Failure loading " + DEFAULT_LOCATION_OF_APPLICATION_CONF, e);
+            logger.log(Level.SEVERE, "Opsi. Failure loading " + DEFAULT_LOCATION_OF_APPLICATION_CONF, e);
         }
 
         ////////////////////////////////////////////////////////////////////////

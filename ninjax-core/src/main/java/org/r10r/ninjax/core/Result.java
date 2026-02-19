@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public record Result(
         int status,
@@ -16,7 +16,7 @@ public record Result(
         Result.NinjaSessionState ninjaSessionState
 ) {
 
-    private static final Logger logger = LoggerFactory.getLogger(Result.class);
+    private static final Logger logger = Logger.getLogger(Result.class.getName());
 
     // /////////////////////////////////////////////////////////////////////////
     // HTTP Status codes (for convenience)
@@ -241,7 +241,7 @@ public record Result(
                 try {
                     outputStream.write(content.getBytes(StandardCharsets.UTF_8));
                 } catch (IOException e) {
-                    logger.error("Rendering went wrong. Ouch! ", e);
+                    logger.log(Level.SEVERE, "Rendering went wrong. Ouch! ", e);
                 }
             };
             return this;
@@ -253,7 +253,7 @@ public record Result(
                 try {
                     outputStream.write(content.getBytes(StandardCharsets.UTF_8));
                 } catch (IOException e) {
-                    logger.error("Rendering went wrong. Ouch! ", e);
+                    logger.log(Level.SEVERE, "Rendering went wrong. Ouch! ", e);
                 }
             };
             return this;
