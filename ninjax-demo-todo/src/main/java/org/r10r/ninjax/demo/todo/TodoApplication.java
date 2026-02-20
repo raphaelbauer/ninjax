@@ -4,7 +4,7 @@ import org.r10r.ninjax.demo.todo.tasks.TaskService;
 import org.r10r.ninjax.demo.todo.tasks.TodoController;
 import org.r10r.ninjax.demo.todo.tasks.TaskRepository;
 import java.util.Optional;
-import org.r10r.ninjax.core.NinjaLogging;
+import org.r10r.ninjax.core.NinjaJavaLogging;
 import org.r10r.ninjax.core.Router;
 import org.r10r.ninjax.core.properties.NinjaProperties;
 import org.r10r.ninjax.core.server.NinjaHttpServer;
@@ -17,7 +17,7 @@ import org.r10r.ninjax.json.Json;
 public class TodoApplication {
 
     public TodoApplication(MockableComponents mockableComponents) {
-        NinjaLogging.initialize();
+        NinjaJavaLogging.initialize();
 
         // Ninja properties
         var ninjaProperties = new NinjaProperties();
