@@ -10,39 +10,36 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-public record Request(
-        String requestPath,
-        InputStreamGetter inputStreamGetter,
-        FileItemGetter fileItemGetter,
-        FileItemsGetter fileItemsGetter,
-        List<NinjaCookie> ninjaCookies,
-        Payload payload,
-        Headers headers,
-        Parameters parameters,
-        Optional<NinjaSession> ninjaSession,
-        Locale language,
-        Map<String, String> pathParameters
-        ) {
+public final class Request {
 
     private static final Logger logger = Logger.getLogger(Request.class.getName());
 
-    public interface InputStreamGetter {
+    private final String requestPath;
+    private final InputStreamGetter inputStreamGetter;
+    private final FileItemGetter fileItemGetter;
+    private final FileItemsGetter fileItemsGetter;
+    private final List<NinjaCookie> ninjaCookies;
+    private final Payload payload;
+    private final Headers headers;
+    private final Parameters parameters;
+    private final Optional<NinjaSession> ninjaSession;
+    private final Locale language;
+    private final Map<String, String> pathParameters;
 
+    public interface InputStreamGetter {
         InputStream get();
     }
 
     public interface FileItemGetter {
-
         Optional<FileItem> getFileItem(String fieldName);
     }
 
     public interface FileItemsGetter {
-
         List<FileItem> getFileItems(String fieldName);
     }
 
     /**
-     * Canonical constructor to enforce defensive copies.
+     * Constructor enforcing defensive copies.
      */
     public Request(
             String requestPath,
@@ -57,27 +54,67 @@ public record Request(
             Locale language,
             Map<String, String> pathParameters
     ) {
-        // Apply defensive copies directly
-        this.requestPath = requestPath;
-        this.inputStreamGetter = inputStreamGetter;
-        this.fileItemGetter = fileItemGetter;
-        this.fileItemsGetter = fileItemsGetter;
-        this.ninjaCookies = List.copyOf(ninjaCookies);
-        this.payload = payload;
-        this.headers = headers;
-        this.parameters = parameters;
-        this.ninjaSession = ninjaSession;
-        this.language = language;
-        this.pathParameters = Map.copyOf(pathParameters);
+        this.requestPath = Objects.requireNonNull(requestPath, "requestPath must not be null");
+        this.inputStreamGetter = Objects.requireNonNull(inputStreamGetter, "inputStreamGetter must not be null");
+        this.fileItemGetter = Objects.requireNonNull(fileItemGetter, "fileItemGetter must not be null");
+        this.fileItemsGetter = Objects.requireNonNull(fileItemsGetter, "fileItemsGetter must not be null");
+        this.ninjaCookies = List.copyOf(Objects.requireNonNull(ninjaCookies, "ninjaCookies must not be null"));
+        this.payload = payload; // allowed to be null (as in original)
+        this.headers = Objects.requireNonNull(headers, "headers must not be null");
+        this.parameters = Objects.requireNonNull(parameters, "parameters must not be null");
+        this.ninjaSession = Objects.requireNonNull(ninjaSession, "ninjaSession must not be null");
+        this.language = Objects.requireNonNull(language, "language must not be null");
+        this.pathParameters = Map.copyOf(Objects.requireNonNull(pathParameters, "pathParameters must not be null"));
     }
 
-    // ----- Original methods, adapted to the record style -----
+    // ---- getters (get... style) ----
+
+    public String getRequestPath() {
+        return requestPath;
+    }
+
+    public InputStreamGetter getInputStreamGetter() {
+        return inputStreamGetter;
+    }
+
+    public FileItemGetter getFileItemGetter() {
+        return fileItemGetter;
+    }
+
+    public FileItemsGetter getFileItemsGetter() {
+        return fileItemsGetter;
+    }
+
     public List<NinjaCookie> getNinjaCookies() {
         return ninjaCookies;
     }
 
+    public Payload getPayload() {
+        return payload;
+    }
+
+    public Headers getHeaders() {
+        return headers;
+    }
+
+    public Parameters getParameters() {
+        return parameters;
+    }
+
     public Optional<NinjaSession> getNinjaSession() {
         return ninjaSession;
+    }
+
+    public Locale getLanguage() {
+        return language;
+    }
+
+    public Locale getLocale() {
+        return language;
+    }
+
+    public Map<String, String> getPathParameters() {
+        return pathParameters;
     }
 
     /**
@@ -99,16 +136,8 @@ public record Request(
         return fileItemGetter.getFileItem(fieldName);
     }
 
-    public Locale getLocale() {
-        return language;
-    }
+    // ---- Builder ----
 
-    // Convenience alias to match the old accessor
-    public String getRequestPath() {
-        return requestPath;
-    }
-
-    // ----- Builder -----
     public static Builder builder() {
         return new Builder();
     }
@@ -228,12 +257,14 @@ public record Request(
         }
     }
 
-    public final static class Payload {
+    // ---- Nested value types ----
+
+    public static final class Payload {
 
         private final Map<String, Object> delegate;
 
         public Payload(Map<String, Object> delegate) {
-            this.delegate = Map.copyOf(delegate);
+            this.delegate = Map.copyOf(Objects.requireNonNull(delegate, "delegate must not be null"));
         }
 
         public <U> Optional<U> get(String key, Class<U> clazz) {
@@ -248,18 +279,21 @@ public record Request(
             return object instanceof String s ? Optional.of(s) : Optional.empty();
         }
 
+        public Map<String, Object> getDelegate() {
+            return delegate;
+        }
     }
-    
-    public final static class Parameters {
+
+    public static final class Parameters {
 
         private final Map<String, String[]> parameters;
 
         public Parameters() {
             this.parameters = Map.of();
         }
-                
+
         public Parameters(Map<String, String[]> parameters) {
-            this.parameters = Map.copyOf(parameters);
+            this.parameters = Map.copyOf(Objects.requireNonNull(parameters, "parameters must not be null"));
         }
 
         public Optional<String> get(String parameterName) {
@@ -271,19 +305,22 @@ public record Request(
             var arr = parameters.get(parameterName);
             return (arr == null || arr.length == 0) ? List.of() : List.of(arr);
         }
-    }
-        
 
-    public final static class Headers {
+        public Map<String, String[]> getParameters() {
+            return parameters;
+        }
+    }
+
+    public static final class Headers {
 
         private final Map<String, List<String>> headers;
 
         public Headers() {
             this.headers = Map.of();
         }
-                
+
         public Headers(Map<String, List<String>> headers) {
-            this.headers = Map.copyOf(headers);
+            this.headers = Map.copyOf(Objects.requireNonNull(headers, "headers must not be null"));
         }
 
         public Optional<String> get(String headerName) {
@@ -293,6 +330,10 @@ public record Request(
 
         public List<String> getAll(String headerName) {
             return headers.getOrDefault(headerName, List.of());
+        }
+
+        public Map<String, List<String>> getHeaders() {
+            return headers;
         }
     }
 }

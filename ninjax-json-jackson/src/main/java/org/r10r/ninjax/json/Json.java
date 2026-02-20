@@ -40,7 +40,7 @@ public class Json {
      * @return s The class that was created from the Json.
      */
     public <A> Optional<A> getJsonBody(Request request, TypeReference<A> typeRef) {
-        try (var inputStream = request.inputStreamGetter().get()) {
+        try (var inputStream = request.getInputStreamGetter().get()) {
             return Optional.of(objectMapper.readValue(inputStream, typeRef));
         } catch (IOException ex) {
             logger.log(Level.SEVERE, "Opsi", ex);
