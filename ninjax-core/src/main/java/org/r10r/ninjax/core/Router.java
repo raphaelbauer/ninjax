@@ -62,9 +62,7 @@ public class Router {
         /**
          * This regex matches everything in between path slashes.
          */
-        private final static String VARIABLE_ROUTES_DEFAULT_REGEX = "([^/]*)";
-        
-        private static final Pattern CAPTURING_GROUPS = Pattern.compile("\\(([^?].*)\\)");
+        private final static String VARIABLE_ROUTES_DEFAULT_REGEX = "[^/]*";
 
         private final String httpMethod;
         private final String path;
@@ -106,33 +104,34 @@ public class Router {
 
         private static String convertRawUriToRegex(String rawUri) {
 
-            // convert capturing groups in route regex to non-capturing groups
-            // this is to avoid count mismatch of path params and groups in uri regex
-            Matcher groupMatcher = CAPTURING_GROUPS.matcher(rawUri);
-            String converted = groupMatcher.replaceAll("\\(?:$1\\)");
-
-            Matcher matcher = PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE.matcher(converted);
+            Matcher matcher = PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE.matcher(rawUri);
 
             StringBuffer stringBuffer = new StringBuffer();
+
+            // Each path variable becomes a synthetically named capturing group ("p0", "p1", ...).
+            // Looking values up by these synthetic names (rather than by group position) makes
+            // extraction independent of any capturing groups inside a user-supplied regex: those
+            // inner groups simply become harmless anonymous captures we never read. Synthetic
+            // names also avoid relying on the parameter name being a valid Java group identifier.
+            int groupIndex = 0;
 
             while (matcher.find()) {
 
                 // By convention group 3 is the regex if provided by the user.
                 // If it is not provided by the user the group 3 is null.
                 String namedVariablePartOfRoute = matcher.group(3);
-                String namedVariablePartOfORouteReplacedWithRegex;
+                String innerRegex = (namedVariablePartOfRoute != null)
+                        ? namedVariablePartOfRoute
+                        : VARIABLE_ROUTES_DEFAULT_REGEX;
 
-                if (namedVariablePartOfRoute != null) {
-                    // we convert that into a regex matcher group itself
-                    namedVariablePartOfORouteReplacedWithRegex
-                            = "(" + Matcher.quoteReplacement(namedVariablePartOfRoute) + ")";
-                } else {
-                    // we convert that into the default namedVariablePartOfRoute regex group
-                    namedVariablePartOfORouteReplacedWithRegex
-                            = VARIABLE_ROUTES_DEFAULT_REGEX;
-                }
-                // we replace the current namedVariablePartOfRoute group
-                matcher.appendReplacement(stringBuffer, namedVariablePartOfORouteReplacedWithRegex);
+                String namedVariablePartOfORouteReplacedWithRegex
+                        = "(?<p" + groupIndex + ">" + innerRegex + ")";
+                groupIndex++;
+
+                // quoteReplacement so any $ or \ in the user regex are treated literally
+                // by appendReplacement rather than as replacement back-references.
+                matcher.appendReplacement(stringBuffer,
+                        Matcher.quoteReplacement(namedVariablePartOfORouteReplacedWithRegex));
 
             }
 

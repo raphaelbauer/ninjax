@@ -1,7 +1,6 @@
 package org.r10r.ninjax.core;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,10 +31,14 @@ public class PathParameterExtractor {
         Matcher m = pathRegex.matcher(uri);
 
         if (m.matches()) {
-            Iterator<String> it = parameters.keySet().iterator();
-            for (int i = 1; i < m.groupCount() + 1; i++) {
-                String parameterName = it.next();
-                map.put(parameterName, m.group(i));
+            // The route regex assigns each path variable a synthetic named group ("p0", "p1",
+            // ...) in parameter order (see Router.convertRawUriToRegex). Reading values by these
+            // names keeps extraction correct even when a user-supplied regex contains its own
+            // capturing groups, which would otherwise shift positional group indices.
+            int groupIndex = 0;
+            for (String parameterName : parameters.keySet()) {
+                map.put(parameterName, m.group("p" + groupIndex));
+                groupIndex++;
             }
         }
 
