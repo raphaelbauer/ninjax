@@ -35,6 +35,17 @@ public class NinjaSessionConverter {
         });
 
         byte[] decodedKey = Base64.getDecoder().decode(encodedSecret);
+
+        // HS256 requires a key of at least 256 bits (32 bytes). A shorter key (e.g. the
+        // 'changeme' demo default) would still "work" with this custom Jwts implementation but
+        // produces weak, forgeable tokens. Fail fast at startup instead of silently accepting it.
+        int MINIMUM_SECRET_LENGTH_IN_BYTES = 32;
+        if (decodedKey.length < MINIMUM_SECRET_LENGTH_IN_BYTES) {
+            throw new RuntimeException(String.format(
+                    "The secret '%s' in 'conf/application.conf' is too weak. HS256 requires at least %d bytes (256 bits) after Base64-decoding, but the configured secret decodes to %d bytes. Please generate a strong secret using 'mvn ninja:generateSecret'.",
+                    NinjaConstants.NINJA_APPLICATION_SECRET_KEY, MINIMUM_SECRET_LENGTH_IN_BYTES, decodedKey.length));
+        }
+
         this.secretKeyForSessionEncryption = new SecretKeySpec(decodedKey, 0, decodedKey.length, "HmacSHA256");
 
         this.sessionExpiryTimeInSeconds = ninjaProperties.get("application.session.expire_time_in_seconds").map(v -> Long.valueOf(v));
