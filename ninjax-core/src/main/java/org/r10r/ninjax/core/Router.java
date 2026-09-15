@@ -2,7 +2,6 @@ package org.r10r.ninjax.core;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -90,7 +89,11 @@ public class Router {
 
         private final Pattern pathRegex;
 
-        public final Map<String, RouteParameter> parameters;
+        /**
+         * Names of the path parameters in the order they appear, e.g. ["id", "slug"] for
+         * "/users/{id: [0-9]+}/posts/{slug}".
+         */
+        public final List<String> parameterNames;
 
         public final List<NinjaFilter> filters;
 
@@ -99,7 +102,7 @@ public class Router {
             this.path = path;
             this.controllerMethod = controllerMethod;
             this.pathRegex = Pattern.compile(convertRawUriToRegex(path));
-            this.parameters = RouteParameter.parse(path);
+            this.parameterNames = parseParameterNames(path);
             this.filters = filters;
         }
 
@@ -120,6 +123,15 @@ public class Router {
 
         public String httpMethod() {
             return httpMethod;
+        }
+
+        private static List<String> parseParameterNames(String path) {
+            List<String> names = new ArrayList<>();
+            Matcher matcher = PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE.matcher(path);
+            while (matcher.find()) {
+                names.add(matcher.group(1));
+            }
+            return List.copyOf(names);
         }
 
         private static String convertRawUriToRegex(String rawUri) {

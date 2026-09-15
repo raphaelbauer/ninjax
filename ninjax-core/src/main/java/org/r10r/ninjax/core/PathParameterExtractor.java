@@ -1,6 +1,7 @@
 package org.r10r.ninjax.core;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,17 +18,17 @@ public class PathParameterExtractor {
      * Extracts path parameters from a URI by matching it against a route's regex pattern.
      *
      * @param pathRegex The compiled regex pattern from the route
-     * @param parameters The map of parameter definitions from the route (ordered)
+     * @param parameterNames The names of the route's path parameters (in order)
      * @param uri The request URI to extract parameters from
      * @return An immutable map of parameter names to their extracted values (URL-encoded)
      */
     public static Map<String, String> extractPathParameters(
             Pattern pathRegex,
-            Map<String, RouteParameter> parameters,
+            List<String> parameterNames,
             String uri
     ) {
         Matcher m = pathRegex.matcher(uri);
-        return m.matches() ? extractPathParameters(m, parameters) : Map.of();
+        return m.matches() ? extractPathParameters(m, parameterNames) : Map.of();
     }
 
     /**
@@ -35,12 +36,12 @@ public class PathParameterExtractor {
      * Use this when the route was just matched, so the regex does not run a second time.
      *
      * @param matchedMatcher A matcher of the route's regex on which matches() returned true
-     * @param parameters The map of parameter definitions from the route (ordered)
+     * @param parameterNames The names of the route's path parameters (in order)
      * @return An immutable map of parameter names to their extracted values (URL-encoded)
      */
     public static Map<String, String> extractPathParameters(
             Matcher matchedMatcher,
-            Map<String, RouteParameter> parameters
+            List<String> parameterNames
     ) {
         Map<String, String> map = new HashMap<>();
 
@@ -49,7 +50,7 @@ public class PathParameterExtractor {
         // names keeps extraction correct even when a user-supplied regex contains its own
         // capturing groups, which would otherwise shift positional group indices.
         int groupIndex = 0;
-        for (String parameterName : parameters.keySet()) {
+        for (String parameterName : parameterNames) {
             map.put(parameterName, matchedMatcher.group("p" + groupIndex));
             groupIndex++;
         }
