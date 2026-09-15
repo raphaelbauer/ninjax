@@ -28,6 +28,9 @@ The main project guide is `/CLAUDE.md` at the repo root. This file collects prac
 - **Flyway 13** logs "H2 2.5.x is newer than the version Flyway has been verified with". It is harmless and the migrations work.
 - **Maven plugin**: inject `MavenProject`/`MavenSession` with `@Parameter(defaultValue = "${project}", readonly = true)`,
   not the deprecated `@Component`.
+- **JWT**: there is no JWT library. `ninjax-core/.../core/jwt/Jwt` has `sign(claims, key)` and `verify(token, key)`
+  (HS256 only, strict JSON parser in `JwtJson`). Date claims (`nbf`, `iat`, `exp`) are handled in
+  `NinjaSessionConverter`. Keep the wire format stable (`JwtTest.OLD_IMPLEMENTATION_TOKEN`) or user sessions break.
 - `junit:junit:4.x` shows up on the test classpath only transitively via Google Truth. That is expected.
 
 ## Building and testing

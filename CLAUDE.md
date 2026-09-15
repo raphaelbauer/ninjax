@@ -302,7 +302,7 @@ Mirror production package structure in `src/test/java`.
 - **Web Server**: JDK built-in `com.sun.net.httpserver` (ninjax-core) or Eclipse Jetty 12.1.13 ee10 (ninjax-jetty)
 - **JSON**: Jackson 3.2.2 (`tools.jackson.*` packages; java.time and Optional support built in)
 - **Database**: JDBI 3.54.0, HikariCP 7.1.0, Flyway 13.7.0, H2 2.5.250
-- **Sessions**: own minimal HS256 JWT implementation in `org.r10r.ninjax.core.jwt` (no JJWT)
+- **Sessions**: own minimal HS256 JWT implementation in `org.r10r.ninjax.core.jwt` (`Jwt.sign` / `Jwt.verify`, no JJWT)
 - **Logging**: java.util.logging in the framework; the demos route SLF4J (Jetty, HikariCP, Flyway, JDBI) via slf4j-jdk14 (JDK demo) or Logback (Jetty demo)
 - **Utilities**: Google Guava 33.7.1
 - **Testing**: JUnit 6.1.3, Google Truth 1.4.5; Testcontainers 2.0.5 and Mockito 5.23.0 are managed in the root pom (Mockito is only used by older demo tests, prefer manual test doubles)

@@ -3,14 +3,21 @@ package org.r10r.ninjax.core.jwt;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-final class JwtJsonParser {
+/**
+ * Tiny JSON reader/writer for JWT headers and payloads.
+ *
+ * <p>It only supports what a JWT needs: objects, strings, numbers, booleans and null.
+ * Because it reads untrusted input it is deliberately strict: no arrays, no duplicate keys,
+ * no trailing content, and hard limits on nesting depth, number of keys and string length.
+ */
+final class JwtJson {
 
     // Hard limits to reduce DoS surface.
     private static final int MAX_DEPTH = 8;
     private static final int MAX_STRING_CHARS = 2048;
     private static final int MAX_KEYS = 256;
 
-    static String minifyAndSerializeObject(Map<String, ?> obj) {
+    static String serialize(Map<String, ?> obj) {
         StringBuilder sb = new StringBuilder();
         sb.append('{');
         boolean first = true;
@@ -42,10 +49,9 @@ final class JwtJsonParser {
         if (v instanceof Boolean b) return b ? "true" : "false";
         if (v instanceof Number n) return n.toString();
         if (v instanceof Map<?, ?>) {
-            // Not needed for JWT in your case, but keep it deterministic if nested maps appear
             @SuppressWarnings("unchecked")
             Map<String, ?> m = (Map<String, ?>) v;
-            return minifyAndSerializeObject(m);
+            return serialize(m);
         }
         return "\"" + escape(String.valueOf(v)) + "\"";
     }
@@ -115,7 +121,7 @@ final class JwtJsonParser {
                 keys++;
                 if (keys > MAX_KEYS) throw new JwtException("Too many JSON object keys");
 
-                // (4) Reject duplicate keys to avoid ambiguity
+                // Reject duplicate keys to avoid ambiguity
                 if (m.containsKey(key)) throw new JwtException("Duplicate JSON key: " + key);
 
                 skipWs();
@@ -148,9 +154,12 @@ final class JwtJsonParser {
                         case 't' -> out.append('\t');
                         case 'u' -> {
                             if (i + 4 > s.length()) throw new JwtException("Bad unicode escape");
-                            int code = Integer.parseInt(s.substring(i, i + 4), 16);
+                            try {
+                                out.append((char) Integer.parseInt(s.substring(i, i + 4), 16));
+                            } catch (NumberFormatException ex) {
+                                throw new JwtException("Bad unicode escape");
+                            }
                             i += 4;
-                            out.append((char) code);
                         }
                         default -> throw new JwtException("Bad escape: \\" + e);
                     }
@@ -213,5 +222,5 @@ final class JwtJsonParser {
         }
     }
 
-    private JwtJsonParser() {}
+    private JwtJson() {}
 }
