@@ -1,5 +1,6 @@
 package org.r10r.ninjax.core;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 
@@ -7,32 +8,40 @@ public class RouteFinder {
 
     public final Router router;
 
+    /**
+     * The route that matched a request, together with the path parameters extracted by that same match.
+     */
+    public record RouteMatch(Router.Route route, Map<String, String> pathParameters) {
+    }
+
     public RouteFinder(Router router) {
         this.router = router;
     }
 
     /**
-     * Finds the first route matching method and path.
+     * Finds the first route matching method and path. The route's regex runs only once per request:
+     * the matcher that selected the route also provides the path parameters.
      *
      * A HEAD request without an explicit HEAD route falls back to the GET route (as required by
      * HTTP). The servers are responsible for not sending a body for HEAD requests.
      */
-    public Optional<Router.Route> getRouteFor(String httpMethod, String path) {
-        Optional<Router.Route> route = findRoute(httpMethod, path);
+    public Optional<RouteMatch> getRouteFor(String httpMethod, String path) {
+        Optional<RouteMatch> routeMatch = findRoute(httpMethod, path);
 
-        if (route.isEmpty() && "HEAD".equalsIgnoreCase(httpMethod)) {
+        if (routeMatch.isEmpty() && "HEAD".equalsIgnoreCase(httpMethod)) {
             return findRoute("GET", path);
         }
 
-        return route;
+        return routeMatch;
     }
 
-    private Optional<Router.Route> findRoute(String httpMethod, String path) {
+    private Optional<RouteMatch> findRoute(String httpMethod, String path) {
         for (var route : router.getRoutes()) {
             if (route.httpMethod().equalsIgnoreCase(httpMethod)) {
                 Matcher matcher = route.pathRegex().matcher(path);
                 if (matcher.matches()) {
-                    return Optional.of(route);
+                    var pathParameters = PathParameterExtractor.extractPathParameters(matcher, route.parameters);
+                    return Optional.of(new RouteMatch(route, pathParameters));
                 }
             }
         }
