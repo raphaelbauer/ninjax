@@ -38,9 +38,17 @@ The main project guide is `/CLAUDE.md` at the repo root. This file collects prac
 - `git stash` is shared between all worktrees of the repository. Prefer a temporary patch (`git diff > file`) or
   WIP commit when checking that a test fails without a fix.
 - Tests that start a real server (`NinjaHttpServer`, `NinjaJetty`) run it in a daemon thread on a free port, because
-  both constructors block until the server stops.
+  both constructors block until the server stops. To check that a HEAD response has no body, read the response with a
+  raw `Socket`: `java.net.http.HttpClient` hides it.
 
 ## Code notes
 - `Request` is a final class with a hand-written builder, not a record: its public API uses `getX()` getters
   (`getLocale()`, `getFile()`, ...), which a record would turn into `x()` accessors. Null checks live in the constructor only.
 - Uploaded files come from a single `FileItemsGetter`; `getFile(name)` is simply the first element of `getFiles(name)`.
+
+## HTTP server notes
+- **HEAD**: the JDK `HttpServer` logs a warning and throws on body writes if a HEAD response is sent with a content
+  length >= 0, so use `sendResponseHeaders(status, -1)`. Jetty silently drops HEAD body bytes itself.
+  Both servers skip the `OutputStreamRenderer` for HEAD.
+- Form bodies are parsed for POST/PUT/PATCH on the JDK server (Jetty: POST/PUT). DELETE bodies are not parsed into
+  parameters, but stay readable via the request input stream.

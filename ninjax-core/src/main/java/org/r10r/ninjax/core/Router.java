@@ -18,6 +18,26 @@ public class Router {
         return new RouteTmp("POST", path);
     }
 
+    public RouteTmp PUT(String path) {
+        return new RouteTmp("PUT", path);
+    }
+
+    public RouteTmp PATCH(String path) {
+        return new RouteTmp("PATCH", path);
+    }
+
+    public RouteTmp DELETE(String path) {
+        return new RouteTmp("DELETE", path);
+    }
+
+    /**
+     * Only needed if HEAD should behave differently from GET. Without an explicit HEAD route,
+     * a HEAD request is answered by the matching GET route (the servers then send no body).
+     */
+    public RouteTmp HEAD(String path) {
+        return new RouteTmp("HEAD", path);
+    }
+
     public class RouteTmp {
 
         private final String httpMethod;

@@ -253,7 +253,10 @@ public class NinjaJetty {
                         httpServletResponse.addCookie(NinjaJettyHelper.convertNinjaCookieToServletCookie(ninjaCookie));
                     }
 
-                    if (result.outputStreamRenderer().isPresent()) {
+                    // HEAD responses carry the same status and headers as GET, but never a body.
+                    // Jetty would drop the bytes anyway, so don't render them in the first place.
+                    var isHeadRequest = "HEAD".equalsIgnoreCase(httpMethod);
+                    if (result.outputStreamRenderer().isPresent() && !isHeadRequest) {
                         result.outputStreamRenderer().get().streamTo(httpServletResponse.getOutputStream());
                     }
 

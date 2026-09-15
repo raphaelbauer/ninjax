@@ -254,7 +254,8 @@ public class NinjaHttpServer {
 
                 int status = result.status();
 
-                if (result.outputStreamRenderer().isPresent()) {
+                // HEAD responses carry the same status and headers as GET, but never a body.
+                if (result.outputStreamRenderer().isPresent() && !isHeadRequest(exchange)) {
                     exchange.sendResponseHeaders(status, 0); // chunked
                     try (OutputStream os = exchange.getResponseBody()) {
                         result.outputStreamRenderer().get().streamTo(os);
@@ -290,6 +291,10 @@ public class NinjaHttpServer {
             }
         }
 
+        private boolean isHeadRequest(HttpExchange exchange) {
+            return "HEAD".equalsIgnoreCase(exchange.getRequestMethod());
+        }
+
         /**
          * Sending can fail, e.g. when the response headers were already sent before the error.
          */
@@ -304,6 +309,10 @@ public class NinjaHttpServer {
         private void sendPlain(HttpExchange exchange, int status, String text) throws IOException {
             byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
+            if (isHeadRequest(exchange)) {
+                exchange.sendResponseHeaders(status, -1);
+                return;
+            }
             exchange.sendResponseHeaders(status, bytes.length);
             try (OutputStream os = exchange.getResponseBody()) {
                 os.write(bytes);
