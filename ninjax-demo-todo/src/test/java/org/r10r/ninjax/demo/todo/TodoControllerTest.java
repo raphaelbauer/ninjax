@@ -3,6 +3,8 @@ package org.r10r.ninjax.demo.todo;
 import org.r10r.ninjax.demo.todo.tasks.TaskService;
 import org.r10r.ninjax.demo.todo.tasks.Task;
 import org.r10r.ninjax.demo.todo.tasks.TodoController;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import static org.r10r.ninjax.test.ResultAssertions.assertThat;
 
@@ -65,4 +67,21 @@ class TodoControllerTest {
         assertThat(result).hasContent();
     }
 
+    @Test
+    void showTasks_whenServiceFails_doesNotLeakExceptionMessage() {
+        // given
+        Mockito.when(taskService.findAny())
+                .thenThrow(new RuntimeException("Table \"TASKS\" not found; SQL statement: SELECT secret_column"));
+        Request request = TestRequest.basic();
+
+        // when
+        Result result = controller.showTasks(request);
+
+        // then
+        assertThat(result).isInternalServerError();
+        ByteArrayOutputStream body = new ByteArrayOutputStream();
+        result.outputStreamRenderer().orElseThrow().streamTo(body);
+        com.google.common.truth.Truth.assertThat(body.toString(StandardCharsets.UTF_8))
+                .isEqualTo("Error showing tasks. Please try again later.");
+    }
 }
