@@ -198,12 +198,8 @@ public class NinjaHttpServer {
 
                 Map<String, String[]> parameterMap = parsedBody.parameterMap();
 
-                Request.InputStreamGetter inputStreamGetter = () -> {
-                    if (parsedBody.bodyAlreadyConsumed()) {
-                        return InputStream.nullInputStream();
-                    }
-                    return exchange.getRequestBody();
-                };
+                Request.InputStreamGetter inputStreamGetter =
+                        NinjaHttpServerHelper.inputStreamGetter(exchange, parsedBody, maxUploadBytes);
 
                 Request.FileItemGetter fileItemGetter = (String fieldName)
                         -> parsedBody.firstFile(fieldName).map(NinjaHttpServerHelper.MultipartFile::toFileItem);
@@ -359,6 +355,23 @@ public class NinjaHttpServer {
                     throw new PayloadTooLargeException("Request body exceeded maxUploadBytes=" + maxBytes);
                 }
             }
+        }
+
+        /**
+         * Builds the InputStreamGetter handed to controllers. When the body was already consumed
+         * (urlencoded/multipart parsing), returns an empty stream. Otherwise wraps the raw request
+         * body in a LimitedInputStream so that JSON and any other non-form body is bounded by
+         * maxUploadBytes as well -- the body is read lazily by the controller, so the limit must be
+         * enforced here rather than only in parseBodyAndParameters.
+         */
+        static Request.InputStreamGetter inputStreamGetter(
+                HttpExchange exchange, ParsedBody parsedBody, long maxUploadBytes) {
+            return () -> {
+                if (parsedBody.bodyAlreadyConsumed()) {
+                    return InputStream.nullInputStream();
+                }
+                return new LimitedInputStream(exchange.getRequestBody(), maxUploadBytes);
+            };
         }
 
         // -------- headers / cookies --------
