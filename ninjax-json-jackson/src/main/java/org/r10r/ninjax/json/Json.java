@@ -1,8 +1,10 @@
 package org.r10r.ninjax.json;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Optional;
 import org.r10r.ninjax.core.Request;
+import org.r10r.ninjax.core.server.NinjaHttpServer.NinjaHttpServerHelper;
 import org.r10r.ninjax.core.Result;
 import static org.r10r.ninjax.core.Result.APPLICATION_JSON;
 import java.util.logging.Level;
@@ -31,7 +33,11 @@ public class Json {
      * The TypeReference allows to use Generics freely in your deserializations.
      * 
      * If there&#39;s an error during serialization you will get an empty Optional.
-     * 
+     *
+     * Exception: if the request body exceeds the server&#39;s maxUploadBytes limit an
+     * UncheckedIOException is thrown, so the server can answer with 413 Payload Too Large
+     * instead of treating the request like invalid JSON.
+     *
      * @param <A> The class you want to deserialize
      * @param request The request that contains a link to the input stream that then will be deserialized to Json
      * @param typeRef The TypeReference that allows you to deserialize more complex generics.
@@ -41,6 +47,9 @@ public class Json {
         try (var inputStream = request.getInputStreamGetter().get()) {
             return Optional.of(objectMapper.readValue(inputStream, typeRef));
         } catch (IOException | JacksonException ex) {
+            if (NinjaHttpServerHelper.isCausedByPayloadTooLarge(ex)) {
+                throw new UncheckedIOException(new IOException("Request body exceeds maxUploadBytes", ex));
+            }
             logger.log(Level.SEVERE, "Opsi", ex);
             return Optional.empty();
         }

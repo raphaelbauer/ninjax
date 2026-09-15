@@ -187,6 +187,169 @@ class NinjaHttpServerHelperTest {
                 -> NinjaHttpServerHelper.parseBodyAndParameters(ex, toDelete, 10, 10_000));
     }
 
+    @Test
+    void parseBodyAndParameters_multipartBodyExceedingLimit_throwsPayloadTooLarge() {
+        // given a valid multipart body larger than the limit, with no Content-Length
+        // (exercises the streaming limit, not the Content-Length pre-check)
+        String boundary = "BOUNDARY123";
+        byte[] multipart = ("--" + boundary + "\r\n"
+                + "Content-Disposition: form-data; name=\"title\"\r\n"
+                + "\r\n"
+                + "hello\r\n"
+                + "--" + boundary + "--\r\n").getBytes(StandardCharsets.ISO_8859_1); // >> 10 bytes
+
+        FakeHttpExchange ex = FakeHttpExchange.builder()
+                .method("POST")
+                .uri("http://localhost/upload")
+                .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                .bodyBytes(multipart)
+                .build();
+
+        List<Path> toDelete = new ArrayList<>();
+
+        // when / then the raw body trips the limit while streaming
+        assertThrows(NinjaHttpServerHelper.PayloadTooLargeException.class, ()
+                -> NinjaHttpServerHelper.parseBodyAndParameters(ex, toDelete, 10, 10_000));
+    }
+
+    // ---------------- input stream getter (non-form bodies) ----------------
+    @Test
+    void inputStreamGetter_jsonBodyExceedingLimit_throwsPayloadTooLargeWhenRead() throws Exception {
+        // given a JSON (non-form) body larger than the limit, with no Content-Length
+        // (so the Content-Length pre-check cannot catch it; mimics chunked encoding)
+        byte[] body = "{\"name\":\"aaaaaaaaaaaaaaaaaaaa\"}".getBytes(StandardCharsets.UTF_8); // > 10 bytes
+        FakeHttpExchange ex = FakeHttpExchange.builder()
+                .method("POST")
+                .uri("http://localhost/api")
+                .header("Content-Type", "application/json")
+                .bodyBytes(body)
+                .build();
+
+        List<Path> toDelete = new ArrayList<>();
+        NinjaHttpServerHelper.ParsedBody parsed
+                = NinjaHttpServerHelper.parseBodyAndParameters(ex, toDelete, 10, 10);
+
+        // JSON bodies are not consumed during parsing, so the controller reads them via the getter
+        assertFalse(parsed.bodyAlreadyConsumed());
+
+        // when the controller reads the body the framework hands it
+        var getter = NinjaHttpServerHelper.inputStreamGetter(ex, parsed, 10);
+
+        // then the stream is bounded by maxUploadBytes
+        assertThrows(NinjaHttpServerHelper.PayloadTooLargeException.class,
+                () -> getter.get().readAllBytes());
+    }
+
+    @Test
+    void inputStreamGetter_jsonBodyWithinLimit_returnsBytes() throws Exception {
+        // given a JSON body smaller than the limit
+        byte[] body = "{\"a\":1}".getBytes(StandardCharsets.UTF_8); // 7 bytes
+        FakeHttpExchange ex = FakeHttpExchange.builder()
+                .method("POST")
+                .uri("http://localhost/api")
+                .header("Content-Type", "application/json")
+                .bodyBytes(body)
+                .build();
+
+        List<Path> toDelete = new ArrayList<>();
+        NinjaHttpServerHelper.ParsedBody parsed
+                = NinjaHttpServerHelper.parseBodyAndParameters(ex, toDelete, 10, 10);
+
+        // when the controller reads the body
+        var getter = NinjaHttpServerHelper.inputStreamGetter(ex, parsed, 10);
+        byte[] read = getter.get().readAllBytes();
+
+        // then it reads the full body without throwing
+        assertArrayEquals(body, read);
+    }
+
+    @Test
+    void inputStreamGetter_repeatedGetCalls_shareOneLimit() throws Exception {
+        // given a 20 byte JSON body and a limit of 10 bytes
+        byte[] body = "0123456789ABCDEFGHIJ".getBytes(StandardCharsets.UTF_8);
+        FakeHttpExchange ex = FakeHttpExchange.builder()
+                .method("POST")
+                .uri("http://localhost/api")
+                .header("Content-Type", "application/json")
+                .bodyBytes(body)
+                .build();
+
+        NinjaHttpServerHelper.ParsedBody parsed
+                = NinjaHttpServerHelper.parseBodyAndParameters(ex, new ArrayList<>(), 10, 10);
+        var getter = NinjaHttpServerHelper.inputStreamGetter(ex, parsed, 10);
+
+        // when the body is read in two steps via separate get() calls (e.g. a filter, then the controller)
+        byte[] firstPart = getter.get().readNBytes(10);
+
+        // then both calls return the same stream and the limit is not reset
+        assertSame(getter.get(), getter.get());
+        assertEquals(10, firstPart.length);
+        assertThrows(NinjaHttpServerHelper.PayloadTooLargeException.class,
+                () -> getter.get().readNBytes(10));
+    }
+
+    @Test
+    void inputStreamGetter_bodyAlreadyConsumed_returnsEmptyStream() throws Exception {
+        // given a urlencoded body that was consumed during parsing
+        FakeHttpExchange ex = FakeHttpExchange.builder()
+                .method("POST")
+                .uri("http://localhost/form")
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .bodyBytes("a=1".getBytes(StandardCharsets.UTF_8))
+                .build();
+
+        NinjaHttpServerHelper.ParsedBody parsed
+                = NinjaHttpServerHelper.parseBodyAndParameters(ex, new ArrayList<>(), 10, 10);
+
+        // when the controller asks for the body
+        byte[] read = NinjaHttpServerHelper.inputStreamGetter(ex, parsed, 10).get().readAllBytes();
+
+        // then it is empty
+        assertTrue(parsed.bodyAlreadyConsumed());
+        assertEquals(0, read.length);
+    }
+
+    // ---------------- payload too large detection ----------------
+    @Test
+    void isCausedByPayloadTooLarge_directException_returnsTrue() {
+        // given
+        var tooLarge = new NinjaHttpServerHelper.PayloadTooLargeException("too large");
+
+        // when / then
+        assertTrue(NinjaHttpServerHelper.isCausedByPayloadTooLarge(tooLarge));
+    }
+
+    @Test
+    void isCausedByPayloadTooLarge_wrappedException_returnsTrue() {
+        // given the exception wrapped the way a controller has to (unchecked, several levels deep)
+        var wrapped = new RuntimeException("controller failed",
+                new UncheckedIOException(new NinjaHttpServerHelper.PayloadTooLargeException("too large")));
+
+        // when / then
+        assertTrue(NinjaHttpServerHelper.isCausedByPayloadTooLarge(wrapped));
+    }
+
+    @Test
+    void isCausedByPayloadTooLarge_unrelatedException_returnsFalse() {
+        // given
+        var unrelated = new IllegalStateException("boom", new IOException("disk full"));
+
+        // when / then
+        assertFalse(NinjaHttpServerHelper.isCausedByPayloadTooLarge(unrelated));
+        assertFalse(NinjaHttpServerHelper.isCausedByPayloadTooLarge(null));
+    }
+
+    @Test
+    void isCausedByPayloadTooLarge_cyclicCauseChain_terminates() {
+        // given two exceptions that are each other's cause
+        var first = new RuntimeException("first");
+        var second = new RuntimeException("second", first);
+        first.initCause(second);
+
+        // when / then it does not loop forever
+        assertFalse(NinjaHttpServerHelper.isCausedByPayloadTooLarge(first));
+    }
+
     // ----------------------------------------------------------------------
     // Minimal HttpExchange implementation for unit tests
     // ----------------------------------------------------------------------
