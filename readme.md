@@ -376,6 +376,10 @@ public Result uploadFile(Request request) {
 }
 ```
 
+Request bodies are limited to 10 MiB by default, on both the JDK server and Jetty. Larger uploads are
+rejected before your controller runs (`413 Payload Too Large`, or `400` from Jetty for chunked multipart
+uploads). Change the limit with `ninja.http.maxUploadBytes`, e.g. `ninja.http.maxUploadBytes=52428800` for 50 MiB.
+
 ### Working with relational DBs
 NinjaX supports relational databases out of the box using [Flyway](https://github.com/flyway/flyway) for migrations,
 [Hikari](https://github.com/brettwooldridge/HikariCP) for connection pooling and JDBI for creating SQL.
