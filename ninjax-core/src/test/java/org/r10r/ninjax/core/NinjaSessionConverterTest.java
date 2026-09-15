@@ -3,6 +3,8 @@ package org.r10r.ninjax.core;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.google.common.collect.Range;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
@@ -84,5 +86,48 @@ public class NinjaSessionConverterTest {
 
         // then
         assertThat(exception.getMessage()).contains("Missing key");
+    }
+
+    @Test
+    public void shouldCreateBrowserSessionCookieWhenNoExpiryIsConfigured() {
+        // given
+        NinjaSessionConverter converter = new NinjaSessionConverter(new FixedNinjaProperties(
+                Map.of(NinjaConstants.NINJA_APPLICATION_SECRET_KEY, base64SecretOfLength(32))));
+
+        // when
+        NinjaCookie cookie = converter.createCookieWithInformationOfNinjaSession(new NinjaSession(Map.of("user", "bob")));
+
+        // then
+        assertThat(cookie.maxAge()).isEqualTo(-1);
+        assertThat(converter.extractSessionFromCookie(cookie).orElseThrow().get("user")).hasValue("bob");
+    }
+
+    @Test
+    public void shouldSetMaxAgeFromConfiguredExpiry() {
+        // given
+        NinjaSessionConverter converter = new NinjaSessionConverter(new FixedNinjaProperties(Map.of(
+                NinjaConstants.NINJA_APPLICATION_SECRET_KEY, base64SecretOfLength(32),
+                "application.session.expire_time_in_seconds", "3600")));
+
+        // when
+        NinjaCookie cookie = converter.createCookieWithInformationOfNinjaSession(new NinjaSession(Map.of("user", "bob")));
+
+        // then
+        assertThat(cookie.maxAge()).isIn(Range.closed(3599, 3600));
+    }
+
+    @Test
+    public void shouldDeleteCookieWhenSessionExpiryAlreadyPassed() {
+        // given
+        NinjaSessionConverter converter = new NinjaSessionConverter(new FixedNinjaProperties(
+                Map.of(NinjaConstants.NINJA_APPLICATION_SECRET_KEY, base64SecretOfLength(32))));
+        String expiredOneMinuteAgo = String.valueOf(Instant.now().minusSeconds(60).getEpochSecond());
+
+        // when
+        NinjaCookie cookie = converter.createCookieWithInformationOfNinjaSession(
+                new NinjaSession(Map.of("user", "bob", "exp", expiredOneMinuteAgo)));
+
+        // then
+        assertThat(cookie.maxAge()).isEqualTo(0);
     }
 }
