@@ -43,6 +43,8 @@ The main project guide is `/CLAUDE.md` at the repo root. This file collects prac
 - Tests that start a real server (`NinjaHttpServer`, `NinjaJetty`) run it in a daemon thread on a free port, because
   both constructors block until the server stops. To check that a HEAD response has no body, read the response with a
   raw `Socket`: `java.net.http.HttpClient` hides it.
+- **java.net.http.HttpClient** silently retries a GET once when the server closes the connection without a response.
+  Use POST in tests that expect such a failure.
 
 ## Code notes
 - `Request` is a final class with a hand-written builder, not a record: its public API uses `getX()` getters
@@ -55,3 +57,7 @@ The main project guide is `/CLAUDE.md` at the repo root. This file collects prac
   Both servers skip the `OutputStreamRenderer` for HEAD.
 - Form bodies are parsed for POST/PUT/PATCH on the JDK server (Jetty: POST/PUT). DELETE bodies are not parsed into
   parameters, but stay readable via the request input stream.
+- **JDK HttpServer** (`com.sun.net.httpserver`) reads its `sun.net.httpserver.*` settings in a static initializer,
+  i.e. once per JVM when the first server is created. Setting them later has no effect (also in tests that share a JVM).
+  The JDK default for `maxReqTime`/`maxRspTime` is "no limit". Tests that depend on these settings run in a child JVM
+  (see `SlowClientTimeoutCheck` started by `NinjaHttpServerLimitsTest`).
