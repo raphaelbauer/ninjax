@@ -303,6 +303,9 @@ Mirror production package structure in `src/test/java`.
 
 Application configuration lives in `src/main/resources/conf/application.conf` (properties format).
 
+Values are looked up in this order: `-D` system property, environment variable (`application.secret` →
+`APPLICATION_SECRET`), then `application.conf`.
+
 **Required Properties:**
 - `application.secret` - Secret key for JWT session signing (base64-encoded)
 

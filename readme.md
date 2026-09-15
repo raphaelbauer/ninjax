@@ -223,11 +223,33 @@ In the demo project (with database and one domain) this looks like the following
 #### Basics
 
 `conf/application.conf` contains all application logic. There's no magic here. Just simple-value pairs.
-If you want to override these properties, you can use Java system properties.
+If you want to override these properties, you can use environment variables or Java system properties.
+
+A value is looked up in this order (first one wins):
+
+1. Java system property, e.g. `-Dapplication.secret=...`
+2. Environment variable: the property name in upper case with `.` replaced by `_`,
+   e.g. `APPLICATION_SECRET` for `application.secret` or `NINJA_PORT` for `ninja.port`
+3. `conf/application.conf`
+
+Environment variables keep secrets like `application.secret` or database passwords out of files that are
+committed to version control and out of the process list (`ps` shows `-D` arguments).
+One limitation: datasources are discovered by their `application.datasource.<name>.url` key,
+so that key must exist in `application.conf` or as `-D` system property (its value can then come from an environment variable).
 
 #### Configuration properties in production
 Override properties in application.conf is needed when running a server in production
- and selectively overwriting e.g. port and setting credentials:
+ and selectively overwriting e.g. port and setting credentials. The simplest way is environment variables,
+ which containers and most hosting platforms set for you:
+
+```bash
+export APPLICATION_SECRET=...
+export APPLICATION_DATASOURCE_DEFAULT_URL=...
+export APPLICATION_DATASOURCE_DEFAULT_PASSWORD=...
+java -jar target/app.jar
+```
+
+System properties work as well:
 
 ```bash
 java -jar -Dninja.port=5000 \
