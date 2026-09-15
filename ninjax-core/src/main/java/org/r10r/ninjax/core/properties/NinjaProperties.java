@@ -38,12 +38,13 @@ public class NinjaProperties {
         ////////////////////////////////////////////////////////////////////////
         // Load Default properties
         ////////////////////////////////////////////////////////////////////////
-        try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(DEFAULT_LOCATION_OF_APPLICATION_CONF);
-             InputStreamReader inputStreamReader = new java.io.InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
+        // Only create the reader once we know the file exists. Creating it in the try-with-resources
+        // header threw a NullPointerException before the null check could log a helpful message.
+        try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(DEFAULT_LOCATION_OF_APPLICATION_CONF)) {
             if (inputStream == null) {
                 logger.log(Level.SEVERE, "Sorry, unable to find " + DEFAULT_LOCATION_OF_APPLICATION_CONF);
             } else {
-                properties.load(inputStreamReader);
+                properties.load(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
             }
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Opsi. Failure loading " + DEFAULT_LOCATION_OF_APPLICATION_CONF, e);
