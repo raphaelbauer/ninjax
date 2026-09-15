@@ -2,8 +2,9 @@ package org.r10r.ninjax.demo.todo;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,7 +59,7 @@ class TodoApplicationIntegrationTest {
     void setUp() throws IOException {
         // given
         client = HttpTestClient.localhost(TEST_PORT);
-        objectMapper = new ObjectMapper();
+        objectMapper = new JsonMapper();
 
         // Clear all tasks before each test
         HttpTestClient.HttpTestResponse response = client.get("/tasks.json");
@@ -94,7 +95,7 @@ class TodoApplicationIntegrationTest {
         assertThat(getResponse.statusCode()).isEqualTo(200);
         JsonNode tasks = objectMapper.readTree(getResponse.body());
         assertThat(tasks.size()).isEqualTo(1);
-        assertThat(tasks.get(0).get("title").asText()).isEqualTo("Buy milk");
+        assertThat(tasks.get(0).get("title").asString()).isEqualTo("Buy milk");
         assertThat(tasks.get(0).get("completed").asBoolean()).isFalse();
 
         long taskId = tasks.get(0).get("id").asLong();
@@ -152,7 +153,7 @@ class TodoApplicationIntegrationTest {
         HttpTestClient.HttpTestResponse getResponse = client.get("/tasks.json");
         JsonNode tasks = objectMapper.readTree(getResponse.body());
         assertThat(tasks.size()).isEqualTo(1);
-        assertThat(tasks.get(0).get("title").asText()).isEqualTo("New Task");
+        assertThat(tasks.get(0).get("title").asString()).isEqualTo("New Task");
     }
 
     @Test
@@ -171,9 +172,9 @@ class TodoApplicationIntegrationTest {
         assertThat(tasks.size()).isEqualTo(3);
 
         // Verify order (newest first)
-        assertThat(tasks.get(0).get("title").asText()).isEqualTo("Task 3");
-        assertThat(tasks.get(1).get("title").asText()).isEqualTo("Task 2");
-        assertThat(tasks.get(2).get("title").asText()).isEqualTo("Task 1");
+        assertThat(tasks.get(0).get("title").asString()).isEqualTo("Task 3");
+        assertThat(tasks.get(1).get("title").asString()).isEqualTo("Task 2");
+        assertThat(tasks.get(2).get("title").asString()).isEqualTo("Task 1");
     }
 
     @Test
@@ -222,7 +223,7 @@ class TodoApplicationIntegrationTest {
         HttpTestClient.HttpTestResponse getAfterDelete = client.get("/tasks.json");
         JsonNode tasksAfterDelete = objectMapper.readTree(getAfterDelete.body());
         assertThat(tasksAfterDelete.size()).isEqualTo(1);
-        assertThat(tasksAfterDelete.get(0).get("title").asText()).isEqualTo("Task to keep");
+        assertThat(tasksAfterDelete.get(0).get("title").asString()).isEqualTo("Task to keep");
     }
 
     @Test
@@ -261,8 +262,8 @@ class TodoApplicationIntegrationTest {
         HttpTestClient.HttpTestResponse getAfterDelete = client.get("/tasks.json");
         JsonNode tasksAfterDelete = objectMapper.readTree(getAfterDelete.body());
         assertThat(tasksAfterDelete.size()).isEqualTo(2);
-        assertThat(tasksAfterDelete.get(0).get("title").asText()).isEqualTo("Task 3");
-        assertThat(tasksAfterDelete.get(1).get("title").asText()).isEqualTo("Task 1");
+        assertThat(tasksAfterDelete.get(0).get("title").asString()).isEqualTo("Task 3");
+        assertThat(tasksAfterDelete.get(1).get("title").asString()).isEqualTo("Task 1");
     }
 
     private static void waitForServer(String url) throws InterruptedException {

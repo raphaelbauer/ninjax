@@ -309,8 +309,11 @@ public class TaskItemTemplate {
 
 NinjaX has built-in JSON support. You can easily serialize objects to JSON responses.
 
-But in reality that's just a very think wrapper around the [Jackson ObjectMapper](https://github.com/FasterXML/jackson-databind) library.
-If you have need special configuration you can easily use Jackson ObjectMapper yourself.
+But in reality that's just a very thin wrapper around the [Jackson 3](https://github.com/FasterXML/jackson-databind) library.
+If you need special configuration you can easily use Jackson's `JsonMapper` yourself.
+
+Note: NinjaX uses Jackson 3, which lives in the `tools.jackson.*` packages (e.g. `tools.jackson.core.type.TypeReference`).
+Annotations such as `@JsonProperty` still come from `com.fasterxml.jackson.annotation`.
 
 
 ```java

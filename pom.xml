@@ -39,14 +39,16 @@
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <slf4j.version>2.0.17</slf4j.version>
-        <jdbi.version>3.51.0</jdbi.version>
-        <jackson.version>2.21.0</jackson.version>
-        <junit.version>5.11.0</junit.version>
-        <hikari.version>7.0.2</hikari.version>
-        <flyway.version>11.12.0</flyway.version>
-        <h2.version>2.3.232</h2.version>
-        <testcontainers.version>1.20.4</testcontainers.version>
+        <java.release>25</java.release>
+        <slf4j.version>2.0.19</slf4j.version>
+        <jdbi.version>3.54.0</jdbi.version>
+        <jackson.version>3.2.2</jackson.version>
+        <junit.version>6.1.3</junit.version>
+        <jetty.version>12.1.13</jetty.version>
+        <hikari.version>7.1.0</hikari.version>
+        <flyway.version>13.7.0</flyway.version>
+        <h2.version>2.5.250</h2.version>
+        <testcontainers.version>2.0.5</testcontainers.version>
     </properties>
     
     <!-- Optional: common dependencyManagement (shared versions) -->
@@ -57,44 +59,25 @@
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-server</artifactId>
-                <version>12.1.5</version>
+                <version>${jetty.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty.ee10</groupId>
                 <artifactId>jetty-ee10-servlet</artifactId>
-                <version>12.1.5</version>
+                <version>${jetty.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>33.3.0-jre</version>
+                <version>33.7.1-jre</version>
             </dependency>
+            <!-- Jackson 3 (tools.jackson.*). Java 8 date/time and Optional support is built in. -->
             <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
+                <groupId>tools.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
                 <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-annotations</artifactId>
-                <version>2.21</version>
-            </dependency>
-            
-            <dependency>
-                <groupId>com.fasterxml.jackson.datatype</groupId>
-                <artifactId>jackson-datatype-jsr310</artifactId>
-                <version>${jackson.version}</version>
-            </dependency>
-        
-            <dependency>
-                <groupId>com.fasterxml.jackson.datatype</groupId>
-                <artifactId>jackson-datatype-jdk8</artifactId>
-                <version>${jackson.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>org.r10r</groupId>
@@ -179,7 +162,7 @@
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
-                <version>1.5.18</version>
+                <version>1.6.3</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -224,7 +207,7 @@
             <dependency>
                 <groupId>com.google.truth</groupId>
                 <artifactId>truth</artifactId>
-                <version>1.4.4</version>
+                <version>1.4.5</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -235,20 +218,20 @@
             </dependency>
             <dependency>
                 <groupId>org.testcontainers</groupId>
-                <artifactId>postgresql</artifactId>
+                <artifactId>testcontainers-postgresql</artifactId>
                 <version>${testcontainers.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
-                <version>42.7.9</version>
+                <version>42.7.13</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>5.21.0</version>
+                <version>5.23.0</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -261,11 +244,15 @@
             <plugins>
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.14.1</version>
+                    <version>3.16.0</version>
                     <configuration>
-                        <source>25</source>
-                        <target>25</target>
+                        <release>${java.release}</release>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.6.0</version>
                 </plugin>
                 <!-- Release plugin -->
                 <plugin>
@@ -297,7 +284,7 @@
                     <plugin>
                         <groupId>org.sonatype.central</groupId>
                         <artifactId>central-publishing-maven-plugin</artifactId>
-                        <version>0.10.0</version>
+                        <version>0.11.0</version>
                         <extensions>true</extensions>
                         <configuration>
                             <autoPublish>true</autoPublish>

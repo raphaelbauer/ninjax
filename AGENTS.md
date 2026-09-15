@@ -87,7 +87,7 @@ public record Request(
 public Optional<A> getJsonBody() {
     try (var inputStream = inputStreamGetter.get()) {
         return Optional.of(Json.objectMapper.readValue(inputStream, new TypeReference<A>() {}));
-    } catch (IOException ex) {
+    } catch (IOException | JacksonException ex) {
         logger.error("Failed to parse JSON", ex);
         return Optional.empty();
     }
@@ -109,8 +109,8 @@ public Optional<A> getJsonBody() {
 ## Testing Guidelines
 
 ### Framework
-- **JUnit 5.11.0** for test structure
-- **Google Truth 1.4.4** for assertions
+- **JUnit 6.1.3** (Jupiter) for test structure
+- **Google Truth 1.4.5** for assertions
 - No mocking framework (use manual test doubles)
 
 ### Test Structure
@@ -138,12 +138,12 @@ void descriptiveMethodName() {
 
 ### Core Dependencies
 - **Java:** 25 (use modern features)
-- **Web Server:** Eclipse Jetty 11.0.25
-- **JSON:** Jackson 2.20.0
-- **Database:** H2, JDBI 3.49.5, HikariCP 7.0.2, Flyway 11.12.0
+- **Web Server:** Eclipse Jetty 12.1.13
+- **JSON:** Jackson 3.2.2 (`tools.jackson.*`)
+- **Database:** H2 2.5.250, JDBI 3.54.0, HikariCP 7.1.0, Flyway 13.7.0
 - **Authentication:** JJWT 0.13.0
-- **Logging:** SLF4J 2.0.17 + Logback 1.5.18
-- **Utilities:** Google Guava 33.3.0
+- **Logging:** SLF4J 2.0.19 + Logback 1.6.3
+- **Utilities:** Google Guava 33.7.1
 
 ### Module Structure
 - `ninja-core/` - Core framework
