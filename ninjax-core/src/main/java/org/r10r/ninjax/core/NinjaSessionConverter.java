@@ -28,7 +28,8 @@ public class NinjaSessionConverter {
     private final boolean sessionCookieSecure;
     private final SameSite sessionCookieSameSite;
     
-    private final SecretKey secretKeyForSessionEncryption;
+    // The session is signed (HMAC), not encrypted: clients can read its content, but can't change it.
+    private final SecretKey secretKeyForSessionSigning;
     
     
     public NinjaSessionConverter(NinjaProperties ninjaProperties) {
@@ -49,7 +50,7 @@ public class NinjaSessionConverter {
                     NinjaConstants.NINJA_APPLICATION_SECRET_KEY, MINIMUM_SECRET_LENGTH_IN_BYTES, decodedKey.length));
         }
 
-        this.secretKeyForSessionEncryption = new SecretKeySpec(decodedKey, 0, decodedKey.length, "HmacSHA256");
+        this.secretKeyForSessionSigning = new SecretKeySpec(decodedKey, 0, decodedKey.length, "HmacSHA256");
 
         this.sessionExpiryTimeInSeconds = ninjaProperties.get("application.session.expire_time_in_seconds").map(v -> Long.valueOf(v));
         this.sessionCookieSecure = ninjaProperties.get("application.session.cookie.secure")
@@ -79,7 +80,7 @@ public class NinjaSessionConverter {
     public Optional<NinjaSession> extractSessionFromCookie(NinjaCookie ninjaSessionCookie) {
 
         try {
-            Map<String, Object> claims = Jwt.verify(ninjaSessionCookie.value(), secretKeyForSessionEncryption);
+            Map<String, Object> claims = Jwt.verify(ninjaSessionCookie.value(), secretKeyForSessionSigning);
             Instant now = Instant.now();
 
             Optional<Instant> notBefore = numericDateClaim(claims, "nbf");
@@ -155,7 +156,7 @@ public class NinjaSessionConverter {
         claims.put("iat", now.getEpochSecond());
         expiryInstant.ifPresent(i -> claims.put("exp", i.getEpochSecond()));
 
-        String jws = Jwt.sign(claims, secretKeyForSessionEncryption);
+        String jws = Jwt.sign(claims, secretKeyForSessionSigning);
 
         // Max-Age=0 tells the browser to delete the cookie right away, so a cookie without expiry
         // must use -1 (no Max-Age attribute at all). The browser then keeps it until it is closed.
