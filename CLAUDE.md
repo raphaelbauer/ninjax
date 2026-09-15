@@ -39,15 +39,14 @@ mvn deploy -Prelease
 ### Running the Demo Application
 ```bash
 # Build and run the todo demo
-cd ninja-demo-todo
+cd ninjax-demo-todo
 mvn clean package
-mvn exec:java
-
-# Or use the test script
-./test-demo.sh
+mvn exec:java                       # runs on the JDK HttpServer (default)
+mvn exec:java -Dninja.server=jetty  # runs on Jetty
 ```
 
 The demo runs on http://localhost:8081 by default.
+The server is picked by the property `ninja.server` (`jdk` or `jetty`) in `TodoApplication`.
 
 ### Module-Specific Testing
 ```bash
@@ -78,7 +77,8 @@ This is a multi-module Maven project with clear separation of concerns:
 - **ninja-test-db-utils** - Database testing utilities with Testcontainers
 
 ### Demo
-- **ninja-demo-todo** - Working todo list application demonstrating framework usage
+- **ninjax-demo-todo** - Working todo list application demonstrating framework usage.
+  Runs on the JDK HttpServer or on Jetty (`-Dninja.server=jdk|jetty`); its integration test covers both servers.
 
 ## Core Architecture Principles
 
@@ -295,7 +295,7 @@ Mirror production package structure in `src/test/java`.
 - **JSON**: Jackson 3.2.2 (`tools.jackson.*` packages; java.time and Optional support built in)
 - **Database**: JDBI 3.54.0, HikariCP 7.1.0, Flyway 13.7.0, H2 2.5.250
 - **Authentication**: JJWT 0.13.0
-- **Logging**: SLF4J 2.0.19 + Logback 1.6.3
+- **Logging**: java.util.logging (the demo routes SLF4J 2.0.19 to it via `slf4j-jdk14`)
 - **Utilities**: Google Guava 33.7.1
 - **Testing**: JUnit 6.1.3, Google Truth 1.4.5, Testcontainers 2.0.5, Mockito 5.23.0
 

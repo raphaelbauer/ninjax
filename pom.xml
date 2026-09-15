@@ -158,12 +158,7 @@
                 <version>${h2.version}</version>
             </dependency>
 
-            <!-- Logging for ninjax-jetty-demo-todo -->
-            <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-classic</artifactId>
-                <version>1.6.3</version>
-            </dependency>
+            <!-- Logging -->
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
@@ -171,20 +166,10 @@
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
-                <artifactId>jcl-over-slf4j</artifactId>
+                <artifactId>slf4j-jdk14</artifactId>
                 <version>${slf4j.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>log4j-over-slf4j</artifactId>
-                <version>${slf4j.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>jul-to-slf4j</artifactId>
-                <version>${slf4j.version}</version>
-            </dependency>
-            
+
             <!-- Testing dependencies -->
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
@@ -349,6 +334,5 @@
         <module>ninjax-demo-todo</module>
         <!-- Could ne removed later as Ninja now works without Jetty -->
         <module>ninjax-jetty</module>
-        <module>ninjax-jetty-demo-todo</module>
     </modules>
 </project>

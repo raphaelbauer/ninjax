@@ -10,21 +10,25 @@
 
     <artifactId>ninjax-demo-todo</artifactId>
     <name>ninjax-demo-todo</name>
-    <description>Demo application showcasing NinjaX framework with JDBI, H2, and templating</description>
+    <description>Demo application showcasing NinjaX framework with JDBI, H2, and templating. Runs on the JDK HttpServer or on Jetty.</description>
 
     <dependencies>
-        <!-- log slf4 over default JDK logging. Some librries we use here need this. Can also be replaced by logback logging.  -->
+        <!-- Route SLF4J (used by Jetty, HikariCP, Flyway and JDBI) to java.util.logging.
+             Then one file (conf/logging.properties) configures all logging, no matter which server runs. -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-jdk14</artifactId>
-            <version>${slf4j.version}</version>
         </dependency>
 
-
-        <!-- Core NinjaX framework -->
+        <!-- Core NinjaX framework (includes the JDK HttpServer based NinjaHttpServer) -->
         <dependency>
             <groupId>org.r10r</groupId>
             <artifactId>ninjax-core</artifactId>
+        </dependency>
+        <!-- Optional: only needed to run the demo on Jetty (-Dninja.server=jetty) -->
+        <dependency>
+            <groupId>org.r10r</groupId>
+            <artifactId>ninjax-jetty</artifactId>
         </dependency>
         <dependency>
             <groupId>org.r10r</groupId>
