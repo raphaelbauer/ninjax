@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.r10r.ninjax.core.HttpOnly;
 import org.r10r.ninjax.core.NinjaCookie;
+import org.r10r.ninjax.core.Result;
 import org.r10r.ninjax.core.SameSite;
 import org.r10r.ninjax.core.Secure;
 
@@ -48,6 +49,19 @@ class NinjaHttpServerHelperTest {
 
         assertEquals("d", cookies.get(3).name());
         assertEquals("2", cookies.get(3).value());
+    }
+
+    @Test
+    void responseLengthFor_knownBytes_isExactLength_emptyIsNoBody_streamIsChunked() {
+        // given
+        Result.OutputStreamRenderer html = Result.builder().html("<p>ä</p>").build().outputStreamRenderer().get();
+        Result.OutputStreamRenderer empty = Result.builder().text("").build().outputStreamRenderer().get();
+        Result.OutputStreamRenderer stream = outputStream -> {};
+
+        // when / then
+        assertEquals(9, NinjaHttpServerHelper.responseLengthFor(html)); // "ä" is 2 bytes in UTF-8
+        assertEquals(-1, NinjaHttpServerHelper.responseLengthFor(empty));
+        assertEquals(0, NinjaHttpServerHelper.responseLengthFor(stream));
     }
 
     @Test

@@ -131,6 +131,26 @@ public record Result(
         void streamTo(OutputStream outputStream);
     }
 
+    /**
+     * A body that is already fully known as bytes (html() and text()). Because its length is known,
+     * servers send it with a Content-Length header instead of chunked transfer encoding.
+     */
+    public record BytesRenderer(byte[] bytes) implements OutputStreamRenderer {
+
+        public static BytesRenderer utf8(String content) {
+            return new BytesRenderer(content.getBytes(StandardCharsets.UTF_8));
+        }
+
+        @Override
+        public void streamTo(OutputStream outputStream) {
+            try {
+                outputStream.write(bytes);
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "Rendering went wrong. Ouch! ", e);
+            }
+        }
+    }
+
     // //////////////////////////////////////////////////////////////////////////
     // Sealed session state types
     // //////////////////////////////////////////////////////////////////////////
@@ -238,25 +258,13 @@ public record Result(
 
         public Builder html(String content) {
             this.contentType = TEXT_HTML;
-            this.outputStreamRenderer = outputStream -> {
-                try {
-                    outputStream.write(content.getBytes(StandardCharsets.UTF_8));
-                } catch (IOException e) {
-                    logger.log(Level.SEVERE, "Rendering went wrong. Ouch! ", e);
-                }
-            };
+            this.outputStreamRenderer = BytesRenderer.utf8(content);
             return this;
         }
 
         public Builder text(String content) {
             this.contentType = TEXT_PLAIN;
-            this.outputStreamRenderer = outputStream -> {
-                try {
-                    outputStream.write(content.getBytes(StandardCharsets.UTF_8));
-                } catch (IOException e) {
-                    logger.log(Level.SEVERE, "Rendering went wrong. Ouch! ", e);
-                }
-            };
+            this.outputStreamRenderer = BytesRenderer.utf8(content);
             return this;
         }
 
