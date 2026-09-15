@@ -201,15 +201,10 @@ public class NinjaHttpServer {
                 Request.InputStreamGetter inputStreamGetter =
                         NinjaHttpServerHelper.inputStreamGetter(exchange, parsedBody, maxUploadBytes);
 
-                Request.FileItemGetter fileItemGetter = (String fieldName)
-                        -> parsedBody.firstFile(fieldName).map(NinjaHttpServerHelper.MultipartFile::toFileItem);
-
                 Request.FileItemsGetter fileItemsGetter = (String fieldName)
                         -> parsedBody.files(fieldName).stream()
                                 .map(NinjaHttpServerHelper.MultipartFile::toFileItem)
                                 .toList();
-
-                var payload = new Request.Payload(Map.of());
 
                 var pathParams = PathParameterExtractor.extractPathParameters(
                         route.pathRegex(),
@@ -224,14 +219,12 @@ public class NinjaHttpServer {
                         .requestPath(requestPath)
                         .pathParameters(pathParams)
                         .inputStreamGetter(inputStreamGetter)
-                        .fileItemGetter(fileItemGetter)
                         .fileItemsGetter(fileItemsGetter)
                         .ninjaCookies(ninjaCookies)
-                        .payload(payload)
                         .headers(headers)
                         .parameters(parameters)
                         .ninjaSession(ninjaSessionInRequest)
-                        .language(locale)
+                        .locale(locale)
                         .build();
 
                 FilterChain chain = new FilterChain(route.filters, 0, route.controllerMethod());

@@ -3,7 +3,6 @@ package testhelper;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import org.r10r.ninjax.core.PathParameterExtractor;
 import org.r10r.ninjax.core.Request;
@@ -37,23 +36,18 @@ public class RequestTestHelper {
         Request.InputStreamGetter inputStreamGetter =
                 () -> new ByteArrayInputStream(new byte[0]);
 
-        Request.FileItemGetter fileItemGetter = fieldName -> Optional.empty();
         Request.FileItemsGetter fileItemsGetter = fieldName -> List.of();
-
-        var payload = new org.r10r.ninjax.core.Request.Payload(Map.of());
 
         return Request.builder()
                 .requestPath(requestPath)
                 .pathParameters(pathParams)
                 .inputStreamGetter(inputStreamGetter)
-                .fileItemGetter(fileItemGetter)
                 .fileItemsGetter(fileItemsGetter)
                 .ninjaCookies(List.of())
-                .payload(payload)
                 .headers(new org.r10r.ninjax.core.Request.Headers())
                 .parameters(new org.r10r.ninjax.core.Request.Parameters())
                 .ninjaSession(Optional.empty())
-                .language(Locale.ENGLISH)
+                .locale(Locale.ENGLISH)
                 .build();
     }
 

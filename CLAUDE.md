@@ -110,7 +110,7 @@ router.GET("/api/{id: [0-9]+}").with(controller::getById); // Path param with re
 ```
 
 ### 3. Immutable Request/Result Pattern
-- **Request**: Immutable class (with builder) containing all HTTP request data (headers, params, body, session)
+- **Request**: Immutable class (with builder) containing all HTTP request data (headers, params, body, session, locale)
 - **Result**: Immutable record representing HTTP response (status, content, cookies, session state)
 - Controllers are pure functions: `Request → Result`
 

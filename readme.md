@@ -374,16 +374,17 @@ public Result addTask(Request request) {
 ```
 
 ### Uploading files
-File uploads are supported via `Request.getFileItem()`. Ensure your form uses `enctype="multipart/form-data"`.
+File uploads are supported via `Request.getFile()` (first file of a field) and `Request.getFiles()` (all files of a field).
+Ensure your form uses `enctype="multipart/form-data"`.
 
 ```java
 public Result uploadFile(Request request) {
-    Optional<FileItem> fileItem = request.getFileItem("profile_picture");
+    Optional<FileItem> fileItem = request.getFile("profile_picture");
     
     if (fileItem.isPresent()) {
         FileItem file = fileItem.get();
-        // Process input stream: file.getInputStream()
-        // Check content type: file.getContentType()
+        // Process input stream: file.inputStream()
+        // Check content type: file.contentType()
     }
     
     return Result.ok().build();
