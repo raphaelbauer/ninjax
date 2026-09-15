@@ -1,9 +1,5 @@
 package org.r10r.ninjax.json;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
 import java.util.Optional;
 import org.r10r.ninjax.core.Request;
@@ -11,6 +7,9 @@ import org.r10r.ninjax.core.Result;
 import static org.r10r.ninjax.core.Result.APPLICATION_JSON;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Very simple and basic Json rendering.
@@ -21,9 +20,8 @@ public class Json {
     
     private static final Logger logger = Logger.getLogger(Json.class.getName());
 
-    private final static ObjectMapper objectMapper = new ObjectMapper()
-            .registerModule(new Jdk8Module())
-            .registerModule(new JavaTimeModule());
+    // Jackson 3 supports java.time and Optional out of the box - no extra modules needed.
+    private final static JsonMapper objectMapper = JsonMapper.builder().build();
 
     
     /**
@@ -42,7 +40,7 @@ public class Json {
     public <A> Optional<A> getJsonBody(Request request, TypeReference<A> typeRef) {
         try (var inputStream = request.getInputStreamGetter().get()) {
             return Optional.of(objectMapper.readValue(inputStream, typeRef));
-        } catch (IOException ex) {
+        } catch (IOException | JacksonException ex) {
             logger.log(Level.SEVERE, "Opsi", ex);
             return Optional.empty();
         }
@@ -52,7 +50,7 @@ public class Json {
             org.r10r.ninjax.core.Result.OutputStreamRenderer outputStreamRenderer = outputStream -> {
                 try {
                     Json.objectMapper.writeValue(outputStream, objectToRenderAsJson);
-                } catch (IOException e) {
+                } catch (JacksonException e) {
                     logger.log(Level.SEVERE, "Rendering went wrong. Ouch! ", e);
                 }
             };

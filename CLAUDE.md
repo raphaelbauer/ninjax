@@ -261,9 +261,9 @@ Resource files use `{{key}}` syntax for placeholders and must be next to the Jav
 ## Testing
 
 ### Framework
-- **JUnit 5.11.0** for test structure
-- **Google Truth 1.4.4** for assertions (`assertThat(x).isEqualTo(y)`)
-- **Testcontainers 1.20.4** for database testing
+- **JUnit 6.1.3** (Jupiter) for test structure
+- **Google Truth 1.4.5** for assertions (`assertThat(x).isEqualTo(y)`)
+- **Testcontainers 2.0.5** for database testing
 - No mocking frameworks - use real implementations or manual test doubles
 
 ### Test Structure
@@ -291,13 +291,13 @@ Mirror production package structure in `src/test/java`.
 ## Technology Stack
 
 - **Java**: 25
-- **Web Server**: Eclipse Jetty 11.0.25
-- **JSON**: Jackson 2.20.0 (with JSR310 and JDK8 modules)
-- **Database**: JDBI 3.51.0, HikariCP 7.0.2, Flyway 11.12.0, H2 2.3.232
+- **Web Server**: Eclipse Jetty 12.1.13 (ee10 servlet)
+- **JSON**: Jackson 3.2.2 (`tools.jackson.*` packages; java.time and Optional support built in)
+- **Database**: JDBI 3.54.0, HikariCP 7.1.0, Flyway 13.7.0, H2 2.5.250
 - **Authentication**: JJWT 0.13.0
-- **Logging**: SLF4J 2.0.17 + Logback 1.5.18
-- **Utilities**: Google Guava 33.3.0
-- **Testing**: JUnit 5.11.0, Google Truth 1.4.4, Testcontainers 1.20.4, Mockito 5.21.0
+- **Logging**: SLF4J 2.0.19 + Logback 1.6.3
+- **Utilities**: Google Guava 33.7.1
+- **Testing**: JUnit 6.1.3, Google Truth 1.4.5, Testcontainers 2.0.5, Mockito 5.23.0
 
 ## Configuration
 
@@ -336,5 +336,5 @@ When making changes:
 2. Maintain immutability - use records where possible
 3. Avoid introducing nulls - use Optional instead
 4. Follow explicit dependency composition pattern
-5. Add tests using JUnit 5 and Google Truth
+5. Add tests using JUnit (Jupiter) and Google Truth
 6. Keep it simple - this framework breaks from Java tradition intentionally

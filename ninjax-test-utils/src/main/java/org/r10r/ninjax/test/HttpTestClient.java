@@ -1,6 +1,5 @@
 package org.r10r.ninjax.test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -11,6 +10,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Simple HTTP client for integration testing.
@@ -38,7 +39,7 @@ public class HttpTestClient {
         this.httpClient = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.NEVER)
                 .build();
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = new JsonMapper();
     }
 
     /**
@@ -183,10 +184,11 @@ public class HttpTestClient {
          * @param clazz The class to deserialize to
          * @param <T> The type
          * @return The deserialized object
-         * @throws IOException If parsing fails
+         * @throws IOException If an I/O error occurs
+         * @throws tools.jackson.core.JacksonException If parsing fails (unchecked)
          */
         public <T> T bodyAsJson(Class<T> clazz) throws IOException {
-            ObjectMapper mapper = new ObjectMapper();
+            ObjectMapper mapper = new JsonMapper();
             return mapper.readValue(body, clazz);
         }
     }
