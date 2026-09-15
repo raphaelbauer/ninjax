@@ -29,3 +29,13 @@ The main project guide is `/CLAUDE.md` at the repo root. This file collects prac
 - **Maven plugin**: inject `MavenProject`/`MavenSession` with `@Parameter(defaultValue = "${project}", readonly = true)`,
   not the deprecated `@Component`.
 - `junit:junit:4.x` shows up on the test classpath only transitively via Google Truth. That is expected.
+
+## Building and testing
+- The IDE's Java language server (VS Code / Eclipse JDT) compiles into the same `target/classes` as Maven. After
+  switching branches, Maven's incremental build can then run stale or broken class files ("Unresolved compilation
+  problem" at runtime). Use `./mvnw clean test` after switching branches, or build in a git worktree outside the
+  IDE workspace.
+- `git stash` is shared between all worktrees of the repository. Prefer a temporary patch (`git diff > file`) or
+  WIP commit when checking that a test fails without a fix.
+- Tests that start a real server (`NinjaHttpServer`, `NinjaJetty`) run it in a daemon thread on a free port, because
+  both constructors block until the server stops.
