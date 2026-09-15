@@ -314,6 +314,7 @@ Application configuration lives in `conf/application.conf` on the classpath (pro
 - `ninja.port` - HTTP server port (default: 8080)
 - `application.session.expire_time_in_seconds` - Session expiration
 - `application.session.cookie.secure` - Secure flag for session cookie
+- `application.session.cookie.same_site` - SameSite attribute for session cookie: Strict|Lax|None, case-insensitive (default: Lax). Invalid values and `None` without `secure=true` fail at startup
 
 ## Key Design Patterns
 

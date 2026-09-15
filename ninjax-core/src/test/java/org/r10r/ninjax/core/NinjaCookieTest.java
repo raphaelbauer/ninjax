@@ -22,6 +22,7 @@ class NinjaCookieTest {
         assertThat(cookie.maxAge()).isEqualTo(-1);
         assertThat(cookie.secure()).isEqualTo(Secure.No);
         assertThat(cookie.httpOnly()).isEqualTo(HttpOnly.No);
+        assertThat(cookie.sameSite()).isEmpty();
     }
 
     @Test
@@ -32,6 +33,7 @@ class NinjaCookieTest {
                 .path("/app")
                 .secure(true)
                 .httpOnly(true)
+                .sameSite(SameSite.Strict)
                 .build();
 
         assertThat(cookie.name()).isEqualTo("sid");
@@ -41,6 +43,7 @@ class NinjaCookieTest {
         assertThat(cookie.path()).isEqualTo(Optional.of("/app"));
         assertThat(cookie.secure()).isEqualTo(Secure.Yes);
         assertThat(cookie.httpOnly()).isEqualTo(HttpOnly.Yes);
+        assertThat(cookie.sameSite()).isEqualTo(Optional.of(SameSite.Strict));
     }
 
     @Test
@@ -70,5 +73,15 @@ class NinjaCookieTest {
 
         assertThat(HttpOnly.Yes.toBoolean()).isTrue();
         assertThat(HttpOnly.No.toBoolean()).isFalse();
+    }
+
+    @Test
+    void sameSiteEnum_ofString_isCaseInsensitive_andEmptyForUnknownValues() {
+        assertThat(SameSite.ofString("Strict")).isEqualTo(Optional.of(SameSite.Strict));
+        assertThat(SameSite.ofString("lax")).isEqualTo(Optional.of(SameSite.Lax));
+        assertThat(SameSite.ofString(" NONE ")).isEqualTo(Optional.of(SameSite.None));
+
+        assertThat(SameSite.ofString("sometimes")).isEmpty();
+        assertThat(SameSite.ofString("")).isEmpty();
     }
 }

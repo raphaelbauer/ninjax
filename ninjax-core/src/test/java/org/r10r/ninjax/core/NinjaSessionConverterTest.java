@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.google.common.collect.Range;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -129,5 +130,87 @@ public class NinjaSessionConverterTest {
 
         // then
         assertThat(cookie.maxAge()).isEqualTo(0);
+    }
+
+    private static NinjaProperties propertiesWithValidSecretAnd(Map<String, String> additionalValues) {
+        Map<String, String> values = new HashMap<>(additionalValues);
+        values.put(NinjaConstants.NINJA_APPLICATION_SECRET_KEY, base64SecretOfLength(32));
+        return new FixedNinjaProperties(values);
+    }
+
+    @Test
+    public void shouldDefaultSessionCookieToSameSiteLax() {
+        // given
+        NinjaSessionConverter converter = new NinjaSessionConverter(propertiesWithValidSecretAnd(Map.of()));
+
+        // when
+        NinjaCookie sessionCookie = converter.createCookieWithInformationOfNinjaSession(new NinjaSession(Map.of()));
+        NinjaCookie removeSessionCookie = converter.createCookieToRemoveNinjaSession();
+
+        // then
+        assertThat(sessionCookie.sameSite()).hasValue(SameSite.Lax);
+        assertThat(removeSessionCookie.sameSite()).hasValue(SameSite.Lax);
+    }
+
+    @Test
+    public void shouldUseConfiguredSameSiteCaseInsensitively() {
+        // given
+        NinjaProperties properties = propertiesWithValidSecretAnd(
+                Map.of("application.session.cookie.same_site", "strict"));
+        NinjaSessionConverter converter = new NinjaSessionConverter(properties);
+
+        // when
+        NinjaCookie sessionCookie = converter.createCookieWithInformationOfNinjaSession(new NinjaSession(Map.of()));
+        NinjaCookie removeSessionCookie = converter.createCookieToRemoveNinjaSession();
+
+        // then
+        assertThat(sessionCookie.sameSite()).hasValue(SameSite.Strict);
+        assertThat(removeSessionCookie.sameSite()).hasValue(SameSite.Strict);
+    }
+
+    @Test
+    public void shouldAllowSameSiteNoneWhenCookieIsSecure() {
+        // given
+        NinjaProperties properties = propertiesWithValidSecretAnd(Map.of(
+                "application.session.cookie.same_site", "None",
+                "application.session.cookie.secure", "true"));
+        NinjaSessionConverter converter = new NinjaSessionConverter(properties);
+
+        // when
+        NinjaCookie sessionCookie = converter.createCookieWithInformationOfNinjaSession(new NinjaSession(Map.of()));
+
+        // then
+        assertThat(sessionCookie.sameSite()).hasValue(SameSite.None);
+        assertThat(sessionCookie.secure()).isEqualTo(Secure.Yes);
+    }
+
+    @Test
+    public void shouldRejectInvalidSameSiteValue() {
+        // given
+        NinjaProperties properties = propertiesWithValidSecretAnd(
+                Map.of("application.session.cookie.same_site", "sometimes"));
+
+        // when
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> new NinjaSessionConverter(properties));
+
+        // then
+        assertThat(exception.getMessage()).contains("Invalid value 'sometimes'");
+        assertThat(exception.getMessage()).contains("application.session.cookie.same_site");
+    }
+
+    @Test
+    public void shouldRejectSameSiteNoneWithoutSecureCookie() {
+        // given
+        NinjaProperties properties = propertiesWithValidSecretAnd(Map.of(
+                "application.session.cookie.same_site", "none",
+                "application.session.cookie.secure", "false"));
+
+        // when
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> new NinjaSessionConverter(properties));
+
+        // then
+        assertThat(exception.getMessage()).contains("requires 'application.session.cookie.secure=true'");
     }
 }

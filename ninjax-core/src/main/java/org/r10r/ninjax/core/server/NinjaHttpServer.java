@@ -450,7 +450,8 @@ public class NinjaHttpServer {
                             -1,
                             Optional.empty(),
                             Secure.ofBoolean(false),
-                            HttpOnly.ofBoolean(false)
+                            HttpOnly.ofBoolean(false),
+                            Optional.empty()
                     ));
                 }
             }
@@ -471,6 +472,7 @@ public class NinjaHttpServer {
             if (ninjaCookie.httpOnly().toBoolean()) {
                 sb.append("; HttpOnly");
             }
+            ninjaCookie.sameSite().ifPresent(s -> sb.append("; SameSite=").append(s.name()));
             return sb.toString();
         }
 
