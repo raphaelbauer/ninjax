@@ -270,14 +270,14 @@ public class NinjaHttpServer {
                     exchange.sendResponseHeaders(status, -1);
                 }
 
-            } catch (NinjaHttpServerHelper.PayloadTooLargeException tooLarge) {
-                sendPlain(exchange, 413, "Payload too large");
             } catch (Throwable t) {
-                logger.log(Level.SEVERE, "OMG! Something really bad happened. Time to investigate...", t);
-                try {
-                    sendPlain(exchange, 500, "Wow. Something really bad happened. Ask the owner of this server if error persists...");
-                } catch (Throwable e) {
-                    logger.log(Level.FINE, "I was not able to send a message via http to the user. That may be expected depending on the error", e);
+                if (NinjaHttpServerHelper.isCausedByPayloadTooLarge(t)) {
+                    // Client error, not a server bug: no SEVERE log, so oversized requests can't flood the logs.
+                    logger.log(Level.FINE, "Rejected request body exceeding maxUploadBytes", t);
+                    trySendPlain(exchange, 413, "Payload too large");
+                } else {
+                    logger.log(Level.SEVERE, "OMG! Something really bad happened. Time to investigate...", t);
+                    trySendPlain(exchange, 500, "Wow. Something really bad happened. Ask the owner of this server if error persists...");
                 }
             } finally {
                 for (Path p : tempFilesToDelete) {
@@ -294,6 +294,17 @@ public class NinjaHttpServer {
                     exchange.close();
                 } catch (Throwable ignore) {
                 }
+            }
+        }
+
+        /**
+         * Sending can fail, e.g. when the response headers were already sent before the error.
+         */
+        private void trySendPlain(HttpExchange exchange, int status, String text) {
+            try {
+                sendPlain(exchange, status, text);
+            } catch (Throwable e) {
+                logger.log(Level.FINE, "I was not able to send a message via http to the user. That may be expected depending on the error", e);
             }
         }
 
@@ -363,15 +374,32 @@ public class NinjaHttpServer {
          * body in a LimitedInputStream so that JSON and any other non-form body is bounded by
          * maxUploadBytes as well -- the body is read lazily by the controller, so the limit must be
          * enforced here rather than only in parseBodyAndParameters.
+         *
+         * Every call to get() returns the SAME limited stream. Creating a new wrapper per call
+         * would reset the byte counter and allow reading past the limit by calling get() again.
          */
         static Request.InputStreamGetter inputStreamGetter(
                 HttpExchange exchange, ParsedBody parsedBody, long maxUploadBytes) {
-            return () -> {
-                if (parsedBody.bodyAlreadyConsumed()) {
-                    return InputStream.nullInputStream();
+            if (parsedBody.bodyAlreadyConsumed()) {
+                return InputStream::nullInputStream;
+            }
+            InputStream limitedBody = new LimitedInputStream(exchange.getRequestBody(), maxUploadBytes);
+            return () -> limitedBody;
+        }
+
+        /**
+         * True if the throwable or any of its causes is a PayloadTooLargeException. Controllers
+         * read the body lazily and cannot throw checked exceptions, so the limit violation usually
+         * arrives wrapped (e.g. in an UncheckedIOException).
+         */
+        public static boolean isCausedByPayloadTooLarge(Throwable throwable) {
+            Set<Throwable> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+            for (Throwable t = throwable; t != null && seen.add(t); t = t.getCause()) {
+                if (t instanceof PayloadTooLargeException) {
+                    return true;
                 }
-                return new LimitedInputStream(exchange.getRequestBody(), maxUploadBytes);
-            };
+            }
+            return false;
         }
 
         // -------- headers / cookies --------

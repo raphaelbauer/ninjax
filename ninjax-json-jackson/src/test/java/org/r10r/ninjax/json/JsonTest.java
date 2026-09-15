@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.r10r.ninjax.core.Request;
 import org.r10r.ninjax.core.Result;
 import org.r10r.ninjax.core.Router;
+import org.r10r.ninjax.core.server.NinjaHttpServer.NinjaHttpServerHelper;
 import org.r10r.ninjax.test.TestRequest;
 import org.r10r.ninjax.json.testhelper.JsonTestHelper;
 import org.r10r.ninjax.json.testhelper.JsonTestHelper.TestPerson;
@@ -145,6 +147,25 @@ class JsonTest {
 
         // Then
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    void getJsonBody_bodyExceedsUploadLimit_throwsSoServerCanAnswer413() {
+        // Given a body stream that trips the server's maxUploadBytes limit while being read
+        InputStream tooLargeStream = new InputStream() {
+            @Override
+            public int read() throws IOException {
+                throw new NinjaHttpServerHelper.PayloadTooLargeException("Request body exceeded maxUploadBytes=10");
+            }
+        };
+        Request request = createTestRequest(() -> tooLargeStream);
+
+        // When
+        UncheckedIOException thrown = assertThrows(UncheckedIOException.class,
+                () -> json.getJsonBody(request, new TypeReference<TestPerson>() {}));
+
+        // Then the limit violation is kept in the cause chain instead of becoming an empty Optional
+        assertThat(NinjaHttpServerHelper.isCausedByPayloadTooLarge(thrown)).isTrue();
     }
 
     @Test
