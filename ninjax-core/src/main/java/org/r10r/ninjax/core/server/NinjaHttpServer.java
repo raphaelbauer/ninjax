@@ -4,6 +4,7 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import org.r10r.ninjax.core.DefaultResponseHeaders;
 import org.r10r.ninjax.core.FileItem;
 import org.r10r.ninjax.core.FilterChain;
 import org.r10r.ninjax.core.HttpOnly;
@@ -293,6 +294,7 @@ public class NinjaHttpServer {
                 Headers respHeaders = exchange.getResponseHeaders();
                 respHeaders.set("Content-Type", result.contentType());
                 NinjaHttpServerHelper.addHeaders(respHeaders, result.headers());
+                DefaultResponseHeaders.missingIn(result.headers()).forEach(respHeaders::set);
 
                 switch (result.ninjaSessionState()) {
                     case Result.Exists exists -> {
@@ -365,6 +367,7 @@ public class NinjaHttpServer {
         private void sendPlain(HttpExchange exchange, int status, String text) throws IOException {
             byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
+            exchange.getResponseHeaders().set(DefaultResponseHeaders.X_CONTENT_TYPE_OPTIONS, "nosniff");
             if (isHeadRequest(exchange)) {
                 exchange.sendResponseHeaders(status, -1);
                 return;
@@ -417,6 +420,7 @@ public class NinjaHttpServer {
                 byte[] bytes = "Service unavailable. Too many requests right now, please try again."
                         .getBytes(StandardCharsets.UTF_8);
                 exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
+                exchange.getResponseHeaders().set(DefaultResponseHeaders.X_CONTENT_TYPE_OPTIONS, "nosniff");
                 if (isHeadRequest(exchange)) {
                     exchange.sendResponseHeaders(503, -1);
                     return;

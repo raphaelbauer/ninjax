@@ -44,8 +44,9 @@ public record Result(
     // /////////////////////////////////////////////////////////////////////////
     // Some MIME types (for convenience)
     // /////////////////////////////////////////////////////////////////////////
-    public static final String TEXT_HTML = "text/html";
-    public static final String TEXT_PLAIN = "text/plain";
+    // html() and text() render UTF-8. Saying so stops browsers from guessing another charset.
+    public static final String TEXT_HTML = "text/html; charset=utf-8";
+    public static final String TEXT_PLAIN = "text/plain; charset=utf-8";
     public static final String APPLICATION_JSON = "application/json";
     public static final String APPLICATION_JSONP = "application/javascript";
     public static final String APPLICATION_XML = "application/xml";
