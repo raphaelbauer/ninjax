@@ -9,7 +9,11 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import org.junit.jupiter.api.Test;
+import org.r10r.ninjax.core.jwt.Jwt;
+import org.r10r.ninjax.core.jwt.JwtTest;
 import org.r10r.ninjax.core.properties.NinjaProperties;
 
 public class NinjaSessionConverterTest {
@@ -212,5 +216,158 @@ public class NinjaSessionConverterTest {
 
         // then
         assertThat(exception.getMessage()).contains("requires 'application.session.cookie.secure=true'");
+    }
+
+    private static NinjaSessionConverter converterWithOldImplementationSecret() {
+        return new NinjaSessionConverter(new FixedNinjaProperties(
+                Map.of(NinjaConstants.NINJA_APPLICATION_SECRET_KEY, JwtTest.OLD_IMPLEMENTATION_SECRET)));
+    }
+
+    private static SecretKey oldImplementationKey() {
+        return new SecretKeySpec(Base64.getDecoder().decode(JwtTest.OLD_IMPLEMENTATION_SECRET), "HmacSHA256");
+    }
+
+    private static NinjaCookie sessionCookie(String value) {
+        return NinjaCookie.builder(NinjaSessionConverter.NINJA_SESSION_COOKIE_NAME, value).build();
+    }
+
+    @Test
+    public void shouldRoundTripSession() {
+        // given
+        NinjaSessionConverter converter = converterWithOldImplementationSecret();
+        NinjaSession session = new NinjaSession(Map.of("username", "alice"));
+
+        // when
+        NinjaCookie cookie = converter.createCookieWithInformationOfNinjaSession(session);
+        Optional<NinjaSession> extracted = converter.extractSessionFromCookie(cookie);
+
+        // then
+        assertThat(extracted.isPresent()).isTrue();
+        assertThat(extracted.get().get("username")).hasValue("alice");
+        assertThat(extracted.get().get("nbf")).isPresent();
+        assertThat(extracted.get().get("iat")).isPresent();
+    }
+
+    @Test
+    public void shouldKeepExpiryOfExistingSessionWhenCreatingCookieAgain() {
+        // given
+        NinjaSessionConverter converter = converterWithOldImplementationSecret();
+        NinjaSession session = new NinjaSession(Map.of("username", "alice", "exp", "4102444800"));
+
+        // when
+        NinjaCookie cookie = converter.createCookieWithInformationOfNinjaSession(session);
+
+        // then
+        Map<String, Object> claims = Jwt.verify(cookie.value(), oldImplementationKey());
+        assertThat(claims).containsEntry("exp", 4102444800L);
+    }
+
+    @Test
+    public void shouldAcceptSessionCookieCreatedByOldImplementation() {
+        // given
+        NinjaSessionConverter converter = converterWithOldImplementationSecret();
+
+        // when
+        Optional<NinjaSession> session = converter.extractSessionFromCookie(
+                sessionCookie(JwtTest.OLD_IMPLEMENTATION_TOKEN));
+
+        // then
+        assertThat(session.isPresent()).isTrue();
+        assertThat(session.get().get("username")).hasValue("alice");
+        assertThat(session.get().get("note")).hasValue("say \"hi\"\nüñ");
+        assertThat(session.get().get("exp")).hasValue("4102444800");
+    }
+
+    @Test
+    public void shouldIgnoreSessionWithInvalidSignature() {
+        // given
+        NinjaSessionConverter converter = converterWithOldImplementationSecret();
+        SecretKey otherKey = new SecretKeySpec("another-secret-of-32-bytes-long!".getBytes(), "HmacSHA256");
+        String token = Jwt.sign(Map.of("username", "mallory"), otherKey);
+
+        // when
+        Optional<NinjaSession> session = converter.extractSessionFromCookie(sessionCookie(token));
+
+        // then
+        assertThat(session.isPresent()).isFalse();
+    }
+
+    @Test
+    public void shouldIgnoreGarbageCookie() {
+        // given
+        NinjaSessionConverter converter = converterWithOldImplementationSecret();
+
+        // when
+        Optional<NinjaSession> session = converter.extractSessionFromCookie(sessionCookie("not-a-jwt"));
+
+        // then
+        assertThat(session.isPresent()).isFalse();
+    }
+
+    @Test
+    public void shouldIgnoreExpiredSession() {
+        // given
+        NinjaSessionConverter converter = converterWithOldImplementationSecret();
+        long oneMinuteAgo = Instant.now().minusSeconds(60).getEpochSecond();
+        String token = Jwt.sign(Map.of("username", "alice", "exp", oneMinuteAgo), oldImplementationKey());
+
+        // when
+        Optional<NinjaSession> session = converter.extractSessionFromCookie(sessionCookie(token));
+
+        // then
+        assertThat(session.isPresent()).isFalse();
+    }
+
+    @Test
+    public void shouldIgnoreSessionThatIsNotValidYet() {
+        // given
+        NinjaSessionConverter converter = converterWithOldImplementationSecret();
+        long inOneMinute = Instant.now().plusSeconds(60).getEpochSecond();
+        String token = Jwt.sign(Map.of("username", "alice", "nbf", inOneMinute), oldImplementationKey());
+
+        // when
+        Optional<NinjaSession> session = converter.extractSessionFromCookie(sessionCookie(token));
+
+        // then
+        assertThat(session.isPresent()).isFalse();
+    }
+
+    @Test
+    public void shouldIgnoreSessionWithNonNumericExpiry() {
+        // given
+        NinjaSessionConverter converter = converterWithOldImplementationSecret();
+        String token = Jwt.sign(Map.of("username", "alice", "exp", "4102444800"), oldImplementationKey());
+
+        // when
+        Optional<NinjaSession> session = converter.extractSessionFromCookie(sessionCookie(token));
+
+        // then
+        assertThat(session.isPresent()).isFalse();
+    }
+
+    @Test
+    public void shouldIgnoreSessionWithNonIntegerExpiry() {
+        // given
+        NinjaSessionConverter converter = converterWithOldImplementationSecret();
+        String token = Jwt.sign(Map.of("username", "alice", "exp", 4102444800.5), oldImplementationKey());
+
+        // when
+        Optional<NinjaSession> session = converter.extractSessionFromCookie(sessionCookie(token));
+
+        // then
+        assertThat(session.isPresent()).isFalse();
+    }
+
+    @Test
+    public void shouldIgnoreSessionWithNonNumericNotBefore() {
+        // given
+        NinjaSessionConverter converter = converterWithOldImplementationSecret();
+        String token = Jwt.sign(Map.of("username", "alice", "nbf", true), oldImplementationKey());
+
+        // when
+        Optional<NinjaSession> session = converter.extractSessionFromCookie(sessionCookie(token));
+
+        // then
+        assertThat(session.isPresent()).isFalse();
     }
 }

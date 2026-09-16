@@ -3,13 +3,13 @@ package org.r10r.ninjax.core;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import org.r10r.ninjax.core.jwt.Jwts;
+import org.r10r.ninjax.core.jwt.Jwt;
+import org.r10r.ninjax.core.jwt.JwtException;
 import org.r10r.ninjax.core.properties.NinjaProperties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,7 +40,7 @@ public class NinjaSessionConverter {
         byte[] decodedKey = Base64.getDecoder().decode(encodedSecret);
 
         // HS256 requires a key of at least 256 bits (32 bytes). A shorter key (e.g. the
-        // 'changeme' demo default) would still "work" with this custom Jwts implementation but
+        // 'changeme' demo default) would still "work" with our Jwt implementation but
         // produces weak, forgeable tokens. Fail fast at startup instead of silently accepting it.
         int MINIMUM_SECRET_LENGTH_IN_BYTES = 32;
         if (decodedKey.length < MINIMUM_SECRET_LENGTH_IN_BYTES) {
@@ -78,22 +78,17 @@ public class NinjaSessionConverter {
 
     public Optional<NinjaSession> extractSessionFromCookie(NinjaCookie ninjaSessionCookie) {
 
-        var now = System.currentTimeMillis();
-
         try {
-            var claims = Jwts.parser()
-                    .verifyWith(secretKeyForSessionEncryption)
-                    .build()
-                    .parseSignedClaims(ninjaSessionCookie.value())
-                    .getPayload();
+            Map<String, Object> claims = Jwt.verify(ninjaSessionCookie.value(), secretKeyForSessionEncryption);
+            Instant now = Instant.now();
 
-            if (claims.getNotBefore() != null /* Not our Api. We have to do a null check :( */
-                    && now < claims.getNotBefore().getTime()) {
+            Optional<Instant> notBefore = numericDateClaim(claims, "nbf");
+            if (notBefore.isPresent() && now.isBefore(notBefore.get())) {
                 return Optional.empty();
             }
 
-            if (claims.getExpiration() != null /* Not our Api. We have to do a null check :( */
-                    && now > claims.getExpiration().getTime()) {
+            Optional<Instant> expiration = numericDateClaim(claims, "exp");
+            if (expiration.isPresent() && now.isAfter(expiration.get())) {
                 return Optional.empty();
             }
 
@@ -109,6 +104,19 @@ public class NinjaSessionConverter {
             return Optional.empty();
         }
 
+    }
+
+    /**
+     * JWT dates ("nbf", "exp") are whole seconds since the epoch (RFC 7519, 2).
+     * Anything else (strings, fractions) is rejected instead of guessing what was meant.
+     */
+    private static Optional<Instant> numericDateClaim(Map<String, Object> claims, String name) {
+        return switch (claims.get(name)) {
+            case null -> Optional.empty();
+            case Integer seconds -> Optional.of(Instant.ofEpochSecond(seconds));
+            case Long seconds -> Optional.of(Instant.ofEpochSecond(seconds));
+            default -> throw new JwtException("Claim '" + name + "' must be an integer number of seconds");
+        };
     }
 
     public NinjaCookie createCookieToRemoveNinjaSession() {
@@ -141,18 +149,13 @@ public class NinjaSessionConverter {
             expiryInstant = Optional.of(now.plusSeconds(sessionExpiryTimeInSeconds.get()));
         }
 
-        // build jwt
-        var nowDate = Date.from(now);
-        var jwsBuilder = Jwts.builder()
-                .notBefore(nowDate)
-                .issuedAt(nowDate);
+        // build jwt. Dates are stored as seconds since the epoch (JWT standard).
+        Map<String, Object> claims = new HashMap<>(ninjaSession.keyValueStore());
+        claims.put("nbf", now.getEpochSecond());
+        claims.put("iat", now.getEpochSecond());
+        expiryInstant.ifPresent(i -> claims.put("exp", i.getEpochSecond()));
 
-        expiryInstant.ifPresent(i -> jwsBuilder.expiration(Date.from(i)));
-
-        String jws = jwsBuilder
-                .claims(ninjaSession.keyValueStore())
-                .signWith(secretKeyForSessionEncryption)
-                .compact();
+        String jws = Jwt.sign(claims, secretKeyForSessionEncryption);
 
         // Max-Age=0 tells the browser to delete the cookie right away, so a cookie without expiry
         // must use -1 (no Max-Age attribute at all). The browser then keeps it until it is closed.
