@@ -14,12 +14,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.eclipse.jetty.ee10.servlet.FilterHolder;
+import org.eclipse.jetty.http.HttpException;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -50,6 +54,10 @@ public class NinjaJetty {
     public final NinjaProperties ninjaProperties;
 
     private final int jettyServerPort;
+
+    // Same property and default as NinjaHttpServer, so both servers enforce the same limit.
+    private static final long DEFAULT_MAX_UPLOAD_BYTES = 10L * 1024L * 1024L; // 10 MiB
+    private final long maxUploadBytes;
     
     private final NinjaSessionConverter ninjaSessionConverter;
 
@@ -69,7 +77,10 @@ public class NinjaJetty {
 
         this.jettyServerPort = Integer.parseInt(ninjaProperties.get("ninja.port").orElse("8080"));
         this.ninjaSessionConverter = new NinjaSessionConverter(ninjaProperties);
-        
+        this.maxUploadBytes = ninjaProperties.get("ninja.http.maxUploadBytes")
+                .map(Long::parseLong)
+                .orElse(DEFAULT_MAX_UPLOAD_BYTES);
+
         try {
             start();
         } catch (Exception exception) {
@@ -93,6 +104,8 @@ public class NinjaJetty {
         // Create a ServletContextHandler with request path
         ServletContextHandler request = new ServletContextHandler(ServletContextHandler.NO_SECURITY);
         request.setContextPath("/");
+        // Jetty's own default for urlencoded forms is 200 KB. Use the same limit as for everything else.
+        request.setMaxFormContentSize((int) Math.min(maxUploadBytes, Integer.MAX_VALUE));
 
         // Map servlets to the request handler
         server.setHandler(request);
@@ -122,6 +135,11 @@ public class NinjaJetty {
                 if (routingResult.isPresent()) {
 
                     var route = routingResult.get();
+
+                    if (httpServletRequest.getContentLengthLong() > maxUploadBytes) {
+                        sendPayloadTooLarge(httpServletResponse);
+                        return;
+                    }
 
                     List<NinjaCookie> ninjaCookies = httpServletRequest.getCookies() == null
                             ? List.of()
@@ -169,7 +187,14 @@ public class NinjaJetty {
                             && httpServletRequest.getContentType().startsWith("multipart/")) {
                         httpServletRequest.setAttribute(
                                 "org.eclipse.jetty.multipartConfig",
-                                new MultipartConfigElement(System.getProperty("java.io.tmpdir"))
+                                // Without explicit limits Jetty accepts uploads of any size, which lets a
+                                // client fill up the temp directory. Content-Length is checked above, these
+                                // limits also cover chunked uploads that don't send a Content-Length.
+                                new MultipartConfigElement(
+                                        System.getProperty("java.io.tmpdir"),
+                                        maxUploadBytes,
+                                        maxUploadBytes,
+                                        0)
                         );
                     }
 
@@ -265,6 +290,14 @@ public class NinjaJetty {
                 }
 
             } catch (Throwable t) {
+                Optional<HttpException> httpException = NinjaJettyHelper.findHttpException(t);
+                if (httpException.isPresent()) {
+                    // Client error (e.g. a chunked multipart upload above the limit): answer with Jetty's
+                    // status code and no SEVERE log, so bad requests can't flood the logs.
+                    logger.log(Level.FINE, "Rejected bad request", t);
+                    trySendHttpException(httpServletResponse, httpException.get());
+                    return;
+                }
                 logger.log(Level.SEVERE, "OMG! Something really bad happened. Time to investigate...", t);
 
                 try {
@@ -283,7 +316,43 @@ public class NinjaJetty {
         }
     }
 
+    private static void trySendHttpException(HttpServletResponse httpServletResponse, HttpException httpException) {
+        // Jetty does not guarantee a usable code or reason, so fall back to a plain 400.
+        int status = httpException.getCode() >= 400 && httpException.getCode() <= 599 ? httpException.getCode() : 400;
+        String reason = httpException.getReason() == null ? "Bad request" : httpException.getReason();
+        try {
+            httpServletResponse.setContentType("text/plain");
+            httpServletResponse.setStatus(status);
+            httpServletResponse.getWriter().println(reason);
+        } catch (Throwable e) {
+            logger.log(Level.FINE, "I was not able to send a message via http to the user. That may be expected depending on the error", e);
+        }
+    }
+
+    private static void sendPayloadTooLarge(HttpServletResponse httpServletResponse) throws IOException {
+        httpServletResponse.setContentType("text/plain");
+        httpServletResponse.setStatus(413);
+        httpServletResponse.getWriter().println("Payload too large");
+    }
+
     public static class NinjaJettyHelper {
+
+        /**
+         * Finds a Jetty HttpException (a request Jetty itself rejected, with an HTTP status code)
+         * in the throwable or any of its causes.
+         *
+         * HttpException is the interface of Jetty's HTTP errors, e.g. the "400: bad multipart" of an
+         * upload above the limit. Its former implementation BadMessageException is deprecated for removal.
+         */
+        public static Optional<HttpException> findHttpException(Throwable throwable) {
+            Set<Throwable> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+            for (Throwable t = throwable; t != null && seen.add(t); t = t.getCause()) {
+                if (t instanceof HttpException httpException) {
+                    return Optional.of(httpException);
+                }
+            }
+            return Optional.empty();
+        }
 
         public static org.r10r.ninjax.core.NinjaCookie convertServletCookieToNinjaCookie(Cookie cookie) {
 
