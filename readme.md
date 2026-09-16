@@ -499,6 +499,9 @@ Routing is defined explicitly in code using the `Router` class.
 var router = new Router();
 router.GET("/").with(controller::index);
 router.POST("/users").with(controller::createUser);
+router.PUT("/users/{id}").with(controller::replaceUser);
+router.PATCH("/users/{id}").with(controller::updateUser);
+router.DELETE("/users/{id}").with(controller::deleteUser);
 
 // Path parameters
 router.GET("/users/{id}").with(controller::getUser);
@@ -506,6 +509,9 @@ router.GET("/users/{id}").with(controller::getUser);
 // Regex constraints
 router.GET("/users/{id: [0-9]+}").with(controller::getUserById);
 ```
+
+`HEAD` requests are answered by the matching `GET` route: same status and headers, but no body.
+Use `router.HEAD(...)` only if a `HEAD` request should do something different.
 
 ```java
 public Result doStuff(Request request) {

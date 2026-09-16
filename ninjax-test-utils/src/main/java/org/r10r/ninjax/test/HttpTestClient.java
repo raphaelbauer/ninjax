@@ -124,6 +124,59 @@ public class HttpTestClient {
     }
 
     /**
+     * Perform a PUT request with JSON body.
+     *
+     * @param path The path (e.g., "/api/tasks/1")
+     * @param jsonObject The object to serialize as JSON
+     * @return The response
+     * @throws IOException If an I/O error occurs
+     */
+    public HttpTestResponse putJson(String path, Object jsonObject) throws IOException {
+        String jsonBody = objectMapper.writeValueAsString(jsonObject);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + path))
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+        return executeRequest(request);
+    }
+
+    /**
+     * Perform a PATCH request with JSON body.
+     *
+     * @param path The path (e.g., "/api/tasks/1")
+     * @param jsonObject The object to serialize as JSON
+     * @return The response
+     * @throws IOException If an I/O error occurs
+     */
+    public HttpTestResponse patchJson(String path, Object jsonObject) throws IOException {
+        String jsonBody = objectMapper.writeValueAsString(jsonObject);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + path))
+                .header("Content-Type", "application/json")
+                .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+        return executeRequest(request);
+    }
+
+    /**
+     * Perform a HEAD request. The response body is always empty.
+     *
+     * @param path The path
+     * @return The response
+     * @throws IOException If an I/O error occurs
+     */
+    public HttpTestResponse head(String path) throws IOException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + path))
+                .HEAD()
+                .build();
+        return executeRequest(request);
+    }
+
+    /**
      * Perform a DELETE request.
      *
      * @param path The path

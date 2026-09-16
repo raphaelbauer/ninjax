@@ -11,7 +11,23 @@ public class RouteFinder {
         this.router = router;
     }
 
+    /**
+     * Finds the first route matching method and path.
+     *
+     * A HEAD request without an explicit HEAD route falls back to the GET route (as required by
+     * HTTP). The servers are responsible for not sending a body for HEAD requests.
+     */
     public Optional<Router.Route> getRouteFor(String httpMethod, String path) {
+        Optional<Router.Route> route = findRoute(httpMethod, path);
+
+        if (route.isEmpty() && "HEAD".equalsIgnoreCase(httpMethod)) {
+            return findRoute("GET", path);
+        }
+
+        return route;
+    }
+
+    private Optional<Router.Route> findRoute(String httpMethod, String path) {
         for (var route : router.getRoutes()) {
             if (route.httpMethod().equalsIgnoreCase(httpMethod)) {
                 Matcher matcher = route.pathRegex().matcher(path);
@@ -23,7 +39,5 @@ public class RouteFinder {
 
         return Optional.empty();
     }
-
-    
 
 }

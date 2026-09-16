@@ -107,7 +107,11 @@ router.GET("/").with(controller::index);
 router.POST("/tasks").with(controller::addTask);
 router.GET("/user/{id}").with(controller::getUser);
 router.GET("/api/{id: [0-9]+}").with(controller::getById); // Path param with regex
+router.PUT("/tasks/{id}").with(controller::replaceTask);   // also PATCH, DELETE and HEAD
 ```
+
+A HEAD request without an explicit `router.HEAD(...)` route falls back to the GET route (in `RouteFinder`).
+Both servers (`NinjaHttpServer`, `NinjaJetty`) then send status and headers but never invoke the body renderer.
 
 ### 3. Immutable Request/Result Pattern
 - **Request**: Immutable class (with builder) containing all HTTP request data (headers, params, body, session, locale)
