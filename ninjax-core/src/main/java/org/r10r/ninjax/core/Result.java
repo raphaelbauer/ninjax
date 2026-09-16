@@ -203,24 +203,23 @@ public record Result(
         }
 
         public Builder ok() {
-            return builder().status(SC_200_OK);
+            return status(SC_200_OK);
         }
 
         public Builder notFound() {
-            return builder().status(SC_404_NOT_FOUND);
+            return status(SC_404_NOT_FOUND);
         }
 
         public Builder badRequest() {
-            return builder().status(SC_400_BAD_REQUEST);
+            return status(SC_400_BAD_REQUEST);
         }
 
         public Builder internalServerError() {
-            return builder().status(SC_500_INTERNAL_SERVER_ERROR);
+            return status(SC_500_INTERNAL_SERVER_ERROR);
         }
 
         public Builder redirect(String url) {
-            return builder()
-                    .status(SC_303_SEE_OTHER)
+            return status(SC_303_SEE_OTHER)
                     .addHeader(LOCATION, url);
         }
 
