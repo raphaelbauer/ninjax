@@ -9,7 +9,8 @@ public record NinjaCookie(
         int maxAge,
         Optional<String> path,
         Secure secure,
-        HttpOnly httpOnly) {
+        HttpOnly httpOnly,
+        Optional<SameSite> sameSite) {
 
     public static Builder builder(String name, String value) {
         return new Builder(name, value);
@@ -25,6 +26,7 @@ public record NinjaCookie(
         private String path;
         private Secure secure = Secure.No;
         private HttpOnly httpOnly = HttpOnly.No;
+        private SameSite sameSite;
 
         public Builder(String name, String value) {
             this.name = name;
@@ -66,6 +68,11 @@ public record NinjaCookie(
             return this;
         }
 
+        public Builder sameSite(SameSite sameSite) {
+            this.sameSite = sameSite;
+            return this;
+        }
+
         public NinjaCookie build() {
             return new NinjaCookie(
                     name,
@@ -74,7 +81,8 @@ public record NinjaCookie(
                     maxAge,
                     Optional.ofNullable(path),
                     secure,
-                    httpOnly
+                    httpOnly,
+                    Optional.ofNullable(sameSite)
             );
         }
     }

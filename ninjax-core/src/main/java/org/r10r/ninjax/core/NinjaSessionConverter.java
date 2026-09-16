@@ -21,10 +21,12 @@ public class NinjaSessionConverter {
     public static final String NINJA_SESSION_COOKIE_NAME = "NINJA_SESSION";
     private static final String NINJA_SESSION_PATH = "/";
     private static final int BROWSER_SESSION_COOKIE_MAX_AGE = -1;
+    private static final String SESSION_COOKIE_SAME_SITE_KEY = "application.session.cookie.same_site";
     
     
     private final Optional<Long> sessionExpiryTimeInSeconds;
     private final boolean sessionCookieSecure;
+    private final SameSite sessionCookieSameSite;
     
     private final SecretKey secretKeyForSessionEncryption;
     
@@ -53,6 +55,25 @@ public class NinjaSessionConverter {
         this.sessionCookieSecure = ninjaProperties.get("application.session.cookie.secure")
                 .map(v -> Boolean.parseBoolean(v))
                 .orElse(true); // Default to true (secure) if not specified
+        this.sessionCookieSameSite = extractSessionCookieSameSite(ninjaProperties, sessionCookieSecure);
+    }
+
+    private static SameSite extractSessionCookieSameSite(NinjaProperties ninjaProperties, boolean sessionCookieSecure) {
+        // Lax keeps the session on normal top-level navigation, but not on cross-site POSTs (CSRF protection).
+        SameSite sameSite = ninjaProperties.get(SESSION_COOKIE_SAME_SITE_KEY)
+                .map(v -> SameSite.ofString(v).orElseThrow(() -> new RuntimeException(String.format(
+                        "Invalid value '%s' for '%s' in 'conf/application.conf'. Allowed values are Strict, Lax or None.",
+                        v, SESSION_COOKIE_SAME_SITE_KEY))))
+                .orElse(SameSite.Lax);
+
+        // Browsers reject cookies with SameSite=None that are not Secure. The session would silently not work.
+        if (sameSite == SameSite.None && !sessionCookieSecure) {
+            throw new RuntimeException(String.format(
+                    "'%s=None' requires 'application.session.cookie.secure=true' in 'conf/application.conf'. Browsers reject SameSite=None cookies without the Secure flag.",
+                    SESSION_COOKIE_SAME_SITE_KEY));
+        }
+
+        return sameSite;
     }
 
     public Optional<NinjaSession> extractSessionFromCookie(NinjaCookie ninjaSessionCookie) {
@@ -99,7 +120,8 @@ public class NinjaSessionConverter {
                 REMOVE_SESSION_MAX_AGE,
                 Optional.of(NINJA_SESSION_PATH),
                 sessionCookieSecure ? Secure.Yes : Secure.No,
-                HttpOnly.Yes);
+                HttpOnly.Yes,
+                Optional.of(sessionCookieSameSite));
 
         return cookie;
     }
@@ -146,7 +168,8 @@ public class NinjaSessionConverter {
                 maxAge,
                 Optional.of(NINJA_SESSION_PATH),
                 sessionCookieSecure ? Secure.Yes : Secure.No,
-                HttpOnly.Yes);
+                HttpOnly.Yes,
+                Optional.of(sessionCookieSameSite));
 
         return cookie;
     }

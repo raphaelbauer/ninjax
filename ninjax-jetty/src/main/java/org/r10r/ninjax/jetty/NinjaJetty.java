@@ -363,7 +363,8 @@ public class NinjaJetty {
                     cookie.getMaxAge(),
                     Optional.ofNullable(cookie.getPath()),
                     Secure.ofBoolean(cookie.getSecure()),
-                    HttpOnly.ofBoolean(cookie.isHttpOnly()));
+                    HttpOnly.ofBoolean(cookie.isHttpOnly()),
+                    Optional.empty());
         }
 
         public static Cookie convertNinjaCookieToServletCookie(NinjaCookie ninjaCookie) {
@@ -375,6 +376,8 @@ public class NinjaJetty {
             ninjaCookie.path().ifPresent(p -> cookie.setPath(p));
             cookie.setSecure(ninjaCookie.secure().toBoolean());
             cookie.setHttpOnly(ninjaCookie.httpOnly().toBoolean());
+            // The Servlet API has no dedicated setter. Jetty renders this attribute as "; SameSite=..."
+            ninjaCookie.sameSite().ifPresent(s -> cookie.setAttribute("SameSite", s.name()));
 
             return cookie;
         }

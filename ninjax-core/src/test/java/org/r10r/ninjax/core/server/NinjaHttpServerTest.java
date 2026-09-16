@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.r10r.ninjax.core.HttpOnly;
 import org.r10r.ninjax.core.NinjaCookie;
+import org.r10r.ninjax.core.SameSite;
 import org.r10r.ninjax.core.Secure;
 
 import java.io.*;
@@ -58,7 +59,8 @@ class NinjaHttpServerHelperTest {
                 3600,
                 Optional.of("/"),
                 Secure.ofBoolean(true),
-                HttpOnly.ofBoolean(true)
+                HttpOnly.ofBoolean(true),
+                Optional.of(SameSite.Strict)
         );
 
         String header = NinjaHttpServerHelper.toSetCookieHeader(c);
@@ -69,6 +71,26 @@ class NinjaHttpServerHelperTest {
         assertTrue(header.contains("; Max-Age=3600"));
         assertTrue(header.contains("; Secure"));
         assertTrue(header.contains("; HttpOnly"));
+        assertTrue(header.contains("; SameSite=Strict"));
+    }
+
+    @Test
+    void toSetCookieHeader_omitsSameSiteWhenNotSet() {
+        NinjaCookie c = NinjaCookie.builder("sid", "abc").build();
+
+        String header = NinjaHttpServerHelper.toSetCookieHeader(c);
+
+        assertEquals("sid=abc", header);
+    }
+
+    @Test
+    void parseCookies_leavesSameSiteEmpty() {
+        Headers h = new Headers();
+        h.add("Cookie", "a=1");
+
+        List<NinjaCookie> cookies = NinjaHttpServerHelper.parseCookies(h);
+
+        assertTrue(cookies.get(0).sameSite().isEmpty());
     }
 
     // ---------------- locale ----------------

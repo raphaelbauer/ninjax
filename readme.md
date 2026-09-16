@@ -225,6 +225,20 @@ In the demo project (with database and one domain) this looks like the following
 `conf/application.conf` contains all application logic. There's no magic here. Just simple-value pairs.
 If you want to override these properties, you can use Java system properties.
 
+#### Session properties
+
+Sessions are stored as signed JWT in the `NINJA_SESSION` cookie. These properties control it:
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `application.secret` | (required) | Base64-encoded secret (at least 32 bytes) used to sign the session. |
+| `application.session.expire_time_in_seconds` | (not set) | Lifetime of the session in seconds. Without it the cookie lives until the browser is closed. |
+| `application.session.cookie.secure` | `true` | Only send the session cookie over HTTPS. Set to `false` for local development over plain HTTP. |
+| `application.session.cookie.same_site` | `Lax` | SameSite attribute of the session cookie: `Strict`, `Lax` or `None` (case-insensitive). `Lax` stops browsers from sending the session on cross-site POST requests (CSRF). `None` requires `application.session.cookie.secure=true`. |
+
+NinjaX refuses to start if `application.session.cookie.same_site` has an invalid value
+or if it is `None` while the cookie is not secure (browsers reject such cookies).
+
 #### Configuration properties in production
 Override properties in application.conf is needed when running a server in production
  and selectively overwriting e.g. port and setting credentials:
