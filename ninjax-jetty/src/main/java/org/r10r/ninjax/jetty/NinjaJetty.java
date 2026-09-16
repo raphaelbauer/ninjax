@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.eclipse.jetty.ee10.servlet.FilterHolder;
-import org.eclipse.jetty.http.BadMessageException;
+import org.eclipse.jetty.http.HttpException;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -290,12 +290,12 @@ public class NinjaJetty {
                 }
 
             } catch (Throwable t) {
-                Optional<BadMessageException> badMessage = NinjaJettyHelper.findBadMessageException(t);
-                if (badMessage.isPresent()) {
+                Optional<HttpException> httpException = NinjaJettyHelper.findHttpException(t);
+                if (httpException.isPresent()) {
                     // Client error (e.g. a chunked multipart upload above the limit): answer with Jetty's
                     // status code and no SEVERE log, so bad requests can't flood the logs.
                     logger.log(Level.FINE, "Rejected bad request", t);
-                    trySendBadMessage(httpServletResponse, badMessage.get());
+                    trySendHttpException(httpServletResponse, httpException.get());
                     return;
                 }
                 logger.log(Level.SEVERE, "OMG! Something really bad happened. Time to investigate...", t);
@@ -316,11 +316,14 @@ public class NinjaJetty {
         }
     }
 
-    private static void trySendBadMessage(HttpServletResponse httpServletResponse, BadMessageException badMessage) {
+    private static void trySendHttpException(HttpServletResponse httpServletResponse, HttpException httpException) {
+        // Jetty does not guarantee a usable code or reason, so fall back to a plain 400.
+        int status = httpException.getCode() >= 400 && httpException.getCode() <= 599 ? httpException.getCode() : 400;
+        String reason = httpException.getReason() == null ? "Bad request" : httpException.getReason();
         try {
             httpServletResponse.setContentType("text/plain");
-            httpServletResponse.setStatus(badMessage.getCode());
-            httpServletResponse.getWriter().println(badMessage.getReason());
+            httpServletResponse.setStatus(status);
+            httpServletResponse.getWriter().println(reason);
         } catch (Throwable e) {
             logger.log(Level.FINE, "I was not able to send a message via http to the user. That may be expected depending on the error", e);
         }
@@ -334,11 +337,18 @@ public class NinjaJetty {
 
     public static class NinjaJettyHelper {
 
-        public static Optional<BadMessageException> findBadMessageException(Throwable throwable) {
+        /**
+         * Finds a Jetty HttpException (a request Jetty itself rejected, with an HTTP status code)
+         * in the throwable or any of its causes.
+         *
+         * HttpException is the interface of Jetty's HTTP errors, e.g. the "400: bad multipart" of an
+         * upload above the limit. Its former implementation BadMessageException is deprecated for removal.
+         */
+        public static Optional<HttpException> findHttpException(Throwable throwable) {
             Set<Throwable> seen = Collections.newSetFromMap(new IdentityHashMap<>());
             for (Throwable t = throwable; t != null && seen.add(t); t = t.getCause()) {
-                if (t instanceof BadMessageException badMessage) {
-                    return Optional.of(badMessage);
+                if (t instanceof HttpException httpException) {
+                    return Optional.of(httpException);
                 }
             }
             return Optional.empty();
