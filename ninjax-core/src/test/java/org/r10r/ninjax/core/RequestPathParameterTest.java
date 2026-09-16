@@ -5,7 +5,6 @@ import static com.google.common.truth.Truth.assertThat;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class RequestPathParameterTest {
@@ -15,7 +14,6 @@ class RequestPathParameterTest {
                 .requestPath("/p/" + rawValue)
                 .pathParameters(Map.of("v", rawValue))
                 .inputStreamGetter(InputStream::nullInputStream)
-                .fileItemGetter(fieldName -> Optional.empty())
                 .fileItemsGetter(fieldName -> List.of())
                 .headers(new Request.Headers())
                 .parameters(new Request.Parameters())
