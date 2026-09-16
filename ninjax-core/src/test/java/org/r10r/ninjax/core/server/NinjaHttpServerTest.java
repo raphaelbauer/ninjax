@@ -218,6 +218,56 @@ class NinjaHttpServerHelperTest {
     }
 
     @Test
+    void parseBodyAndParameters_multipartTextFieldAboveInMemoryLimit_throwsPayloadTooLarge_withoutTempFile() {
+        // given
+        String boundary = "BOUNDARY123";
+        byte[] multipart = ("--" + boundary + "\r\n"
+                + "Content-Disposition: form-data; name=\"title\"\r\n"
+                + "\r\n"
+                + "x".repeat(200) + "\r\n"
+                + "--" + boundary + "--\r\n").getBytes(StandardCharsets.ISO_8859_1);
+        FakeHttpExchange ex = FakeHttpExchange.builder()
+                .method("POST")
+                .uri("http://localhost/upload")
+                .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                .bodyBytes(multipart)
+                .build();
+        List<Path> toDelete = new ArrayList<>();
+
+        // when
+        assertThrows(NinjaHttpServerHelper.PayloadTooLargeException.class,
+                () -> NinjaHttpServerHelper.parseBodyAndParameters(ex, toDelete, 100_000, 100));
+
+        // then
+        assertTrue(toDelete.isEmpty());
+    }
+
+    @Test
+    void parseBodyAndParameters_multipartTextFieldWithinInMemoryLimit_isParsed() throws Exception {
+        // given
+        String boundary = "BOUNDARY123";
+        byte[] multipart = ("--" + boundary + "\r\n"
+                + "Content-Disposition: form-data; name=\"title\"\r\n"
+                + "\r\n"
+                + "x".repeat(100) + "\r\n"
+                + "--" + boundary + "--\r\n").getBytes(StandardCharsets.ISO_8859_1);
+        FakeHttpExchange ex = FakeHttpExchange.builder()
+                .method("POST")
+                .uri("http://localhost/upload")
+                .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                .bodyBytes(multipart)
+                .build();
+        List<Path> toDelete = new ArrayList<>();
+
+        // when
+        NinjaHttpServerHelper.ParsedBody parsed = NinjaHttpServerHelper.parseBodyAndParameters(ex, toDelete, 100_000, 100);
+
+        // then
+        assertEquals("x".repeat(100), parsed.parameterMap().get("title")[0]);
+        assertTrue(toDelete.isEmpty());
+    }
+
+    @Test
     void parseBodyAndParameters_throwsPayloadTooLarge_whenContentLengthExceedsLimit() {
         FakeHttpExchange ex = FakeHttpExchange.builder()
                 .method("POST")

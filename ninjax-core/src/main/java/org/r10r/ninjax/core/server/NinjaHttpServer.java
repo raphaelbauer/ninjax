@@ -45,8 +45,8 @@ import org.r10r.ninjax.core.NinjaSessionConverter;
  * parsing (byte scanning for boundary, not line-based). 2) Strip exactly one
  * trailing CRLF (or LF) from multipart text field values. 3) Limits: - max
  * upload size across the whole request body when parsing urlencoded/multipart -
- * max in-memory size for multipart text field parts; spills to temp file beyond
- * that Defaults are 10 MiB each. 4) Jetty-like blocking behavior: new
+ * max size of a single multipart text field (413 beyond that; file parts always
+ * go to temp files). Defaults are 10 MiB each. 4) Jetty-like blocking behavior: new
  * NinjaHttpServer(router, props) blocks (join) until stop() / shutdown hook.
  *
  * Properties: - ninja.port (default 8080) - ninja.http.maxUploadBytes (default
@@ -642,8 +642,7 @@ public class NinjaHttpServer {
         /**
          * Parses query parameters plus body parameters/files (when urlencoded
          * or multipart). Enforces: - maxUploadBytes (overall body read) -
-         * maxInMemoryBytes (per multipart text field; spills beyond to temp
-         * file)
+         * maxInMemoryBytes (per multipart text field, which is kept in memory)
          */
         public static ParsedBody parseBodyAndParameters(
                 HttpExchange exchange,
@@ -917,13 +916,13 @@ public class NinjaHttpServer {
                             }
                         }
                     } else {
-                        // field part: in-memory up to maxInMemoryBytes, then spill
+                        // field part: kept in memory, because it becomes a String parameter anyway
                         Charset cs = charsetFromContentType(contentType).orElse(StandardCharsets.UTF_8);
 
-                        SpillBuffer sb = new SpillBuffer(maxInMemoryBytes, tempFilesToDelete);
-                        BoundaryHit hit = drainBodyToBoundary(in, boundaryDelim, boundaryStart, sb);
+                        LimitedByteArrayOutputStream fieldBytes = new LimitedByteArrayOutputStream(maxInMemoryBytes);
+                        BoundaryHit hit = drainBodyToBoundary(in, boundaryDelim, boundaryStart, fieldBytes);
 
-                        byte[] raw = sb.readAllBytesAndClose();
+                        byte[] raw = fieldBytes.toByteArray();
                         raw = stripSingleTrailingCrlf(raw);
 
                         String val = new String(raw, cs);
@@ -1146,76 +1145,38 @@ public class NinjaHttpServer {
             }
 
             /**
-             * OutputStream that buffers up to maxInMemory bytes in memory, then
-             * spills to a temp file.
+             * Collects a text field in memory and rejects it with 413 once it grows beyond maxBytes.
+             * Text fields end up as String parameters in memory anyway, so writing big ones to a temp
+             * file first would not save any memory.
              */
-            private static final class SpillBuffer extends OutputStream {
+            private static final class LimitedByteArrayOutputStream extends OutputStream {
 
-                private final long maxInMemory;
-                private final List<Path> tempFilesToDelete;
+                private final long maxBytes;
+                private final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 
-                private ByteArrayOutputStream mem;
-                private OutputStream fileOut;
-                private Path tempFile;
-                private long size;
-
-                SpillBuffer(long maxInMemory, List<Path> tempFilesToDelete) {
-                    this.maxInMemory = Math.max(0, maxInMemory);
-                    this.tempFilesToDelete = tempFilesToDelete;
-                    this.mem = new ByteArrayOutputStream((int) Math.min(8192, Math.max(0, maxInMemory)));
-                    this.size = 0;
+                LimitedByteArrayOutputStream(long maxBytes) {
+                    this.maxBytes = maxBytes;
                 }
 
                 @Override
                 public void write(int b) throws IOException {
-                    ensureCapacityFor(1);
-                    currentOut().write(b);
-                    size++;
+                    ensureRoomFor(1);
+                    bytes.write(b);
                 }
 
                 @Override
                 public void write(byte[] b, int off, int len) throws IOException {
-                    if (len <= 0) {
-                        return;
-                    }
-                    ensureCapacityFor(len);
-                    currentOut().write(b, off, len);
-                    size += len;
+                    ensureRoomFor(len);
+                    bytes.write(b, off, len);
                 }
 
-                private OutputStream currentOut() {
-                    return (fileOut != null) ? fileOut : mem;
+                byte[] toByteArray() {
+                    return bytes.toByteArray();
                 }
 
-                private void ensureCapacityFor(int incoming) throws IOException {
-                    if (fileOut != null) {
-                        return;
-                    }
-                    if (size + incoming <= maxInMemory) {
-                        return;
-                    }
-
-                    // spill
-                    tempFile = Files.createTempFile("ninjax-field-", ".tmp");
-                    tempFilesToDelete.add(tempFile);
-
-                    fileOut = new BufferedOutputStream(Files.newOutputStream(tempFile), 64 * 1024);
-                    mem.writeTo(fileOut);
-                    mem = null;
-                }
-
-                byte[] readAllBytesAndClose() throws IOException {
-                    close();
-                    if (tempFile != null) {
-                        return Files.readAllBytes(tempFile);
-                    }
-                    return mem == null ? new byte[0] : mem.toByteArray();
-                }
-
-                @Override
-                public void close() throws IOException {
-                    if (fileOut != null) {
-                        fileOut.close();
+                private void ensureRoomFor(int incoming) throws PayloadTooLargeException {
+                    if ((long) bytes.size() + incoming > maxBytes) {
+                        throw new PayloadTooLargeException("Multipart text field exceeded maxInMemoryBytes=" + maxBytes);
                     }
                 }
             }
