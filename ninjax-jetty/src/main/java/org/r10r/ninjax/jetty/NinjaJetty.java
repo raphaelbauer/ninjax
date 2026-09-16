@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 
 // Imports from ninja-core
 import org.r10r.ninjax.core.Router;
+import org.r10r.ninjax.core.DefaultResponseHeaders;
 import org.r10r.ninjax.core.RouteFinder;
 import org.r10r.ninjax.core.Request;
 import org.r10r.ninjax.core.Result;
@@ -231,6 +232,7 @@ public class NinjaJetty {
                     httpServletResponse.setContentType(contentType);
                     httpServletResponse.setStatus(status);
                     NinjaJettyHelper.setHeadersOnResponse(httpServletResponse, result.headers());
+                    DefaultResponseHeaders.missingIn(result.headers()).forEach(httpServletResponse::setHeader);
 
                     // That's actually not jetty specific logic...
                     // should live likely somewhere else...
@@ -263,7 +265,7 @@ public class NinjaJetty {
                 } else {
                     var text = "Opsi. Not found";
                     var status = 404;
-                    var contentType = "text/plain";
+                    var contentType = "text/plain; charset=utf-8";
 
                     httpServletResponse.setContentType(contentType);
                     httpServletResponse.setStatus(status);
@@ -285,7 +287,7 @@ public class NinjaJetty {
                     // try to return result. it may not be possible...
                     var text = "Wow. Something really bad happened. Ask the owner of this server if error persists...";
                     var status = 500;
-                    var contentType = "text/plain";
+                    var contentType = "text/plain; charset=utf-8";
 
                     httpServletResponse.setContentType(contentType);
                     httpServletResponse.setStatus(status);
