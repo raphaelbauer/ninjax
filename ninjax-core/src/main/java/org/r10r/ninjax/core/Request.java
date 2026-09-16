@@ -59,6 +59,10 @@ public final class Request {
 
     // ---- getters (get... style) ----
 
+    /**
+     * The raw request path as sent by the client, still percent-encoded (e.g. "/files/my%20file.txt").
+     * Routes are matched against this raw path. Use {@link #getPathParameter(String)} for decoded values.
+     */
     public String getRequestPath() {
         return requestPath;
     }
@@ -96,14 +100,29 @@ public final class Request {
     }
 
     /**
-     * Content of this raw path parameter.
+     * Content of this path parameter, percent-decoded exactly once.
      *
-     * All urlencoded Strings will be decoded. For instance "my%20name" will
-     * become "my name".
+     * For instance "my%20name" becomes "my name". A "+" stays a "+" (only query strings
+     * and forms use "+" for spaces). Returns empty if the parameter does not exist or
+     * is not validly encoded (e.g. "100%").
      */
     public Optional<String> getPathParameter(String pathParameterName) {
         return Optional.ofNullable(pathParameters.get(pathParameterName))
-                .map(p -> URLDecoder.decode(p, StandardCharsets.UTF_8));
+                .flatMap(Request::decodePath);
+    }
+
+    /**
+     * Percent-decodes a raw (still encoded) URL path or path segment.
+     *
+     * @return the decoded path, or empty if the encoding is invalid
+     */
+    static Optional<String> decodePath(String rawPath) {
+        try {
+            // URLDecoder implements form decoding, which turns "+" into a space. Protect it first.
+            return Optional.of(URLDecoder.decode(rawPath.replace("+", "%2B"), StandardCharsets.UTF_8));
+        } catch (IllegalArgumentException invalidEncoding) {
+            return Optional.empty();
+        }
     }
 
     public List<FileItem> getFiles(String fieldName) {

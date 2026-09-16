@@ -172,7 +172,9 @@ public class NinjaHttpServer {
 
             try {
                 String httpMethod = exchange.getRequestMethod();
-                String requestPath = exchange.getRequestURI().getPath();
+                // Use the raw (still encoded) path like Jetty does. Decoding happens once, in
+                // Request.getPathParameter. Decoding here as well led to double decoding ("%2525" -> "%").
+                String requestPath = exchange.getRequestURI().getRawPath();
                 var routingResult = routeFinder.getRouteFor(httpMethod, requestPath);
 
                 if (routingResult.isEmpty()) {
