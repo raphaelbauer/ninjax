@@ -316,9 +316,18 @@ Application configuration lives in `conf/application.conf` on the classpath (pro
 
 **Optional Properties:**
 - `ninja.port` - HTTP server port (default: 8080)
+- `ninja.http.maxUploadBytes` - Max request body size, 413 beyond (default: 10485760)
+- `ninja.http.maxInMemoryBytes` - Max multipart text field kept in memory, spills to temp file beyond (default: 10485760)
+- `ninja.http.maxConcurrentRequests` - Max requests processed at once, 503 beyond (default: 1000)
+- `ninja.http.maxRequestTimeSeconds` - Max time to receive a request incl. body, 0 = no limit (default: 60)
+- `ninja.http.maxResponseTimeSeconds` - Max time from received request to written response, 0 = no limit (default: 300)
 - `application.session.expire_time_in_seconds` - Session expiration
 - `application.session.cookie.secure` - Secure flag for session cookie
 - `application.session.cookie.same_site` - SameSite attribute for session cookie: Strict|Lax|None, case-insensitive (default: Lax). Invalid values and `None` without `secure=true` fail at startup
+
+The two `ninja.http.*TimeSeconds` timeouts are mapped to the JVM wide `sun.net.httpserver.maxReqTime`/`maxRspTime`
+system properties (JDK default: no limit). The JDK reads them once, when the first `HttpServer` of the JVM is created,
+so `NinjaHttpServer` sets them right before `HttpServer.create(...)`. Explicit `-Dsun.net.httpserver.*` flags win.
 
 ## Key Design Patterns
 

@@ -31,6 +31,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.r10r.ninjax.core.NinjaSessionConverter;
@@ -49,6 +50,21 @@ import org.r10r.ninjax.core.NinjaSessionConverter;
  *
  * Properties: - ninja.port (default 8080) - ninja.http.maxUploadBytes (default
  * 10485760) - ninja.http.maxInMemoryBytes (default 10485760)
+ * - ninja.http.maxConcurrentRequests (default 1000): requests beyond this are
+ * answered with 503 right away instead of piling up. Worst case memory for
+ * buffered bodies is roughly maxConcurrentRequests * maxUploadBytes.
+ * - ninja.http.maxRequestTimeSeconds (default 60): max time from the first byte
+ * of a request until its body is fully read. Protects against slow clients
+ * (slowloris). 0 disables the limit.
+ * - ninja.http.maxResponseTimeSeconds (default 300): max time from the fully
+ * read request until the response is fully written (controller time included).
+ * Protects against clients that never read the response. 0 disables the limit.
+ *
+ * The two timeouts are enforced by the JDK server itself, which only knows the
+ * JVM wide system properties sun.net.httpserver.maxReqTime / maxRspTime (both
+ * "no limit" by default). They are read ONCE, when the first JDK HttpServer of
+ * the JVM is created, so NinjaHttpServer sets them right before that. If you
+ * pass -Dsun.net.httpserver.maxReqTime / maxRspTime yourself, those win.
  */
 public class NinjaHttpServer {
 
@@ -63,6 +79,20 @@ public class NinjaHttpServer {
     private static final long DEFAULT_LIMIT_BYTES = 10L * 1024L * 1024L; // 10 MiB
     private final long maxUploadBytes;
     private final long maxInMemoryBytes;
+
+    // Virtual threads make waiting requests cheap, so the cap is well above the classic 200 thread pools of
+    // Jetty/Tomcat. We answer 503 instead of queueing, so a too low cap would reject normal bursts.
+    private static final int DEFAULT_MAX_CONCURRENT_REQUESTS = 1000;
+    private final int maxConcurrentRequests;
+
+    // Request time covers slow uploads too: 60s still allows a 10 MiB body at ~1.4 Mbit/s.
+    // Response time includes controller time and streaming large responses, so it is more generous.
+    private static final long DEFAULT_MAX_REQUEST_TIME_SECONDS = 60;
+    private static final long DEFAULT_MAX_RESPONSE_TIME_SECONDS = 300;
+    static final String JDK_MAX_REQUEST_TIME_PROPERTY = "sun.net.httpserver.maxReqTime";
+    static final String JDK_MAX_RESPONSE_TIME_PROPERTY = "sun.net.httpserver.maxRspTime";
+    private final long maxRequestTimeSeconds;
+    private final long maxResponseTimeSeconds;
 
     private volatile HttpServer server;
     private final CountDownLatch stopLatch = new CountDownLatch(1);
@@ -90,6 +120,13 @@ public class NinjaHttpServer {
 
         this.maxUploadBytes = parseLong(ninjaProperties.get("ninja.http.maxUploadBytes"), DEFAULT_LIMIT_BYTES);
         this.maxInMemoryBytes = parseLong(ninjaProperties.get("ninja.http.maxInMemoryBytes"), DEFAULT_LIMIT_BYTES);
+        this.maxConcurrentRequests = Math.clamp(
+                parseLong(ninjaProperties.get("ninja.http.maxConcurrentRequests"), DEFAULT_MAX_CONCURRENT_REQUESTS),
+                1, Integer.MAX_VALUE);
+        this.maxRequestTimeSeconds = parseLong(
+                ninjaProperties.get("ninja.http.maxRequestTimeSeconds"), DEFAULT_MAX_REQUEST_TIME_SECONDS);
+        this.maxResponseTimeSeconds = parseLong(
+                ninjaProperties.get("ninja.http.maxResponseTimeSeconds"), DEFAULT_MAX_RESPONSE_TIME_SECONDS);
 
         try {
             start();
@@ -116,15 +153,21 @@ public class NinjaHttpServer {
     private void start() throws Exception {
         System.out.println(NINJA_LOGO);
 
+        // Must happen before HttpServer.create(...): the JDK reads these properties only once.
+        applyJdkHttpServerTimeouts(maxRequestTimeSeconds, maxResponseTimeSeconds);
+
         HttpServer httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
-        httpServer.createContext("/", new NinjaHandler(maxUploadBytes, maxInMemoryBytes));
+        httpServer.createContext("/", new ConcurrencyLimitHandler(
+                maxConcurrentRequests, new NinjaHandler(maxUploadBytes, maxInMemoryBytes)));
 
         //var exeuctor = NinjaHttpServer.createBoundedExecutor();
         httpServer.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
         httpServer.start();
         this.server = httpServer;
 
-        logger.log(Level.INFO, "NinjaHttpServer started on port {0}", "" + serverPort);
+        logger.log(Level.INFO, "NinjaHttpServer started on port {0} (maxConcurrentRequests={1}, maxReqTime={2}s, maxRspTime={3}s)",
+                new Object[]{"" + serverPort, "" + maxConcurrentRequests,
+                    System.getProperty(JDK_MAX_REQUEST_TIME_PROPERTY), System.getProperty(JDK_MAX_RESPONSE_TIME_PROPERTY)});
 
         // Ensure "constructor join" is released on Ctrl+C / SIGTERM
         Runtime.getRuntime().addShutdownHook(Thread.ofPlatform().unstarted(() -> {
@@ -133,6 +176,21 @@ public class NinjaHttpServer {
             } catch (Throwable ignored) {
             }
         }));
+    }
+
+    /**
+     * Sets the JDK HttpServer request/response timeouts (in seconds, 0 = no limit), unless they were already
+     * set via -D. Only has an effect if called before the first JDK HttpServer of this JVM is created.
+     */
+    static void applyJdkHttpServerTimeouts(long maxRequestTimeSeconds, long maxResponseTimeSeconds) {
+        setSystemPropertyIfAbsent(JDK_MAX_REQUEST_TIME_PROPERTY, String.valueOf(maxRequestTimeSeconds));
+        setSystemPropertyIfAbsent(JDK_MAX_RESPONSE_TIME_PROPERTY, String.valueOf(maxResponseTimeSeconds));
+    }
+
+    static void setSystemPropertyIfAbsent(String key, String value) {
+        if (System.getProperty(key) == null) {
+            System.setProperty(key, value);
+        }
     }
 
     /**
@@ -293,10 +351,6 @@ public class NinjaHttpServer {
             }
         }
 
-        private boolean isHeadRequest(HttpExchange exchange) {
-            return "HEAD".equalsIgnoreCase(exchange.getRequestMethod());
-        }
-
         /**
          * Sending can fail, e.g. when the response headers were already sent before the error.
          */
@@ -318,6 +372,59 @@ public class NinjaHttpServer {
             exchange.sendResponseHeaders(status, bytes.length);
             try (OutputStream os = exchange.getResponseBody()) {
                 os.write(bytes);
+            }
+        }
+    }
+
+    /**
+     * Lets at most maxConcurrentRequests requests into the delegate at the same time. Every request beyond
+     * that gets a 503 right away. Without this cap each request gets its own virtual thread, and a flood of
+     * requests (each buffering a body of up to maxUploadBytes) could exhaust memory.
+     */
+    /**
+     * A HEAD response never has a body (RFC 9110), and the JDK server logs a warning and throws
+     * when one is written anyway.
+     */
+    static boolean isHeadRequest(HttpExchange exchange) {
+        return "HEAD".equalsIgnoreCase(exchange.getRequestMethod());
+    }
+
+    static final class ConcurrencyLimitHandler implements HttpHandler {
+
+        private final Semaphore permits;
+        private final HttpHandler delegate;
+
+        ConcurrencyLimitHandler(int maxConcurrentRequests, HttpHandler delegate) {
+            this.permits = new Semaphore(maxConcurrentRequests);
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!permits.tryAcquire()) {
+                rejectAsOverloaded(exchange);
+                return;
+            }
+            try {
+                delegate.handle(exchange);
+            } finally {
+                permits.release();
+            }
+        }
+
+        private static void rejectAsOverloaded(HttpExchange exchange) throws IOException {
+            try (exchange) {
+                byte[] bytes = "Service unavailable. Too many requests right now, please try again."
+                        .getBytes(StandardCharsets.UTF_8);
+                exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
+                if (isHeadRequest(exchange)) {
+                    exchange.sendResponseHeaders(503, -1);
+                    return;
+                }
+                exchange.sendResponseHeaders(503, bytes.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(bytes);
+                }
             }
         }
     }

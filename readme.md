@@ -257,6 +257,33 @@ java -jar -Dninja.port=5000 \
 In that case `${APPLICATION_SECRET}` would be set by your container and used as a Java system propery.
 It would override application.secret in your application.conf file.
 
+#### HTTP server limits
+
+The built-in HTTP server protects itself with a few limits. The defaults are fine for most applications:
+
+| Property | Default | Meaning |
+|---|---|---|
+| `ninja.http.maxUploadBytes` | `10485760` (10 MiB) | Max size of a request body. Bigger bodies get a 413. |
+| `ninja.http.maxInMemoryBytes` | `10485760` (10 MiB) | Max size of a multipart text field kept in memory. Bigger ones spill to a temp file. |
+| `ninja.http.maxConcurrentRequests` | `1000` | Max requests processed at the same time. Every request beyond that gets a 503 right away. |
+| `ninja.http.maxRequestTimeSeconds` | `60` | Max time from the first byte of a request until its body is fully read. Stops slow clients (slowloris) from holding connections forever. `0` = no limit. |
+| `ninja.http.maxResponseTimeSeconds` | `300` | Max time from the fully read request until the response is fully written. This includes the time your controller needs. Stops clients that never read the response. `0` = no limit. |
+
+Worst case memory for buffered request bodies is roughly `maxConcurrentRequests * maxUploadBytes`.
+On a small machine lower one of them.
+
+The two timeouts are enforced by the JDK HTTP server (`com.sun.net.httpserver`) itself. Out of the box it has
+no request or response timeout at all. NinjaX maps the properties above to the JDK system properties
+`sun.net.httpserver.maxReqTime` and `sun.net.httpserver.maxRspTime`. Keep in mind:
+
+- These are JVM wide settings. They apply to every JDK HTTP server in the same JVM.
+- The JDK reads them only once, when the first JDK HTTP server of the JVM is created. NinjaX sets them right
+  before it creates its server. If something else in your JVM created a JDK HTTP server earlier, they have no effect.
+- If you pass `-Dsun.net.httpserver.maxReqTime=...` or `-Dsun.net.httpserver.maxRspTime=...` yourself, those win.
+- Further JDK knobs you can pass via `-D` if needed: `sun.net.httpserver.idleInterval` (idle keep-alive
+  connections, default 30s), `jdk.httpserver.maxConnections` (open connections, default unlimited),
+  `sun.net.httpserver.maxReqHeaders` (default 200) and `sun.net.httpserver.maxReqHeaderSize` (default 380 KiB).
+
 #### Configuration Properties in tests
 
 In tests you can use a file in test/resources/conf/application.conf that will take
