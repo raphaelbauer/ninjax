@@ -3,12 +3,15 @@ package org.r10r.ninjax.core;
 import java.io.InputStream;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 public final class Request {
 
@@ -259,25 +262,34 @@ public final class Request {
         }
     }
 
+    /**
+     * HTTP header names are case-insensitive (RFC 9110), so all lookups ignore case.
+     * This matters because servers pass names differently: Jetty keeps them as sent by the
+     * client ("Content-Type"), the JDK HttpServer normalizes them ("Content-type").
+     */
     public static final class Headers {
 
         private final Map<String, List<String>> headers;
 
         public Headers() {
-            this.headers = Map.of();
+            this(Map.of());
         }
 
         public Headers(Map<String, List<String>> headers) {
-            this.headers = Map.copyOf(Objects.requireNonNull(headers, "headers must not be null"));
+            Objects.requireNonNull(headers, "headers must not be null");
+            Map<String, List<String>> caseInsensitiveMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+            headers.forEach((name, values) -> caseInsensitiveMap.merge(name, List.copyOf(values),
+                    (existing, additional) -> Stream.concat(existing.stream(), additional.stream()).toList()));
+            this.headers = Collections.unmodifiableMap(caseInsensitiveMap);
         }
 
-        public Optional<String> get(String headerName) {
-            var list = headers.get(headerName);
+        public Optional<String> get(String headerNameCaseInsensitive) {
+            var list = headers.get(headerNameCaseInsensitive);
             return (list == null || list.isEmpty()) ? Optional.empty() : Optional.of(list.get(0));
         }
 
-        public List<String> getAll(String headerName) {
-            return headers.getOrDefault(headerName, List.of());
+        public List<String> getAll(String headerNameCaseInsensitive) {
+            return headers.getOrDefault(headerNameCaseInsensitive, List.of());
         }
 
         public Map<String, List<String>> getHeaders() {
