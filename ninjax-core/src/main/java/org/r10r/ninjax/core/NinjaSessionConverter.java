@@ -20,6 +20,7 @@ public class NinjaSessionConverter {
 
     public static final String NINJA_SESSION_COOKIE_NAME = "NINJA_SESSION";
     private static final String NINJA_SESSION_PATH = "/";
+    private static final int BROWSER_SESSION_COOKIE_MAX_AGE = -1;
     
     
     private final Optional<Long> sessionExpiryTimeInSeconds;
@@ -131,8 +132,11 @@ public class NinjaSessionConverter {
                 .signWith(secretKeyForSessionEncryption)
                 .compact();
 
-        var maxAge = expiryInstant.map(i -> (int) Duration.between(now, i).getSeconds())
-                .orElse(0); // 0 is a session cookie
+        // Max-Age=0 tells the browser to delete the cookie right away, so a cookie without expiry
+        // must use -1 (no Max-Age attribute at all). The browser then keeps it until it is closed.
+        // An expiry that already passed becomes 0, so the stale cookie gets deleted.
+        var maxAge = expiryInstant.map(i -> (int) Math.clamp(Duration.between(now, i).getSeconds(), 0, Integer.MAX_VALUE))
+                .orElse(BROWSER_SESSION_COOKIE_MAX_AGE);
 
         //build cookie from jwt
         var cookie = new NinjaCookie(
