@@ -316,11 +316,13 @@ public class NinjaHttpServer {
 
                 int status = result.status();
 
-                // HEAD responses carry the same status and headers as GET, but never a body.
+                // HEAD responses carry the same status and headers as GET, but never a body. The JDK
+                // server needs -1 for that; a length >= 0 makes it warn and throw when nothing is written.
                 if (result.outputStreamRenderer().isPresent() && !isHeadRequest(exchange)) {
-                    exchange.sendResponseHeaders(status, 0); // chunked
+                    var renderer = result.outputStreamRenderer().get();
+                    exchange.sendResponseHeaders(status, NinjaHttpServerHelper.responseLengthFor(renderer));
                     try (OutputStream os = exchange.getResponseBody()) {
-                        result.outputStreamRenderer().get().streamTo(os);
+                        renderer.streamTo(os);
                     }
                 } else {
                     exchange.sendResponseHeaders(status, -1);
@@ -524,6 +526,18 @@ public class NinjaHttpServer {
                 map.put(e.getKey(), List.copyOf(e.getValue()));
             }
             return new Request.Headers(map);
+        }
+
+        /**
+         * The length argument for HttpExchange.sendResponseHeaders: the exact size for bodies that are
+         * already known as bytes, 0 (chunked) for streamed bodies, and -1 (no body) for an empty byte body.
+         * Note that the JDK uses 0 for "chunked", so an empty body must be -1.
+         */
+        public static long responseLengthFor(Result.OutputStreamRenderer renderer) {
+            if (renderer instanceof Result.BytesRenderer bytesRenderer) {
+                return bytesRenderer.bytes().length == 0 ? -1 : bytesRenderer.bytes().length;
+            }
+            return 0;
         }
 
         public static void addHeaders(Headers responseHeaders, Map<String, List<String>> headers) {

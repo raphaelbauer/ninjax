@@ -258,8 +258,16 @@ public class NinjaJetty {
                     // HEAD responses carry the same status and headers as GET, but never a body.
                     // Jetty would drop the bytes anyway, so don't render them in the first place.
                     var isHeadRequest = "HEAD".equalsIgnoreCase(httpMethod);
-                    if (result.outputStreamRenderer().isPresent() && !isHeadRequest) {
-                        result.outputStreamRenderer().get().streamTo(httpServletResponse.getOutputStream());
+                    if (result.outputStreamRenderer().isPresent()) {
+                        var renderer = result.outputStreamRenderer().get();
+                        if (renderer instanceof Result.BytesRenderer bytesRenderer) {
+                            // Known size: send Content-Length instead of chunked transfer encoding.
+                            // A HEAD response announces the length the GET body would have (RFC 9110).
+                            httpServletResponse.setContentLength(bytesRenderer.bytes().length);
+                        }
+                        if (!isHeadRequest) {
+                            renderer.streamTo(httpServletResponse.getOutputStream());
+                        }
                     }
 
                 } else {
