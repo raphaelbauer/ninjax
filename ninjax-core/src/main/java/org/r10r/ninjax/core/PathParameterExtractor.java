@@ -26,20 +26,32 @@ public class PathParameterExtractor {
             Map<String, RouteParameter> parameters,
             String uri
     ) {
+        Matcher m = pathRegex.matcher(uri);
+        return m.matches() ? extractPathParameters(m, parameters) : Map.of();
+    }
+
+    /**
+     * Extracts path parameters from a matcher that already matched the request URI.
+     * Use this when the route was just matched, so the regex does not run a second time.
+     *
+     * @param matchedMatcher A matcher of the route's regex on which matches() returned true
+     * @param parameters The map of parameter definitions from the route (ordered)
+     * @return An immutable map of parameter names to their extracted values (URL-encoded)
+     */
+    public static Map<String, String> extractPathParameters(
+            Matcher matchedMatcher,
+            Map<String, RouteParameter> parameters
+    ) {
         Map<String, String> map = new HashMap<>();
 
-        Matcher m = pathRegex.matcher(uri);
-
-        if (m.matches()) {
-            // The route regex assigns each path variable a synthetic named group ("p0", "p1",
-            // ...) in parameter order (see Router.convertRawUriToRegex). Reading values by these
-            // names keeps extraction correct even when a user-supplied regex contains its own
-            // capturing groups, which would otherwise shift positional group indices.
-            int groupIndex = 0;
-            for (String parameterName : parameters.keySet()) {
-                map.put(parameterName, m.group("p" + groupIndex));
-                groupIndex++;
-            }
+        // The route regex assigns each path variable a synthetic named group ("p0", "p1",
+        // ...) in parameter order (see Router.convertRawUriToRegex). Reading values by these
+        // names keeps extraction correct even when a user-supplied regex contains its own
+        // capturing groups, which would otherwise shift positional group indices.
+        int groupIndex = 0;
+        for (String parameterName : parameters.keySet()) {
+            map.put(parameterName, matchedMatcher.group("p" + groupIndex));
+            groupIndex++;
         }
 
         return Map.copyOf(map); // unmodifiable

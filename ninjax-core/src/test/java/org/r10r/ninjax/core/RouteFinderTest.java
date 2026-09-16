@@ -25,11 +25,11 @@ class RouteFinderTest {
         router.HEAD("/tasks/{id}").with(request -> Result.ok());
 
         // when
-        Optional<Router.Route> route = new RouteFinder(router).getRouteFor(httpMethod, "/tasks/42");
+        Optional<RouteFinder.RouteMatch> route = new RouteFinder(router).getRouteFor(httpMethod, "/tasks/42");
 
         // then
         assertThat(route.isPresent()).isTrue();
-        assertThat(route.get().httpMethod()).isEqualTo(httpMethod);
+        assertThat(route.get().route().httpMethod()).isEqualTo(httpMethod);
     }
 
     @Test
@@ -39,7 +39,7 @@ class RouteFinderTest {
         router.GET("/tasks").with(GET_CONTROLLER);
 
         // when
-        Optional<Router.Route> route = new RouteFinder(router).getRouteFor("DELETE", "/tasks");
+        Optional<RouteFinder.RouteMatch> route = new RouteFinder(router).getRouteFor("DELETE", "/tasks");
 
         // then
         assertThat(route.isPresent()).isFalse();
@@ -52,11 +52,11 @@ class RouteFinderTest {
         router.GET("/tasks").with(GET_CONTROLLER);
 
         // when
-        Optional<Router.Route> route = new RouteFinder(router).getRouteFor("HEAD", "/tasks");
+        Optional<RouteFinder.RouteMatch> route = new RouteFinder(router).getRouteFor("HEAD", "/tasks");
 
         // then
         assertThat(route.isPresent()).isTrue();
-        assertThat(route.get().controllerMethod()).isSameInstanceAs(GET_CONTROLLER);
+        assertThat(route.get().route().controllerMethod()).isSameInstanceAs(GET_CONTROLLER);
     }
 
     @Test
@@ -67,11 +67,11 @@ class RouteFinderTest {
         router.HEAD("/tasks").with(HEAD_CONTROLLER);
 
         // when
-        Optional<Router.Route> route = new RouteFinder(router).getRouteFor("HEAD", "/tasks");
+        Optional<RouteFinder.RouteMatch> route = new RouteFinder(router).getRouteFor("HEAD", "/tasks");
 
         // then
         assertThat(route.isPresent()).isTrue();
-        assertThat(route.get().controllerMethod()).isSameInstanceAs(HEAD_CONTROLLER);
+        assertThat(route.get().route().controllerMethod()).isSameInstanceAs(HEAD_CONTROLLER);
     }
 
     @Test
@@ -81,7 +81,7 @@ class RouteFinderTest {
         router.POST("/tasks").with(request -> Result.ok());
 
         // when
-        Optional<Router.Route> route = new RouteFinder(router).getRouteFor("HEAD", "/tasks");
+        Optional<RouteFinder.RouteMatch> route = new RouteFinder(router).getRouteFor("HEAD", "/tasks");
 
         // then
         assertThat(route.isPresent()).isFalse();
@@ -94,7 +94,7 @@ class RouteFinderTest {
         router.HEAD("/tasks").with(HEAD_CONTROLLER);
 
         // when
-        Optional<Router.Route> route = new RouteFinder(router).getRouteFor("GET", "/tasks");
+        Optional<RouteFinder.RouteMatch> route = new RouteFinder(router).getRouteFor("GET", "/tasks");
 
         // then
         assertThat(route.isPresent()).isFalse();

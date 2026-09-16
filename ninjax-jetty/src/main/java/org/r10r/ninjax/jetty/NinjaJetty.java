@@ -41,7 +41,6 @@ import org.r10r.ninjax.core.NinjaCookie;
 import org.r10r.ninjax.core.NinjaSession;
 import org.r10r.ninjax.core.FileItem;
 import org.r10r.ninjax.core.FilterChain;
-import org.r10r.ninjax.core.PathParameterExtractor;
 import org.r10r.ninjax.core.Secure;
 import org.r10r.ninjax.core.HttpOnly;
 import org.r10r.ninjax.core.NinjaSessionConverter;
@@ -135,7 +134,7 @@ public class NinjaJetty {
 
                 if (routingResult.isPresent()) {
 
-                    var route = routingResult.get();
+                    var route = routingResult.get().route();
 
                     if (httpServletRequest.getContentLengthLong() > maxUploadBytes) {
                         sendPayloadTooLarge(httpServletResponse);
@@ -202,12 +201,7 @@ public class NinjaJetty {
                         return result;
                     };
 
-                    // Extract path parameters using the utility
-                    var pathParams = PathParameterExtractor.extractPathParameters(
-                            route.pathRegex(),
-                            route.parameters,
-                            requestURI
-                    );
+                    var pathParams = routingResult.get().pathParameters();
 
                     var parameters = new org.r10r.ninjax.core.Request.Parameters(httpServletRequest.getParameterMap());
 
@@ -223,7 +217,7 @@ public class NinjaJetty {
                             .locale(httpServletRequest.getLocale())
                             .build();
 
-                    FilterChain chain = new FilterChain(route.filters, 0, routingResult.get().controllerMethod());
+                    FilterChain chain = new FilterChain(route.filters, 0, route.controllerMethod());
                     var result = chain.doFilter(request);
 
                     var status = result.status();

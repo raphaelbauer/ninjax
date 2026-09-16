@@ -10,7 +10,6 @@ import org.r10r.ninjax.core.FilterChain;
 import org.r10r.ninjax.core.HttpOnly;
 import org.r10r.ninjax.core.NinjaCookie;
 import org.r10r.ninjax.core.NinjaSession;
-import org.r10r.ninjax.core.PathParameterExtractor;
 import org.r10r.ninjax.core.Request;
 import org.r10r.ninjax.core.Result;
 import org.r10r.ninjax.core.RouteFinder;
@@ -241,7 +240,7 @@ public class NinjaHttpServer {
                     return;
                 }
 
-                var route = routingResult.get();
+                var route = routingResult.get().route();
 
                 Request.Headers headers = NinjaHttpServerHelper.extractHeaders(exchange.getRequestHeaders());
 
@@ -267,11 +266,7 @@ public class NinjaHttpServer {
                                 .map(NinjaHttpServerHelper.MultipartFile::toFileItem)
                                 .toList();
 
-                var pathParams = PathParameterExtractor.extractPathParameters(
-                        route.pathRegex(),
-                        route.parameters,
-                        requestPath
-                );
+                var pathParams = routingResult.get().pathParameters();
 
                 var parameters = new Request.Parameters(parameterMap);
                 Locale locale = NinjaHttpServerHelper.extractLocale(exchange.getRequestHeaders());
