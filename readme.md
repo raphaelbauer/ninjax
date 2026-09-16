@@ -400,6 +400,25 @@ public Result addTask(Request request) {
 }
 ```
 
+### Sessions
+The session (`NinjaSession`) is stored in the `NINJA_SESSION` cookie as a JWT signed with `application.secret`.
+Nothing is kept on the server, so any instance of your application can handle any request.
+
+The session is **signed, not encrypted**. A client can't change it without the signature check failing, but
+anyone who has the cookie can read its content. Store ids (e.g. a user id) in the session, never passwords,
+tokens or other secrets.
+
+```java
+public Result login(Request request) {
+    // ... check credentials ...
+    var session = new NinjaSession().withValue("userId", String.valueOf(user.id()));
+    return Result.builder()
+            .withNinjaSession(session)
+            .redirect("/")
+            .build();
+}
+```
+
 ### Uploading files
 File uploads are supported via `Request.getFile()` (first file of a field) and `Request.getFiles()` (all files of a field).
 Ensure your form uses `enctype="multipart/form-data"`.

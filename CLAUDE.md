@@ -122,7 +122,7 @@ Both servers (`NinjaHttpServer`, `NinjaJetty`) then send status and headers but 
 Filters implement `NinjaFilter` interface and form a chain of responsibility. Each filter can inspect the request, modify it, and either continue the chain or short-circuit with a Result.
 
 ### 5. JWT-Based Sessions
-Sessions are stateless JWT tokens stored in cookies. Session data is serialized as JWT claims with HMAC SHA256 signatures. This enables horizontal scaling without session stores.
+Sessions are stateless JWT tokens stored in cookies. Session data is serialized as JWT claims with HMAC SHA256 signatures. This enables horizontal scaling without session stores. The session is signed, not encrypted: clients can read it, so never store secrets in it.
 
 ## Request/Response Flow
 

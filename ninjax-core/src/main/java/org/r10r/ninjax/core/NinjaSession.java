@@ -4,6 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Key-value data that lives in the NINJA_SESSION cookie between requests.
+ *
+ * <p>The cookie is a signed JWT. Signed means the client can't change the values without the
+ * server noticing. It is NOT encrypted: anyone with the cookie can base64-decode and read every
+ * value. Store ids (e.g. a user id), never secrets such as passwords, tokens or personal data.
+ */
 public record NinjaSession(Map<String, String> keyValueStore) {
 
     public NinjaSession() {
