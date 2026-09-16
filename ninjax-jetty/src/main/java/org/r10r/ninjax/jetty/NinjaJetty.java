@@ -359,6 +359,7 @@ public class NinjaJetty {
         }
 
         public static Cookie convertNinjaCookieToServletCookie(NinjaCookie ninjaCookie) {
+            ninjaCookie.requireValidForResponse();
 
             var cookie = new Cookie(ninjaCookie.name(), ninjaCookie.value());
 

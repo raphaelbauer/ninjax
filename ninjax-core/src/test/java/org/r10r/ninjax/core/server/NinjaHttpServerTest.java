@@ -65,6 +65,16 @@ class NinjaHttpServerHelperTest {
     }
 
     @Test
+    void toSetCookieHeader_rejectsCookieThatWouldInjectAttributes() {
+        // given: built via the canonical constructor, which does not validate
+        NinjaCookie c = new NinjaCookie("a", "x; Domain=evil.example", Optional.empty(), -1,
+                Optional.empty(), Secure.No, HttpOnly.No, Optional.empty());
+
+        // when / then
+        assertThrows(IllegalArgumentException.class, () -> NinjaHttpServerHelper.toSetCookieHeader(c));
+    }
+
+    @Test
     void toSetCookieHeader_rendersAttributes() {
         NinjaCookie c = new NinjaCookie(
                 "sid",

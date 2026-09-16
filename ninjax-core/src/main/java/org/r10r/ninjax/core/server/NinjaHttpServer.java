@@ -588,6 +588,7 @@ public class NinjaHttpServer {
         }
 
         public static String toSetCookieHeader(NinjaCookie ninjaCookie) {
+            ninjaCookie.requireValidForResponse();
             StringBuilder sb = new StringBuilder();
             sb.append(ninjaCookie.name()).append("=").append(ninjaCookie.value() == null ? "" : ninjaCookie.value());
             ninjaCookie.path().ifPresent(p -> sb.append("; Path=").append(p));
