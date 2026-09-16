@@ -4,6 +4,7 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpPrincipal;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.r10r.ninjax.core.HttpOnly;
@@ -308,6 +309,178 @@ class NinjaHttpServerHelperTest {
                 -> NinjaHttpServerHelper.parseBodyAndParameters(ex, toDelete, 10, 10_000));
     }
 
+    // ---------------- multipart boundary scanning ----------------
+    private final List<Path> multipartTempFiles = new ArrayList<>();
+
+    @AfterEach
+    void deleteMultipartTempFiles() throws IOException {
+        for (Path p : multipartTempFiles) {
+            Files.deleteIfExists(p);
+        }
+    }
+
+    @Test
+    void parseBodyAndParameters_multipartDelivered1To3BytesPerRead_findsDelimitersSplitAcrossReads() throws Exception {
+        // given a body that arrives in tiny chunks, so every delimiter is split across several reads
+        String boundary = "BOUNDARY123";
+        byte[] multipart = ("preamble\r\n"
+                + "--" + boundary + "\r\n"
+                + "Content-Disposition: form-data; name=\"title\"\r\n"
+                + "\r\n"
+                + "hello\r\n"
+                + "--" + boundary + "\r\n"
+                + "Content-Disposition: form-data; name=\"file\"; filename=\"a.txt\"\r\n"
+                + "\r\n"
+                + "FILEDATA\r\n"
+                + "--" + boundary + "--\r\n").getBytes(StandardCharsets.ISO_8859_1);
+
+        // when
+        NinjaHttpServerHelper.ParsedBody parsed = parseMultipart(boundary, new TrickleInputStream(multipart));
+
+        // then
+        assertEquals("hello", parsed.parameterMap().get("title")[0]);
+        assertEquals("FILEDATA", Files.readString(parsed.firstFile("file").get().tempFile, StandardCharsets.ISO_8859_1));
+    }
+
+    @Test
+    void parseBodyAndParameters_multipartBinaryContentWithPartialDelimiters_keepsContentIntact() throws Exception {
+        // given file content with every byte value and near-miss delimiters that must stay part of the data
+        String boundary = "BOUNDARY123";
+        ByteArrayOutputStream content = new ByteArrayOutputStream();
+        for (int i = 0; i < 256; i++) {
+            content.write(i);
+        }
+        content.writeBytes(bytes("\r\n--BOUND\r\n-\r\n--\r\n--BOUNDARY12\r\n\r\n--BOUNDARX123-"));
+        content.writeBytes(bytes("--BOUNDARY12"));
+        byte[] expected = content.toByteArray();
+        byte[] multipart = singleFileMultipart(boundary, expected);
+
+        // when parsed from one stream and from a stream returning 1-3 bytes per read
+        NinjaHttpServerHelper.ParsedBody parsed = parseMultipart(boundary, new ByteArrayInputStream(multipart));
+        NinjaHttpServerHelper.ParsedBody trickled = parseMultipart(boundary, new TrickleInputStream(multipart));
+
+        // then
+        assertArrayEquals(expected, Files.readAllBytes(parsed.firstFile("file").get().tempFile));
+        assertArrayEquals(expected, Files.readAllBytes(trickled.firstFile("file").get().tempFile));
+    }
+
+    @Test
+    void parseBodyAndParameters_multipartWithManyAndEmptyParts_parsesEveryPart() throws Exception {
+        // given 500 fields, an empty field and an empty file
+        String boundary = "xyz";
+        StringBuilder body = new StringBuilder();
+        for (int i = 0; i < 500; i++) {
+            body.append("--").append(boundary).append("\r\n")
+                    .append("Content-Disposition: form-data; name=\"field\"\r\n\r\n")
+                    .append("value").append(i).append("\r\n");
+        }
+        body.append("--").append(boundary).append("\r\n")
+                .append("Content-Disposition: form-data; name=\"empty\"\r\n\r\n\r\n")
+                .append("--").append(boundary).append("\r\n")
+                .append("Content-Disposition: form-data; name=\"emptyFile\"; filename=\"e.txt\"\r\n\r\n\r\n")
+                .append("--").append(boundary).append("--\r\n");
+
+        // when
+        NinjaHttpServerHelper.ParsedBody parsed = parseMultipart(boundary, new ByteArrayInputStream(bytes(body.toString())));
+
+        // then
+        String[] values = parsed.parameterMap().get("field");
+        assertEquals(500, values.length);
+        assertEquals("value0", values[0]);
+        assertEquals("value499", values[499]);
+        assertEquals("", parsed.parameterMap().get("empty")[0]);
+        assertEquals(0, parsed.firstFile("emptyFile").get().size);
+    }
+
+    @Test
+    void parseBodyAndParameters_multipartWithLfOnlyLineEndings_parsesParts() throws Exception {
+        // given a client that uses LF instead of CRLF everywhere
+        String boundary = "xyz";
+        byte[] multipart = bytes("--xyz\n"
+                + "Content-Disposition: form-data; name=\"title\"\n"
+                + "\n"
+                + "hello\n"
+                + "--xyz\n"
+                + "Content-Disposition: form-data; name=\"other\"\n"
+                + "\n"
+                + "world\n"
+                + "--xyz--\n");
+
+        // when
+        NinjaHttpServerHelper.ParsedBody parsed = parseMultipart(boundary, new ByteArrayInputStream(multipart));
+
+        // then
+        assertEquals("hello", parsed.parameterMap().get("title")[0]);
+        assertEquals("world", parsed.parameterMap().get("other")[0]);
+    }
+
+    @Test
+    void parseBodyAndParameters_largeMultipartUpload_isParsedCompletely() throws Exception {
+        // given an 8 MiB random file
+        String boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
+        byte[] expected = new byte[8 * 1024 * 1024];
+        new Random(42).nextBytes(expected);
+        byte[] multipart = singleFileMultipart(boundary, expected);
+
+        // when
+        NinjaHttpServerHelper.ParsedBody parsed = parseMultipart(boundary, new ByteArrayInputStream(multipart));
+
+        // then
+        NinjaHttpServerHelper.MultipartFile file = parsed.firstFile("file").get();
+        assertEquals(expected.length, file.size);
+        assertArrayEquals(expected, Files.readAllBytes(file.tempFile));
+    }
+
+    @Test
+    void parseBodyAndParameters_multipartEndingInsideBody_throwsEof() {
+        // given a body that stops before the closing delimiter
+        String boundary = "xyz";
+        byte[] multipart = bytes("--xyz\r\n"
+                + "Content-Disposition: form-data; name=\"title\"\r\n"
+                + "\r\n"
+                + "hello\r\n--xy");
+
+        // when / then
+        assertThrows(EOFException.class, ()
+                -> parseMultipart(boundary, new ByteArrayInputStream(multipart)));
+    }
+
+    @Test
+    void parseBodyAndParameters_multipartBoundaryLongerThan70Chars_isRejected() {
+        // given a boundary longer than RFC 2046 allows
+        String boundary = "a".repeat(71);
+        byte[] multipart = singleFileMultipart(boundary, bytes("data"));
+
+        // when / then
+        assertThrows(IOException.class, ()
+                -> parseMultipart(boundary, new ByteArrayInputStream(multipart)));
+    }
+
+    private NinjaHttpServerHelper.ParsedBody parseMultipart(String boundary, InputStream body) throws IOException {
+        FakeHttpExchange ex = FakeHttpExchange.builder()
+                .method("POST")
+                .uri("http://localhost/upload")
+                .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                .body(body)
+                .build();
+        return NinjaHttpServerHelper.parseBodyAndParameters(ex, multipartTempFiles, 20_000_000, 100_000);
+    }
+
+    private static byte[] singleFileMultipart(String boundary, byte[] content) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.writeBytes(bytes("--" + boundary + "\r\n"
+                + "Content-Disposition: form-data; name=\"file\"; filename=\"data.bin\"\r\n"
+                + "Content-Type: application/octet-stream\r\n"
+                + "\r\n"));
+        out.writeBytes(content);
+        out.writeBytes(bytes("\r\n--" + boundary + "--\r\n"));
+        return out.toByteArray();
+    }
+
+    private static byte[] bytes(String s) {
+        return s.getBytes(StandardCharsets.ISO_8859_1);
+    }
+
     // ---------------- input stream getter (non-form bodies) ----------------
     @Test
     void inputStreamGetter_jsonBodyExceedingLimit_throwsPayloadTooLargeWhenRead() throws Exception {
@@ -447,6 +620,36 @@ class NinjaHttpServerHelperTest {
     }
 
     // ----------------------------------------------------------------------
+    // InputStream that returns only 1 to 3 bytes per read, like a slow network
+    // ----------------------------------------------------------------------
+    static final class TrickleInputStream extends InputStream {
+
+        private final byte[] data;
+        private int pos;
+        private int reads;
+
+        TrickleInputStream(byte[] data) {
+            this.data = data;
+        }
+
+        @Override
+        public int read() {
+            return pos < data.length ? data[pos++] & 0xff : -1;
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) {
+            if (pos >= data.length) {
+                return -1;
+            }
+            int n = Math.min(Math.min(len, 1 + reads++ % 3), data.length - pos);
+            System.arraycopy(data, pos, b, off, n);
+            pos += n;
+            return n;
+        }
+    }
+
+    // ----------------------------------------------------------------------
     // Minimal HttpExchange implementation for unit tests
     // ----------------------------------------------------------------------
     static final class FakeHttpExchange extends HttpExchange {
@@ -457,11 +660,11 @@ class NinjaHttpServerHelperTest {
         private final String method;
         private final InputStream requestBody;
 
-        private FakeHttpExchange(String method, URI uri, Headers headers, byte[] bodyBytes) {
+        private FakeHttpExchange(String method, URI uri, Headers headers, InputStream requestBody) {
             this.method = method;
             this.uri = uri;
             this.requestHeaders.putAll(headers);
-            this.requestBody = new ByteArrayInputStream(bodyBytes == null ? new byte[0] : bodyBytes);
+            this.requestBody = requestBody;
         }
 
         static Builder builder() {
@@ -473,7 +676,7 @@ class NinjaHttpServerHelperTest {
             private String method = "GET";
             private URI uri = URI.create("http://localhost/");
             private final Headers headers = new Headers();
-            private byte[] bodyBytes = new byte[0];
+            private InputStream body = InputStream.nullInputStream();
 
             Builder method(String m) {
                 this.method = m;
@@ -491,12 +694,17 @@ class NinjaHttpServerHelperTest {
             }
 
             Builder bodyBytes(byte[] b) {
-                this.bodyBytes = b;
+                this.body = new ByteArrayInputStream(b == null ? new byte[0] : b);
+                return this;
+            }
+
+            Builder body(InputStream in) {
+                this.body = in;
                 return this;
             }
 
             FakeHttpExchange build() {
-                return new FakeHttpExchange(method, uri, headers, bodyBytes);
+                return new FakeHttpExchange(method, uri, headers, body);
             }
         }
 

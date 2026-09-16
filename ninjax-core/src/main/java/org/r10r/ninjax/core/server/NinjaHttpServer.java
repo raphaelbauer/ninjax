@@ -855,6 +855,8 @@ public class NinjaHttpServer {
 
         private static final class Multipart {
 
+            private static final int MAX_BOUNDARY_LENGTH = 70;
+
             static MultipartParseResult parse(
                     InputStream rawIn,
                     String boundary,
@@ -862,16 +864,18 @@ public class NinjaHttpServer {
                     long maxInMemoryBytes
             ) throws IOException {
 
-                BufferedInputStream in = new BufferedInputStream(rawIn, 128 * 1024);
+                // RFC 2046 limits boundaries to 70 characters. Enforcing it keeps the boundary search
+                // cheap: its worst case grows with the boundary length.
+                if (boundary.length() > MAX_BOUNDARY_LENGTH) {
+                    throw new IOException("multipart boundary longer than " + MAX_BOUNDARY_LENGTH + " characters");
+                }
 
                 byte[] boundaryStart = ("--" + boundary).getBytes(StandardCharsets.ISO_8859_1);
-                byte[] boundaryDelim = ("\r\n--" + boundary).getBytes(StandardCharsets.ISO_8859_1);
+                MultipartInput in = new MultipartInput(rawIn);
 
                 // consume preamble / first boundary
-                if (!consumeExact(in, boundaryStart)) {
-                    if (!scanTo(in, boundaryStart, boundaryDelim)) {
-                        return new MultipartParseResult();
-                    }
+                if (!in.copyUntil(boundaryStart, OutputStream.nullOutputStream())) {
+                    return new MultipartParseResult();
                 }
 
                 boolean done = consumeBoundaryTrailer(in);
@@ -887,7 +891,7 @@ public class NinjaHttpServer {
                     String contentType = headers.get("Content-Type");
 
                     if (cd == null || cd.name == null) {
-                        BoundaryHit hit = drainBodyToBoundary(in, boundaryDelim, boundaryStart, OutputStream.nullOutputStream());
+                        BoundaryHit hit = drainBodyToBoundary(in, boundaryStart, OutputStream.nullOutputStream());
                         if (hit == BoundaryHit.FINAL) {
                             return res;
                         }
@@ -900,7 +904,7 @@ public class NinjaHttpServer {
                         tempFilesToDelete.add(tmp);
 
                         try (OutputStream os = Files.newOutputStream(tmp)) {
-                            BoundaryHit hit = drainBodyToBoundary(in, boundaryDelim, boundaryStart, os);
+                            BoundaryHit hit = drainBodyToBoundary(in, boundaryStart, os);
                             long size = Files.size(tmp);
 
                             MultipartFile mf = new MultipartFile(cd.name, cd.filename, contentType, size, tmp);
@@ -915,7 +919,7 @@ public class NinjaHttpServer {
                         Charset cs = charsetFromContentType(contentType).orElse(StandardCharsets.UTF_8);
 
                         LimitedByteArrayOutputStream fieldBytes = new LimitedByteArrayOutputStream(maxInMemoryBytes);
-                        BoundaryHit hit = drainBodyToBoundary(in, boundaryDelim, boundaryStart, fieldBytes);
+                        BoundaryHit hit = drainBodyToBoundary(in, boundaryStart, fieldBytes);
 
                         byte[] raw = fieldBytes.toByteArray();
                         raw = stripSingleTrailingCrlf(raw);
@@ -937,66 +941,30 @@ public class NinjaHttpServer {
             /**
              * Binary-safe drain until boundary delimiter.
              */
-            private static BoundaryHit drainBodyToBoundary(BufferedInputStream in,
-                    byte[] boundaryDelim,
+            private static BoundaryHit drainBodyToBoundary(MultipartInput in,
                     byte[] boundaryStart,
                     OutputStream out) throws IOException {
-                int maxNeedle = Math.max(boundaryDelim.length, boundaryStart.length);
-                byte[] window = new byte[maxNeedle];
-                int wLen = 0;
-
-                while (true) {
-                    int b = in.read();
-                    if (b == -1) {
-                        throw new EOFException("Unexpected EOF in multipart body");
-                    }
-
-                    if (wLen < window.length) {
-                        window[wLen++] = (byte) b;
-                    } else {
-                        out.write(window[0]);
-                        System.arraycopy(window, 1, window, 0, window.length - 1);
-                        window[window.length - 1] = (byte) b;
-                    }
-
-                    if (endsWith(window, wLen, boundaryDelim)) {
-                        int keep = wLen - boundaryDelim.length;
-                        if (keep > 0) {
-                            out.write(window, 0, keep);
-                        }
-                        wLen = 0;
-                        boolean finalBoundary = consumeBoundaryTrailer(in);
-                        return finalBoundary ? BoundaryHit.FINAL : BoundaryHit.NEXT;
-                    }
-
-                    // boundary at immediate start (empty body)
-                    if (endsWith(window, wLen, boundaryStart)) {
-                        int keep = wLen - boundaryStart.length;
-                        if (keep > 0) {
-                            out.write(window, 0, keep);
-                        }
-                        wLen = 0;
-                        boolean finalBoundary = consumeBoundaryTrailer(in);
-                        return finalBoundary ? BoundaryHit.FINAL : BoundaryHit.NEXT;
-                    }
+                if (!in.copyUntil(boundaryStart, out)) {
+                    throw new EOFException("Unexpected EOF in multipart body");
                 }
+                boolean finalBoundary = consumeBoundaryTrailer(in);
+                return finalBoundary ? BoundaryHit.FINAL : BoundaryHit.NEXT;
             }
 
             /**
              * After "--boundary" consume either "--" (final) or CRLF (next).
              */
-            private static boolean consumeBoundaryTrailer(BufferedInputStream in) throws IOException {
-                in.mark(2);
+            private static boolean consumeBoundaryTrailer(MultipartInput in) throws IOException {
                 int a = in.read();
+
+                // tolerate LF-only
+                if (a == '\n') {
+                    return false;
+                }
+
                 int b = in.read();
                 if (a == '-' && b == '-') {
-                    // final; optionally followed by CRLF
-                    in.mark(2);
-                    int c = in.read();
-                    int d = in.read();
-                    if (!(c == '\r' && d == '\n')) {
-                        in.reset();
-                    }
+                    // final; anything after it (optional CRLF, epilogue) is ignored
                     return true;
                 }
 
@@ -1004,15 +972,10 @@ public class NinjaHttpServer {
                     return false;
                 }
 
-                // tolerate LF-only
-                if (a == '\n') {
-                    return false;
-                }
-
                 throw new IOException("Malformed multipart boundary trailer: expected CRLF or --");
             }
 
-            private static Map<String, String> readPartHeaders(BufferedInputStream in) throws IOException {
+            private static Map<String, String> readPartHeaders(MultipartInput in) throws IOException {
                 Map<String, String> headers = new LinkedHashMap<>();
                 while (true) {
                     String line = readHeaderLine(in);
@@ -1032,7 +995,7 @@ public class NinjaHttpServer {
                 }
             }
 
-            private static String readHeaderLine(BufferedInputStream in) throws IOException {
+            private static String readHeaderLine(MultipartInput in) throws IOException {
                 ByteArrayOutputStream bos = new ByteArrayOutputStream(128);
                 int prev = -1;
                 while (true) {
@@ -1050,60 +1013,6 @@ public class NinjaHttpServer {
                     bos.write(c);
                     prev = c;
                 }
-            }
-
-            private static boolean consumeExact(BufferedInputStream in, byte[] seq) throws IOException {
-                in.mark(seq.length);
-                for (byte b : seq) {
-                    int r = in.read();
-                    if (r != (b & 0xff)) {
-                        in.reset();
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            private static boolean scanTo(BufferedInputStream in, byte[]... needles) throws IOException {
-                int max = 0;
-                for (byte[] n : needles) {
-                    max = Math.max(max, n.length);
-                }
-                byte[] window = new byte[max];
-                int wLen = 0;
-
-                while (true) {
-                    int b = in.read();
-                    if (b == -1) {
-                        return false;
-                    }
-
-                    if (wLen < window.length) {
-                        window[wLen++] = (byte) b;
-                    } else {
-                        System.arraycopy(window, 1, window, 0, window.length - 1);
-                        window[window.length - 1] = (byte) b;
-                    }
-
-                    for (byte[] n : needles) {
-                        if (endsWith(window, wLen, n)) {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            private static boolean endsWith(byte[] window, int wLen, byte[] needle) {
-                if (wLen < needle.length) {
-                    return false;
-                }
-                int off = wLen - needle.length;
-                for (int i = 0; i < needle.length; i++) {
-                    if (window[off + i] != needle[i]) {
-                        return false;
-                    }
-                }
-                return true;
             }
 
             // suggestion #2: strip exactly one trailing newline from field value
@@ -1173,6 +1082,106 @@ public class NinjaHttpServer {
                     if ((long) bytes.size() + incoming > maxBytes) {
                         throw new PayloadTooLargeException("Multipart text field exceeded maxInMemoryBytes=" + maxBytes);
                     }
+                }
+            }
+
+            /**
+             * Buffered reader over the multipart body. It works on chunks instead of single bytes,
+             * so scanning for a boundary costs one array search per chunk rather than a method call
+             * and an array copy per byte.
+             *
+             * The buffer holds unread bytes in buf[pos..end). Bytes after a found boundary stay in
+             * the buffer, so the next part's headers are read from the same buffer.
+             */
+            private static final class MultipartInput {
+
+                private static final int BUFFER_SIZE = 64 * 1024;
+
+                private final InputStream in;
+                // copyUntil keeps up to needle.length + 1 unread bytes when refilling. Boundaries are
+                // at most 72 bytes ("--" + 70), so there is always room left to read more.
+                private final byte[] buf = new byte[BUFFER_SIZE];
+                private int pos;
+                private int end;
+
+                MultipartInput(InputStream in) {
+                    this.in = in;
+                }
+
+                /**
+                 * Returns the next byte (0-255) or -1 at end of stream.
+                 */
+                int read() throws IOException {
+                    if (pos == end && !fill()) {
+                        return -1;
+                    }
+                    return buf[pos++] & 0xff;
+                }
+
+                /**
+                 * Copies bytes to out until needle is found and consumes the needle. A CRLF directly
+                 * in front of the needle belongs to the delimiter and is not copied. Returns false at
+                 * end of stream before the needle was found.
+                 */
+                boolean copyUntil(byte[] needle, OutputStream out) throws IOException {
+                    while (true) {
+                        int idx = indexOf(needle, pos, end);
+                        if (idx >= 0) {
+                            // only bytes from pos on belong to this body, and the CRLF in front of a
+                            // needle is never copied early (see below), so it is always at or after pos
+                            int dataEnd = idx;
+                            if (idx - pos >= 2 && buf[idx - 2] == '\r' && buf[idx - 1] == '\n') {
+                                dataEnd = idx - 2;
+                            }
+                            out.write(buf, pos, dataEnd - pos);
+                            pos = idx + needle.length;
+                            return true;
+                        }
+
+                        // No match yet. The last needle.length - 1 bytes could be the start of a needle
+                        // that continues in the next read, and the 2 bytes before that could be its CRLF.
+                        // Everything in front of those bytes is plain data and is copied in one go.
+                        int safeEnd = end - (needle.length + 1);
+                        if (safeEnd > pos) {
+                            out.write(buf, pos, safeEnd - pos);
+                            pos = safeEnd;
+                        }
+
+                        if (!fill()) {
+                            return false;
+                        }
+                    }
+                }
+
+                private int indexOf(byte[] needle, int from, int to) {
+                    byte first = needle[0];
+                    for (int i = from; i <= to - needle.length; i++) {
+                        if (buf[i] == first && Arrays.equals(buf, i, i + needle.length, needle, 0, needle.length)) {
+                            return i;
+                        }
+                    }
+                    return -1;
+                }
+
+                /**
+                 * Moves the unread bytes to the front of the buffer and reads more after them.
+                 * Returns false at end of stream.
+                 */
+                private boolean fill() throws IOException {
+                    if (pos > 0) {
+                        System.arraycopy(buf, pos, buf, 0, end - pos);
+                        end -= pos;
+                        pos = 0;
+                    }
+                    int r;
+                    do {
+                        r = in.read(buf, end, buf.length - end);
+                    } while (r == 0);
+                    if (r < 0) {
+                        return false;
+                    }
+                    end += r;
+                    return true;
                 }
             }
         }
