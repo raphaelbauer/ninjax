@@ -39,3 +39,8 @@ The main project guide is `/CLAUDE.md` at the repo root. This file collects prac
   WIP commit when checking that a test fails without a fix.
 - Tests that start a real server (`NinjaHttpServer`, `NinjaJetty`) run it in a daemon thread on a free port, because
   both constructors block until the server stops.
+
+## Code notes
+- `Request` is a final class with a hand-written builder, not a record: its public API uses `getX()` getters
+  (`getLocale()`, `getFile()`, ...), which a record would turn into `x()` accessors. Null checks live in the constructor only.
+- Uploaded files come from a single `FileItemsGetter`; `getFile(name)` is simply the first element of `getFiles(name)`.

@@ -165,23 +165,6 @@ public class NinjaJetty {
                         }
                     };
 
-                    Request.FileItemGetter fileItemGetter = (String fieldName) -> {
-                        try {
-                            Part part = httpServletRequest.getPart(fieldName);
-                            if (part != null) {
-                                return Optional.of(new FileItem(
-                                        part.getSubmittedFileName(),
-                                        part.getContentType(),
-                                        part.getSize(),
-                                        part.getInputStream()
-                                ));
-                            }
-                        } catch (Exception e) {
-                            logger.log(Level.SEVERE, "Opsi", e);
-                        }
-                        return Optional.empty();
-                    };
-
                     // Config multpart requests... (params, files etc)
                     if (httpServletRequest.getContentType() != null
                             && httpServletRequest.getContentType().startsWith("multipart/")) {
@@ -218,9 +201,6 @@ public class NinjaJetty {
                         return result;
                     };
 
-
-                    var payload = new org.r10r.ninjax.core.Request.Payload(Map.of());
-
                     // Extract path parameters using the utility
                     var pathParams = PathParameterExtractor.extractPathParameters(
                             route.pathRegex(),
@@ -234,14 +214,12 @@ public class NinjaJetty {
                             .requestPath(requestURI)
                             .pathParameters(pathParams)
                             .inputStreamGetter(inputStreamGetter)
-                            .fileItemGetter(fileItemGetter)
                             .fileItemsGetter(fileItemsGetter)
                             .ninjaCookies(ninjaCookies)
-                            .payload(payload)
                             .headers(headers)
                             .parameters(parameters)
                             .ninjaSession(ninjaSessionInRequest)
-                            .language(httpServletRequest.getLocale())
+                            .locale(httpServletRequest.getLocale())
                             .build();
 
                     FilterChain chain = new FilterChain(route.filters, 0, routingResult.get().controllerMethod());
