@@ -40,7 +40,7 @@ public class RouteFinder {
             if (route.httpMethod().equalsIgnoreCase(httpMethod)) {
                 Matcher matcher = route.pathRegex().matcher(path);
                 if (matcher.matches()) {
-                    var pathParameters = PathParameterExtractor.extractPathParameters(matcher, route.parameters);
+                    var pathParameters = PathParameterExtractor.extractPathParameters(matcher, route.parameterNames);
                     return Optional.of(new RouteMatch(route, pathParameters));
                 }
             }

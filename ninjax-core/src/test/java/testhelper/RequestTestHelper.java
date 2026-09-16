@@ -28,7 +28,7 @@ public class RequestTestHelper {
         // Extract path parameters using utility
         var pathParams = PathParameterExtractor.extractPathParameters(
                 route.pathRegex(),
-                route.parameters,
+                route.parameterNames,
                 requestPath
         );
 
