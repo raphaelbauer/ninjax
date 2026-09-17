@@ -222,8 +222,10 @@ In the demo project (with database and one domain) this looks like the following
 
 #### Basics
 
-`conf/application.conf` contains all application logic. There's no magic here. Just simple-value pairs.
-If you want to override these properties, you can use Java system properties.
+`conf/application.conf` contains the configuration of your application. There's no magic here, just key-value pairs.
+Every property can be overridden with a Java system property (`-Dkey=value`). A system property always wins over
+the value in `application.conf`. It can also add keys that are not in `application.conf` at all, for example a
+new datasource via `-Dapplication.datasource.<name>.url=...`.
 
 #### Session properties
 
@@ -240,22 +242,32 @@ NinjaX refuses to start if `application.session.cookie.same_site` has an invalid
 or if it is `None` while the cookie is not secure (browsers reject such cookies).
 
 #### Configuration properties in production
-Override properties in application.conf is needed when running a server in production
- and selectively overwriting e.g. port and setting credentials:
+
+In production you usually override a few properties, like the port and the credentials.
+NinjaX does not read environment variables itself. Instead, let the shell put them into system properties:
 
 ```bash
-java -jar -Dninja.port=5000 \
-          -Dapplication.secret=${APPLICATION_SECRET} \
-          -Dapplication.datasource.default.url=${DATABASE_JDBC_URL} \
-          -Dapplication.datasource.default.username=${DATABASE_USERNAME} \
-          -Dapplication.datasource.default.password=${DATABASE_PASSWORD} \
-          -Dapplication.datasource.default.migration.username=${DATABASE_USERNAME} \
-          -Dapplication.datasource.default.migration.password=${DATABASE_PASSWORD} \
-          target/app.jar
+java -Dninja.port=5000 \
+     -Dapplication.secret="${APPLICATION_SECRET:?not set}" \
+     -Dapplication.datasource.default.url="${DATABASE_JDBC_URL:?not set}" \
+     -Dapplication.datasource.default.username="${DATABASE_USERNAME:?not set}" \
+     -Dapplication.datasource.default.password="${DATABASE_PASSWORD:?not set}" \
+     -Dapplication.datasource.default.migration.username="${DATABASE_USERNAME:?not set}" \
+     -Dapplication.datasource.default.migration.password="${DATABASE_PASSWORD:?not set}" \
+     -jar target/app.jar
 ```
 
-In that case `${APPLICATION_SECRET}` would be set by your container and used as a Java system propery.
-It would override application.secret in your application.conf file.
+The shell replaces `${APPLICATION_SECRET}` with the value of the environment variable before Java starts,
+so NinjaX simply sees `-Dapplication.secret=...`. Your container or hosting platform sets the environment variables.
+This keeps secrets out of `application.conf` and out of version control.
+
+Things to keep in mind:
+
+- A shell has to expand the variables. This works in shell scripts, systemd's `ExecStart` and a Dockerfile
+  `CMD java ...` (shell form), but not in the exec form `CMD ["java", ...]`. Kubernetes uses `$(VAR)` instead of `${VAR}`.
+- `${VAR:?not set}` stops the shell with an error if the variable is missing. A plain `${VAR}` would pass an empty value.
+- Quote the arguments, so values with spaces or special characters stay intact.
+- The expanded values are visible in the process list (e.g. `ps`) to users on the same machine.
 
 #### HTTP server limits
 
@@ -284,10 +296,10 @@ no request or response timeout at all. NinjaX maps the properties above to the J
   connections, default 30s), `jdk.httpserver.maxConnections` (open connections, default unlimited),
   `sun.net.httpserver.maxReqHeaders` (default 200) and `sun.net.httpserver.maxReqHeaderSize` (default 380 KiB).
 
-#### Configuration Properties in tests
+#### Configuration properties in tests
 
-In tests you can use a file in test/resources/conf/application.conf that will take
-predecence over the real application.conf file.
+In tests you can put a file at `src/test/resources/conf/application.conf`. It takes
+precedence over the real `application.conf` file.
 
 ### HTML templating
 
