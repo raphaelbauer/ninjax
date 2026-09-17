@@ -5,9 +5,13 @@ import org.r10r.ninjax.core.Result;
 import org.r10r.ninjax.demo.todo.tasks.views.TodoTemplateService;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.r10r.ninjax.json.Json;
 
 public class TodoController {
+
+    private static final Logger logger = Logger.getLogger(TodoController.class.getName());
 
     private final TaskService taskService;
     private final TodoTemplateService templateService;
@@ -30,10 +34,7 @@ public class TodoController {
                     .html(html)
                     .build();
         } catch (Exception e) {
-            return Result.builder()
-                    .status(Result.SC_500_INTERNAL_SERVER_ERROR)
-                    .text("Error: " + e.getMessage())
-                    .build();
+            return internalServerError("Error showing tasks", e);
         }
     }
 
@@ -55,10 +56,7 @@ public class TodoController {
                     .redirect("/")
                     .build();
         } catch (Exception e) {
-            return Result.builder()
-                    .status(Result.SC_500_INTERNAL_SERVER_ERROR)
-                    .text("Error adding task: " + e.getMessage())
-                    .build();
+            return internalServerError("Error adding task", e);
         }
     }
 
@@ -73,10 +71,7 @@ public class TodoController {
                     .redirect("/")
                     .build();
         } catch (Exception e) {
-            return Result.builder()
-                    .status(Result.SC_500_INTERNAL_SERVER_ERROR)
-                    .text("Error deleting task: " + e.getMessage())
-                    .build();
+            return internalServerError("Error deleting task", e);
         }
     }
 
@@ -89,10 +84,7 @@ public class TodoController {
                     .json(json.json(tasks))
                     .build();
         } catch (Exception e) {
-            return Result.builder()
-                    .status(Result.SC_500_INTERNAL_SERVER_ERROR)
-                    .text("Error getting tasks: " + e.getMessage())
-                    .build();
+            return internalServerError("Error getting tasks", e);
         }
     }
 
@@ -113,10 +105,19 @@ public class TodoController {
                     .build();
             }
         } catch (Exception e) {
-            return Result.builder()
-                .status(Result.SC_500_INTERNAL_SERVER_ERROR)
-                .text("Error toggling task: " + e.getMessage())
-                .build();
+            return internalServerError("Error toggling task", e);
         }
+    }
+
+    /**
+     * Logs the details and answers with a generic message. Exception messages can contain internals
+     * (SQL, table names, file paths) and must not be sent to the client.
+     */
+    private static Result internalServerError(String whatFailed, Exception e) {
+        logger.log(Level.SEVERE, whatFailed, e);
+        return Result.builder()
+                .status(Result.SC_500_INTERNAL_SERVER_ERROR)
+                .text(whatFailed + ". Please try again later.")
+                .build();
     }
 }

@@ -44,8 +44,9 @@ public record Result(
     // /////////////////////////////////////////////////////////////////////////
     // Some MIME types (for convenience)
     // /////////////////////////////////////////////////////////////////////////
-    public static final String TEXT_HTML = "text/html";
-    public static final String TEXT_PLAIN = "text/plain";
+    // html() and text() render UTF-8. Saying so stops browsers from guessing another charset.
+    public static final String TEXT_HTML = "text/html; charset=utf-8";
+    public static final String TEXT_PLAIN = "text/plain; charset=utf-8";
     public static final String APPLICATION_JSON = "application/json";
     public static final String APPLICATION_JSONP = "application/javascript";
     public static final String APPLICATION_XML = "application/xml";
@@ -130,6 +131,26 @@ public record Result(
         void streamTo(OutputStream outputStream);
     }
 
+    /**
+     * A body that is already fully known as bytes (html() and text()). Because its length is known,
+     * servers send it with a Content-Length header instead of chunked transfer encoding.
+     */
+    public record BytesRenderer(byte[] bytes) implements OutputStreamRenderer {
+
+        public static BytesRenderer utf8(String content) {
+            return new BytesRenderer(content.getBytes(StandardCharsets.UTF_8));
+        }
+
+        @Override
+        public void streamTo(OutputStream outputStream) {
+            try {
+                outputStream.write(bytes);
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "Rendering went wrong. Ouch! ", e);
+            }
+        }
+    }
+
     // //////////////////////////////////////////////////////////////////////////
     // Sealed session state types
     // //////////////////////////////////////////////////////////////////////////
@@ -182,24 +203,23 @@ public record Result(
         }
 
         public Builder ok() {
-            return builder().status(SC_200_OK);
+            return status(SC_200_OK);
         }
 
         public Builder notFound() {
-            return builder().status(SC_404_NOT_FOUND);
+            return status(SC_404_NOT_FOUND);
         }
 
         public Builder badRequest() {
-            return builder().status(SC_400_BAD_REQUEST);
+            return status(SC_400_BAD_REQUEST);
         }
 
         public Builder internalServerError() {
-            return builder().status(SC_500_INTERNAL_SERVER_ERROR);
+            return status(SC_500_INTERNAL_SERVER_ERROR);
         }
 
         public Builder redirect(String url) {
-            return builder()
-                    .status(SC_303_SEE_OTHER)
+            return status(SC_303_SEE_OTHER)
                     .addHeader(LOCATION, url);
         }
 
@@ -237,25 +257,13 @@ public record Result(
 
         public Builder html(String content) {
             this.contentType = TEXT_HTML;
-            this.outputStreamRenderer = outputStream -> {
-                try {
-                    outputStream.write(content.getBytes(StandardCharsets.UTF_8));
-                } catch (IOException e) {
-                    logger.log(Level.SEVERE, "Rendering went wrong. Ouch! ", e);
-                }
-            };
+            this.outputStreamRenderer = BytesRenderer.utf8(content);
             return this;
         }
 
         public Builder text(String content) {
             this.contentType = TEXT_PLAIN;
-            this.outputStreamRenderer = outputStream -> {
-                try {
-                    outputStream.write(content.getBytes(StandardCharsets.UTF_8));
-                } catch (IOException e) {
-                    logger.log(Level.SEVERE, "Rendering went wrong. Ouch! ", e);
-                }
-            };
+            this.outputStreamRenderer = BytesRenderer.utf8(content);
             return this;
         }
 

@@ -16,7 +16,7 @@ class PathParameterExtractorTest {
 
     private static Map<String, String> extract(String path, String uri) {
         Router.Route route = route(path);
-        return PathParameterExtractor.extractPathParameters(route.pathRegex(), route.parameters, uri);
+        return PathParameterExtractor.extractPathParameters(route.pathRegex(), route.parameterNames, uri);
     }
 
     @Test

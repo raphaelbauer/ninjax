@@ -237,31 +237,84 @@ In the demo project (with database and one domain) this looks like the following
 
 #### Basics
 
-`conf/application.conf` contains all application logic. There's no magic here. Just simple-value pairs.
-If you want to override these properties, you can use Java system properties.
+`conf/application.conf` contains the configuration of your application. There's no magic here, just key-value pairs.
+Every property can be overridden with a Java system property (`-Dkey=value`). A system property always wins over
+the value in `application.conf`. It can also add keys that are not in `application.conf` at all, for example a
+new datasource via `-Dapplication.datasource.<name>.url=...`.
+
+#### Session properties
+
+Sessions are stored as signed JWT in the `NINJA_SESSION` cookie. These properties control it:
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `application.secret` | (required) | Base64-encoded secret (at least 32 bytes) used to sign the session. |
+| `application.session.expire_time_in_seconds` | (not set) | Lifetime of the session in seconds. Without it the cookie lives until the browser is closed. |
+| `application.session.cookie.secure` | `true` | Only send the session cookie over HTTPS. Set to `false` for local development over plain HTTP. |
+| `application.session.cookie.same_site` | `Lax` | SameSite attribute of the session cookie: `Strict`, `Lax` or `None` (case-insensitive). `Lax` stops browsers from sending the session on cross-site POST requests (CSRF). `None` requires `application.session.cookie.secure=true`. |
+
+NinjaX refuses to start if `application.session.cookie.same_site` has an invalid value
+or if it is `None` while the cookie is not secure (browsers reject such cookies).
 
 #### Configuration properties in production
-Override properties in application.conf is needed when running a server in production
- and selectively overwriting e.g. port and setting credentials:
+
+In production you usually override a few properties, like the port and the credentials.
+NinjaX does not read environment variables itself. Instead, let the shell put them into system properties:
 
 ```bash
-java -jar -Dninja.port=5000 \
-          -Dapplication.secret=${APPLICATION_SECRET} \
-          -Dapplication.datasource.default.url=${DATABASE_JDBC_URL} \
-          -Dapplication.datasource.default.username=${DATABASE_USERNAME} \
-          -Dapplication.datasource.default.password=${DATABASE_PASSWORD} \
-          -Dapplication.datasource.default.migration.username=${DATABASE_USERNAME} \
-          -Dapplication.datasource.default.migration.password=${DATABASE_PASSWORD} \
-          target/app.jar
+java -Dninja.port=5000 \
+     -Dapplication.secret="${APPLICATION_SECRET:?not set}" \
+     -Dapplication.datasource.default.url="${DATABASE_JDBC_URL:?not set}" \
+     -Dapplication.datasource.default.username="${DATABASE_USERNAME:?not set}" \
+     -Dapplication.datasource.default.password="${DATABASE_PASSWORD:?not set}" \
+     -Dapplication.datasource.default.migration.username="${DATABASE_USERNAME:?not set}" \
+     -Dapplication.datasource.default.migration.password="${DATABASE_PASSWORD:?not set}" \
+     -jar target/app.jar
 ```
 
-In that case `${APPLICATION_SECRET}` would be set by your container and used as a Java system propery.
-It would override application.secret in your application.conf file.
+The shell replaces `${APPLICATION_SECRET}` with the value of the environment variable before Java starts,
+so NinjaX simply sees `-Dapplication.secret=...`. Your container or hosting platform sets the environment variables.
+This keeps secrets out of `application.conf` and out of version control.
 
-#### Configuration Properties in tests
+Things to keep in mind:
 
-In tests you can use a file in test/resources/conf/application.conf that will take
-predecence over the real application.conf file.
+- A shell has to expand the variables. This works in shell scripts, systemd's `ExecStart` and a Dockerfile
+  `CMD java ...` (shell form), but not in the exec form `CMD ["java", ...]`. Kubernetes uses `$(VAR)` instead of `${VAR}`.
+- `${VAR:?not set}` stops the shell with an error if the variable is missing. A plain `${VAR}` would pass an empty value.
+- Quote the arguments, so values with spaces or special characters stay intact.
+- The expanded values are visible in the process list (e.g. `ps`) to users on the same machine.
+
+#### HTTP server limits
+
+The built-in HTTP server protects itself with a few limits. The defaults are fine for most applications:
+
+| Property | Default | Meaning |
+|---|---|---|
+| `ninja.http.maxUploadBytes` | `10485760` (10 MiB) | Max size of a request body. Bigger bodies get a 413. |
+| `ninja.http.maxInMemoryBytes` | `10485760` (10 MiB) | Max size of a multipart text field kept in memory. Bigger ones spill to a temp file. |
+| `ninja.http.maxConcurrentRequests` | `1000` | Max requests processed at the same time. Every request beyond that gets a 503 right away. |
+| `ninja.http.maxRequestTimeSeconds` | `60` | Max time from the first byte of a request until its body is fully read. Stops slow clients (slowloris) from holding connections forever. `0` = no limit. |
+| `ninja.http.maxResponseTimeSeconds` | `300` | Max time from the fully read request until the response is fully written. This includes the time your controller needs. Stops clients that never read the response. `0` = no limit. |
+
+Worst case memory for buffered request bodies is roughly `maxConcurrentRequests * maxUploadBytes`.
+On a small machine lower one of them.
+
+The two timeouts are enforced by the JDK HTTP server (`com.sun.net.httpserver`) itself. Out of the box it has
+no request or response timeout at all. NinjaX maps the properties above to the JDK system properties
+`sun.net.httpserver.maxReqTime` and `sun.net.httpserver.maxRspTime`. Keep in mind:
+
+- These are JVM wide settings. They apply to every JDK HTTP server in the same JVM.
+- The JDK reads them only once, when the first JDK HTTP server of the JVM is created. NinjaX sets them right
+  before it creates its server. If something else in your JVM created a JDK HTTP server earlier, they have no effect.
+- If you pass `-Dsun.net.httpserver.maxReqTime=...` or `-Dsun.net.httpserver.maxRspTime=...` yourself, those win.
+- Further JDK knobs you can pass via `-D` if needed: `sun.net.httpserver.idleInterval` (idle keep-alive
+  connections, default 30s), `jdk.httpserver.maxConnections` (open connections, default unlimited),
+  `sun.net.httpserver.maxReqHeaders` (default 200) and `sun.net.httpserver.maxReqHeaderSize` (default 380 KiB).
+
+#### Configuration properties in tests
+
+In tests you can put a file at `src/test/resources/conf/application.conf`. It takes
+precedence over the real `application.conf` file.
 
 ### HTML templating
 
@@ -374,22 +427,46 @@ public Result addTask(Request request) {
 }
 ```
 
+### Sessions
+The session (`NinjaSession`) is stored in the `NINJA_SESSION` cookie as a JWT signed with `application.secret`.
+Nothing is kept on the server, so any instance of your application can handle any request.
+
+The session is **signed, not encrypted**. A client can't change it without the signature check failing, but
+anyone who has the cookie can read its content. Store ids (e.g. a user id) in the session, never passwords,
+tokens or other secrets.
+
+```java
+public Result login(Request request) {
+    // ... check credentials ...
+    var session = new NinjaSession().withValue("userId", String.valueOf(user.id()));
+    return Result.builder()
+            .withNinjaSession(session)
+            .redirect("/")
+            .build();
+}
+```
+
 ### Uploading files
-File uploads are supported via `Request.getFileItem()`. Ensure your form uses `enctype="multipart/form-data"`.
+File uploads are supported via `Request.getFile()` (first file of a field) and `Request.getFiles()` (all files of a field).
+Ensure your form uses `enctype="multipart/form-data"`.
 
 ```java
 public Result uploadFile(Request request) {
-    Optional<FileItem> fileItem = request.getFileItem("profile_picture");
+    Optional<FileItem> fileItem = request.getFile("profile_picture");
     
     if (fileItem.isPresent()) {
         FileItem file = fileItem.get();
-        // Process input stream: file.getInputStream()
-        // Check content type: file.getContentType()
+        // Process input stream: file.inputStream()
+        // Check content type: file.contentType()
     }
     
     return Result.ok().build();
 }
 ```
+
+Request bodies are limited to 10 MiB by default, on both the JDK server and Jetty. Larger uploads are
+rejected before your controller runs (`413 Payload Too Large`, or `400` from Jetty for chunked multipart
+uploads). Change the limit with `ninja.http.maxUploadBytes`, e.g. `ninja.http.maxUploadBytes=52428800` for 50 MiB.
 
 ### Working with relational DBs
 NinjaX supports relational databases out of the box using [Flyway](https://github.com/flyway/flyway) for migrations,
@@ -500,6 +577,9 @@ Routing is defined explicitly in code using the `Router` class.
 var router = new Router();
 router.GET("/").with(controller::index);
 router.POST("/users").with(controller::createUser);
+router.PUT("/users/{id}").with(controller::replaceUser);
+router.PATCH("/users/{id}").with(controller::updateUser);
+router.DELETE("/users/{id}").with(controller::deleteUser);
 
 // Path parameters
 router.GET("/users/{id}").with(controller::getUser);
@@ -507,6 +587,9 @@ router.GET("/users/{id}").with(controller::getUser);
 // Regex constraints
 router.GET("/users/{id: [0-9]+}").with(controller::getUserById);
 ```
+
+`HEAD` requests are answered by the matching `GET` route: same status and headers, but no body.
+Use `router.HEAD(...)` only if a `HEAD` request should do something different.
 
 ```java
 public Result doStuff(Request request) {

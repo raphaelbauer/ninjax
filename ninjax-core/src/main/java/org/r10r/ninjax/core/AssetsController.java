@@ -18,9 +18,10 @@ public class AssetsController {
 
     public Result serveStatic(Request request) {
         String requestedPath = request.getPathParameter(FILENAME_PATH_PARAM)
-                .orElseGet(request::getRequestPath);
+                .or(() -> Request.decodePath(request.getRequestPath()))
+                .orElse("");
 
-        if (requestedPath == null || requestedPath.isEmpty()) {
+        if (requestedPath.isEmpty()) {
             logger.log(Level.WARNING, "No requested file found based on param '{0}'.", FILENAME_PATH_PARAM);
             return Result.builder().notFound().build();
         }

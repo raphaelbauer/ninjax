@@ -278,4 +278,50 @@ class ResultTest {
         assertThrows(NullPointerException.class, () -> Result.builder().addHeader("k", null));
         assertThrows(NullPointerException.class, () -> Result.builder().stream(null));
     }
+
+    @Test
+    void statusShortcuts_keepEverythingSetBefore() throws Exception {
+        // given
+        NinjaSession session = new NinjaSession(Map.of("user", "bob"));
+        NinjaCookie cookie = NinjaCookie.builder("flash", "saved").build();
+
+        // when
+        Result redirect = Result.builder()
+                .withNinjaSession(session)
+                .addCookie(cookie)
+                .addHeader("X-Custom", "1")
+                .redirect("/")
+                .build();
+        Result notFound = Result.builder().html("<b>missing</b>").notFound().build();
+        Result badRequest = Result.builder().text("invalid").badRequest().build();
+        Result serverError = Result.builder().text("oops").internalServerError().build();
+        Result ok = Result.builder().status(Result.SC_404_NOT_FOUND).text("fine").ok().build();
+
+        // then
+        assertThat(redirect.status()).isEqualTo(Result.SC_303_SEE_OTHER);
+        assertThat(redirect.headers()).containsEntry(Result.LOCATION, List.of("/"));
+        assertThat(redirect.headers()).containsEntry("X-Custom", List.of("1"));
+        assertThat(redirect.cookies()).containsExactly(cookie);
+        assertThat(redirect.ninjaSessionState()).isInstanceOf(Result.Exists.class);
+        assertThat(((Result.Exists) redirect.ninjaSessionState()).getSession()).isEqualTo(session);
+
+        assertThat(notFound.status()).isEqualTo(Result.SC_404_NOT_FOUND);
+        assertThat(notFound.contentType()).isEqualTo(Result.TEXT_HTML);
+        assertThat(render(notFound)).isEqualTo("<b>missing</b>");
+
+        assertThat(badRequest.status()).isEqualTo(Result.SC_400_BAD_REQUEST);
+        assertThat(render(badRequest)).isEqualTo("invalid");
+
+        assertThat(serverError.status()).isEqualTo(Result.SC_500_INTERNAL_SERVER_ERROR);
+        assertThat(render(serverError)).isEqualTo("oops");
+
+        assertThat(ok.status()).isEqualTo(Result.SC_200_OK);
+        assertThat(render(ok)).isEqualTo("fine");
+    }
+
+    private static String render(Result result) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        result.outputStreamRenderer().orElseThrow().streamTo(baos);
+        return baos.toString(StandardCharsets.UTF_8);
+    }
 }

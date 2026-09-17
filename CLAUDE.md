@@ -51,10 +51,10 @@ The server is picked by the property `ninja.server` (`jdk` or `jetty`) in `TodoA
 ### Module-Specific Testing
 ```bash
 # Test specific module
-cd ninja-core && mvn test
+cd ninjax-core && mvn test
 
-# Build specific module
-mvn package -pl ninja-core
+# Build specific module (plus the modules it depends on)
+mvn package -pl ninjax-core -am
 ```
 
 ## Module Architecture
@@ -62,19 +62,20 @@ mvn package -pl ninja-core
 This is a multi-module Maven project with clear separation of concerns:
 
 ### Core Modules
-- **ninja-core** - Framework core (Router, Request, Result, NinjaJetty, sessions)
-- **ninja-template** - Juckula HTML templating system
-- **ninja-maven-plugin** - Maven tooling for Ninja applications
+- **ninjax-core** - Framework core (Router, Request, Result, sessions, JWT, NinjaHttpServer on the JDK's built-in HttpServer)
+- **ninjax-jetty** - Optional Jetty 12 based server (`NinjaJetty`), same Router/Request/Result as the JDK server
+- **ninjax-json-jackson** - JSON rendering and parsing with Jackson 3 (`Json`)
+- **ninjax-template** - HTML templating (`NinjaHtmlTemplate`, `NinjaHtmlTemplateTool`, `Html`)
+- **ninjax-maven-plugin** - Maven tooling (`mvn ninjax:run` with restart on change, `mvn ninjax:generateSecret`)
 
 ### Database Modules
-- **ninja-db-common** - Shared datasource configuration and models
-- **ninja-db-hikari** - HikariCP connection pool integration
-- **ninja-db-flyway** - Flyway database migration support
-- **ninja-db-jdbi** - JDBI3 SQL Objects integration
+- **ninjax-db-common** - Shared datasource configuration and models
+- **ninjax-db-hikari** - HikariCP connection pool integration
+- **ninjax-db-flyway** - Flyway database migration support
+- **ninjax-db-jdbi** - JDBI3 SQL Objects integration
 
 ### Testing Modules
-- **ninja-test-utils** - Test utilities for Ninja applications
-- **ninja-test-db-utils** - Database testing utilities with Testcontainers
+- **ninjax-test-utils** - Test utilities (`TestRequest`, `TestRequestBuilder`, `ResultAssertions`, `HttpTestClient`)
 
 ### Demo
 - **ninjax-demo-todo** - Working todo list application demonstrating framework usage.
@@ -94,7 +95,7 @@ public class TodoApplication {
     final private NinjaFlywayMigrator migrator =
         new NinjaFlywayMigrator(datasourceExtractor.get());
     public final Router router = new Router();
-    public final NinjaJetty ninja = new NinjaJetty(router, ninjaProperties);
+    public final NinjaHttpServer server = new NinjaHttpServer(router, ninjaProperties); // or NinjaJetty
 }
 ```
 
@@ -106,10 +107,14 @@ router.GET("/").with(controller::index);
 router.POST("/tasks").with(controller::addTask);
 router.GET("/user/{id}").with(controller::getUser);
 router.GET("/api/{id: [0-9]+}").with(controller::getById); // Path param with regex
+router.PUT("/tasks/{id}").with(controller::replaceTask);   // also PATCH, DELETE and HEAD
 ```
 
+A HEAD request without an explicit `router.HEAD(...)` route falls back to the GET route (in `RouteFinder`).
+Both servers (`NinjaHttpServer`, `NinjaJetty`) then send status and headers but never invoke the body renderer.
+
 ### 3. Immutable Request/Result Pattern
-- **Request**: Immutable record containing all HTTP request data (headers, params, body, session)
+- **Request**: Immutable class (with builder) containing all HTTP request data (headers, params, body, session, locale)
 - **Result**: Immutable record representing HTTP response (status, content, cookies, session state)
 - Controllers are pure functions: `Request → Result`
 
@@ -117,14 +122,14 @@ router.GET("/api/{id: [0-9]+}").with(controller::getById); // Path param with re
 Filters implement `NinjaFilter` interface and form a chain of responsibility. Each filter can inspect the request, modify it, and either continue the chain or short-circuit with a Result.
 
 ### 5. JWT-Based Sessions
-Sessions are stateless JWT tokens stored in cookies. Session data is serialized as JWT claims with HMAC SHA256 signatures. This enables horizontal scaling without session stores.
+Sessions are stateless JWT tokens stored in cookies. Session data is serialized as JWT claims with HMAC SHA256 signatures. This enables horizontal scaling without session stores. The session is signed, not encrypted: clients can read it, so never store secrets in it.
 
 ## Request/Response Flow
 
 ```
 HTTP Request
     ↓
-[NinjaJetty.NinjaServletFilter]
+[NinjaHttpServer.NinjaHandler or NinjaJetty.NinjaServletFilter]
     ├─ Extract: method, path, headers, cookies, body
     ├─ Parse session from JWT cookie
     ├─ Build immutable Request object
@@ -192,45 +197,48 @@ public TaskRepository(NinjaJdbi ninjaJdbi) {
 Migrations located at: `src/main/resources/migrations/{datasource_name}/`
 Named: `V{version}__{description}.sql` (e.g., `V1__Create_tasks_table.sql`)
 
-## Templating System (Juckula)
+## Templating System (ninjax-template)
 
-Juckula is a minimal, programmatic HTML templating system with two components:
+A minimal, programmatic HTML templating system in `org.r10r.ninjax.htmltemplate`:
 
-1. **JuckulaCompositionTemplate** - Builder for composing HTML programmatically
-2. **JuckulaTool** - Utilities for placeholder replacement and resource loading
+1. **NinjaHtmlTemplate** - Builder for composing HTML programmatically
+2. **NinjaHtmlTemplateTool** - Placeholder replacement and loading templates from resource files
+3. **Html** - Wrapper marking a String as trusted raw HTML
 
 ### Usage Patterns
 
 **Pattern 1: Direct Composition**
 ```java
-JuckulaCompositionTemplate template = new JuckulaCompositionTemplate();
-template.html("<h1>Hello</h1>");
-template.html("<p>World</p>");
+NinjaHtmlTemplate template = new NinjaHtmlTemplate();
+template.appendHtml("<h1>Hello</h1>");   // trusted HTML, not escaped
+template.append(userInput);              // escaped
 String html = template.toString();
 ```
 
 **Pattern 2: Resource Files with Placeholders**
 ```java
-String templateHtml = JuckulaTool.readResourceFile(MyTemplate.class); // Loads MyTemplate.html
-Map<String, String> params = Map.of("title", "Page", "content", dynamicContent);
-String rendered = JuckulaTool.replacePlaceholders(templateHtml, params);
+String templateHtml = NinjaHtmlTemplateTool.readResourceFile(MyTemplate.class); // Loads MyTemplate.html
+Map<String, Object> params = Map.of("title", "Page", "content", new Html(trustedHtml));
+String rendered = NinjaHtmlTemplateTool.replacePlaceholders(templateHtml, params);
 ```
 
 Resource files use `{{key}}` syntax for placeholders and must be next to the Java class.
 
-**XSS Prevention:** Use `JuckulaCompositionTemplate.escapeUnsafe(userInput)` for user-provided content.
+**XSS Prevention:** Strings are HTML-escaped by default (`append(String)` and placeholder values).
+Only `appendHtml(...)`, `Html` and nested `NinjaHtmlTemplate` values are inserted unescaped, so use them
+for trusted content only. `NinjaHtmlTemplate.escapeUnsafe(...)` escapes manually.
 
 ## Code Style and Conventions
 
 ### Modern Java Features
-- **Records** for immutable data (Request, Result, NinjaSession, etc.)
+- **Records** for immutable data (Result, NinjaSession, NinjaCookie, etc.)
 - **Sealed interfaces** for exhaustive pattern matching (NinjaSessionState)
 - **Text blocks** (`"""..."""`) for multi-line strings
 - **Optional<T>** instead of null - use extensively
 - **Streams** for collection processing
 
 ### Naming Conventions
-- Packages: `org.ninja.*` (lowercase)
+- Packages: `org.r10r.ninjax.*` (lowercase)
 - Classes: PascalCase
 - Methods: camelCase
 - Constants: SCREAMING_SNAKE_CASE
@@ -291,25 +299,35 @@ Mirror production package structure in `src/test/java`.
 ## Technology Stack
 
 - **Java**: 25
-- **Web Server**: Eclipse Jetty 12.1.13 (ee10 servlet)
+- **Web Server**: JDK built-in `com.sun.net.httpserver` (ninjax-core) or Eclipse Jetty 12.1.13 ee10 (ninjax-jetty)
 - **JSON**: Jackson 3.2.2 (`tools.jackson.*` packages; java.time and Optional support built in)
 - **Database**: JDBI 3.54.0, HikariCP 7.1.0, Flyway 13.7.0, H2 2.5.250
-- **Authentication**: JJWT 0.13.0
-- **Logging**: java.util.logging (the demo routes SLF4J 2.0.19 to it via `slf4j-jdk14`)
+- **Sessions**: own minimal HS256 JWT implementation in `org.r10r.ninjax.core.jwt` (`Jwt.sign` / `Jwt.verify`, no JJWT)
+- **Logging**: java.util.logging in the framework; the demo routes SLF4J 2.0.19 (Jetty, HikariCP, Flyway, JDBI) to it via `slf4j-jdk14`
 - **Utilities**: Google Guava 33.7.1
-- **Testing**: JUnit 6.1.3, Google Truth 1.4.5, Testcontainers 2.0.5, Mockito 5.23.0
+- **Testing**: JUnit 6.1.3, Google Truth 1.4.5; Testcontainers 2.0.5 and Mockito 5.23.0 are managed in the root pom (Mockito is only used by older demo tests, prefer manual test doubles)
 
 ## Configuration
 
-Application configuration lives in `src/main/resources/conf/application.conf` (properties format).
+Application configuration lives in `conf/application.conf` on the classpath (properties format). The demos keep it in `src/main/java/conf/application.conf`.
 
 **Required Properties:**
 - `application.secret` - Secret key for JWT session signing (base64-encoded)
 
 **Optional Properties:**
 - `ninja.port` - HTTP server port (default: 8080)
+- `ninja.http.maxUploadBytes` - Max request body size, 413 beyond (default: 10485760)
+- `ninja.http.maxInMemoryBytes` - Max multipart text field kept in memory, spills to temp file beyond (default: 10485760)
+- `ninja.http.maxConcurrentRequests` - Max requests processed at once, 503 beyond (default: 1000)
+- `ninja.http.maxRequestTimeSeconds` - Max time to receive a request incl. body, 0 = no limit (default: 60)
+- `ninja.http.maxResponseTimeSeconds` - Max time from received request to written response, 0 = no limit (default: 300)
 - `application.session.expire_time_in_seconds` - Session expiration
 - `application.session.cookie.secure` - Secure flag for session cookie
+- `application.session.cookie.same_site` - SameSite attribute for session cookie: Strict|Lax|None, case-insensitive (default: Lax). Invalid values and `None` without `secure=true` fail at startup
+
+The two `ninja.http.*TimeSeconds` timeouts are mapped to the JVM wide `sun.net.httpserver.maxReqTime`/`maxRspTime`
+system properties (JDK default: no limit). The JDK reads them once, when the first `HttpServer` of the JVM is created,
+so `NinjaHttpServer` sets them right before `HttpServer.create(...)`. Explicit `-Dsun.net.httpserver.*` flags win.
 
 ## Key Design Patterns
 

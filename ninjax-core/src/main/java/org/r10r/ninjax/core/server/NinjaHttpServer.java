@@ -4,12 +4,12 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import org.r10r.ninjax.core.DefaultResponseHeaders;
 import org.r10r.ninjax.core.FileItem;
 import org.r10r.ninjax.core.FilterChain;
 import org.r10r.ninjax.core.HttpOnly;
 import org.r10r.ninjax.core.NinjaCookie;
 import org.r10r.ninjax.core.NinjaSession;
-import org.r10r.ninjax.core.PathParameterExtractor;
 import org.r10r.ninjax.core.Request;
 import org.r10r.ninjax.core.Result;
 import org.r10r.ninjax.core.RouteFinder;
@@ -31,6 +31,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.r10r.ninjax.core.NinjaSessionConverter;
@@ -43,12 +44,27 @@ import org.r10r.ninjax.core.NinjaSessionConverter;
  * parsing (byte scanning for boundary, not line-based). 2) Strip exactly one
  * trailing CRLF (or LF) from multipart text field values. 3) Limits: - max
  * upload size across the whole request body when parsing urlencoded/multipart -
- * max in-memory size for multipart text field parts; spills to temp file beyond
- * that Defaults are 10 MiB each. 4) Jetty-like blocking behavior: new
+ * max size of a single multipart text field (413 beyond that; file parts always
+ * go to temp files). Defaults are 10 MiB each. 4) Jetty-like blocking behavior: new
  * NinjaHttpServer(router, props) blocks (join) until stop() / shutdown hook.
  *
  * Properties: - ninja.port (default 8080) - ninja.http.maxUploadBytes (default
  * 10485760) - ninja.http.maxInMemoryBytes (default 10485760)
+ * - ninja.http.maxConcurrentRequests (default 1000): requests beyond this are
+ * answered with 503 right away instead of piling up. Worst case memory for
+ * buffered bodies is roughly maxConcurrentRequests * maxUploadBytes.
+ * - ninja.http.maxRequestTimeSeconds (default 60): max time from the first byte
+ * of a request until its body is fully read. Protects against slow clients
+ * (slowloris). 0 disables the limit.
+ * - ninja.http.maxResponseTimeSeconds (default 300): max time from the fully
+ * read request until the response is fully written (controller time included).
+ * Protects against clients that never read the response. 0 disables the limit.
+ *
+ * The two timeouts are enforced by the JDK server itself, which only knows the
+ * JVM wide system properties sun.net.httpserver.maxReqTime / maxRspTime (both
+ * "no limit" by default). They are read ONCE, when the first JDK HttpServer of
+ * the JVM is created, so NinjaHttpServer sets them right before that. If you
+ * pass -Dsun.net.httpserver.maxReqTime / maxRspTime yourself, those win.
  */
 public class NinjaHttpServer {
 
@@ -63,6 +79,20 @@ public class NinjaHttpServer {
     private static final long DEFAULT_LIMIT_BYTES = 10L * 1024L * 1024L; // 10 MiB
     private final long maxUploadBytes;
     private final long maxInMemoryBytes;
+
+    // Virtual threads make waiting requests cheap, so the cap is well above the classic 200 thread pools of
+    // Jetty/Tomcat. We answer 503 instead of queueing, so a too low cap would reject normal bursts.
+    private static final int DEFAULT_MAX_CONCURRENT_REQUESTS = 1000;
+    private final int maxConcurrentRequests;
+
+    // Request time covers slow uploads too: 60s still allows a 10 MiB body at ~1.4 Mbit/s.
+    // Response time includes controller time and streaming large responses, so it is more generous.
+    private static final long DEFAULT_MAX_REQUEST_TIME_SECONDS = 60;
+    private static final long DEFAULT_MAX_RESPONSE_TIME_SECONDS = 300;
+    static final String JDK_MAX_REQUEST_TIME_PROPERTY = "sun.net.httpserver.maxReqTime";
+    static final String JDK_MAX_RESPONSE_TIME_PROPERTY = "sun.net.httpserver.maxRspTime";
+    private final long maxRequestTimeSeconds;
+    private final long maxResponseTimeSeconds;
 
     private volatile HttpServer server;
     private final CountDownLatch stopLatch = new CountDownLatch(1);
@@ -90,6 +120,13 @@ public class NinjaHttpServer {
 
         this.maxUploadBytes = parseLong(ninjaProperties.get("ninja.http.maxUploadBytes"), DEFAULT_LIMIT_BYTES);
         this.maxInMemoryBytes = parseLong(ninjaProperties.get("ninja.http.maxInMemoryBytes"), DEFAULT_LIMIT_BYTES);
+        this.maxConcurrentRequests = Math.clamp(
+                parseLong(ninjaProperties.get("ninja.http.maxConcurrentRequests"), DEFAULT_MAX_CONCURRENT_REQUESTS),
+                1, Integer.MAX_VALUE);
+        this.maxRequestTimeSeconds = parseLong(
+                ninjaProperties.get("ninja.http.maxRequestTimeSeconds"), DEFAULT_MAX_REQUEST_TIME_SECONDS);
+        this.maxResponseTimeSeconds = parseLong(
+                ninjaProperties.get("ninja.http.maxResponseTimeSeconds"), DEFAULT_MAX_RESPONSE_TIME_SECONDS);
 
         try {
             start();
@@ -116,15 +153,21 @@ public class NinjaHttpServer {
     private void start() throws Exception {
         System.out.println(NINJA_LOGO);
 
+        // Must happen before HttpServer.create(...): the JDK reads these properties only once.
+        applyJdkHttpServerTimeouts(maxRequestTimeSeconds, maxResponseTimeSeconds);
+
         HttpServer httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
-        httpServer.createContext("/", new NinjaHandler(maxUploadBytes, maxInMemoryBytes));
+        httpServer.createContext("/", new ConcurrencyLimitHandler(
+                maxConcurrentRequests, new NinjaHandler(maxUploadBytes, maxInMemoryBytes)));
 
         //var exeuctor = NinjaHttpServer.createBoundedExecutor();
         httpServer.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
         httpServer.start();
         this.server = httpServer;
 
-        logger.log(Level.INFO, "NinjaHttpServer started on port {0}", "" + serverPort);
+        logger.log(Level.INFO, "NinjaHttpServer started on port {0} (maxConcurrentRequests={1}, maxReqTime={2}s, maxRspTime={3}s)",
+                new Object[]{"" + serverPort, "" + maxConcurrentRequests,
+                    System.getProperty(JDK_MAX_REQUEST_TIME_PROPERTY), System.getProperty(JDK_MAX_RESPONSE_TIME_PROPERTY)});
 
         // Ensure "constructor join" is released on Ctrl+C / SIGTERM
         Runtime.getRuntime().addShutdownHook(Thread.ofPlatform().unstarted(() -> {
@@ -133,6 +176,21 @@ public class NinjaHttpServer {
             } catch (Throwable ignored) {
             }
         }));
+    }
+
+    /**
+     * Sets the JDK HttpServer request/response timeouts (in seconds, 0 = no limit), unless they were already
+     * set via -D. Only has an effect if called before the first JDK HttpServer of this JVM is created.
+     */
+    static void applyJdkHttpServerTimeouts(long maxRequestTimeSeconds, long maxResponseTimeSeconds) {
+        setSystemPropertyIfAbsent(JDK_MAX_REQUEST_TIME_PROPERTY, String.valueOf(maxRequestTimeSeconds));
+        setSystemPropertyIfAbsent(JDK_MAX_RESPONSE_TIME_PROPERTY, String.valueOf(maxResponseTimeSeconds));
+    }
+
+    static void setSystemPropertyIfAbsent(String key, String value) {
+        if (System.getProperty(key) == null) {
+            System.setProperty(key, value);
+        }
     }
 
     /**
@@ -172,7 +230,9 @@ public class NinjaHttpServer {
 
             try {
                 String httpMethod = exchange.getRequestMethod();
-                String requestPath = exchange.getRequestURI().getPath();
+                // Use the raw (still encoded) path like Jetty does. Decoding happens once, in
+                // Request.getPathParameter. Decoding here as well led to double decoding ("%2525" -> "%").
+                String requestPath = exchange.getRequestURI().getRawPath();
                 var routingResult = routeFinder.getRouteFor(httpMethod, requestPath);
 
                 if (routingResult.isEmpty()) {
@@ -180,7 +240,7 @@ public class NinjaHttpServer {
                     return;
                 }
 
-                var route = routingResult.get();
+                var route = routingResult.get().route();
 
                 Request.Headers headers = NinjaHttpServerHelper.extractHeaders(exchange.getRequestHeaders());
 
@@ -201,21 +261,12 @@ public class NinjaHttpServer {
                 Request.InputStreamGetter inputStreamGetter =
                         NinjaHttpServerHelper.inputStreamGetter(exchange, parsedBody, maxUploadBytes);
 
-                Request.FileItemGetter fileItemGetter = (String fieldName)
-                        -> parsedBody.firstFile(fieldName).map(NinjaHttpServerHelper.MultipartFile::toFileItem);
-
                 Request.FileItemsGetter fileItemsGetter = (String fieldName)
                         -> parsedBody.files(fieldName).stream()
                                 .map(NinjaHttpServerHelper.MultipartFile::toFileItem)
                                 .toList();
 
-                var payload = new Request.Payload(Map.of());
-
-                var pathParams = PathParameterExtractor.extractPathParameters(
-                        route.pathRegex(),
-                        route.parameters,
-                        requestPath
-                );
+                var pathParams = routingResult.get().pathParameters();
 
                 var parameters = new Request.Parameters(parameterMap);
                 Locale locale = NinjaHttpServerHelper.extractLocale(exchange.getRequestHeaders());
@@ -224,14 +275,12 @@ public class NinjaHttpServer {
                         .requestPath(requestPath)
                         .pathParameters(pathParams)
                         .inputStreamGetter(inputStreamGetter)
-                        .fileItemGetter(fileItemGetter)
                         .fileItemsGetter(fileItemsGetter)
                         .ninjaCookies(ninjaCookies)
-                        .payload(payload)
                         .headers(headers)
                         .parameters(parameters)
                         .ninjaSession(ninjaSessionInRequest)
-                        .language(locale)
+                        .locale(locale)
                         .build();
 
                 FilterChain chain = new FilterChain(route.filters, 0, route.controllerMethod());
@@ -240,6 +289,7 @@ public class NinjaHttpServer {
                 Headers respHeaders = exchange.getResponseHeaders();
                 respHeaders.set("Content-Type", result.contentType());
                 NinjaHttpServerHelper.addHeaders(respHeaders, result.headers());
+                DefaultResponseHeaders.missingIn(result.headers()).forEach(respHeaders::set);
 
                 switch (result.ninjaSessionState()) {
                     case Result.Exists exists -> {
@@ -261,10 +311,13 @@ public class NinjaHttpServer {
 
                 int status = result.status();
 
-                if (result.outputStreamRenderer().isPresent()) {
-                    exchange.sendResponseHeaders(status, 0); // chunked
+                // HEAD responses carry the same status and headers as GET, but never a body. The JDK
+                // server needs -1 for that; a length >= 0 makes it warn and throw when nothing is written.
+                if (result.outputStreamRenderer().isPresent() && !isHeadRequest(exchange)) {
+                    var renderer = result.outputStreamRenderer().get();
+                    exchange.sendResponseHeaders(status, NinjaHttpServerHelper.responseLengthFor(renderer));
                     try (OutputStream os = exchange.getResponseBody()) {
-                        result.outputStreamRenderer().get().streamTo(os);
+                        renderer.streamTo(os);
                     }
                 } else {
                     exchange.sendResponseHeaders(status, -1);
@@ -311,9 +364,68 @@ public class NinjaHttpServer {
         private void sendPlain(HttpExchange exchange, int status, String text) throws IOException {
             byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
+            exchange.getResponseHeaders().set(DefaultResponseHeaders.X_CONTENT_TYPE_OPTIONS, "nosniff");
+            if (isHeadRequest(exchange)) {
+                exchange.sendResponseHeaders(status, -1);
+                return;
+            }
             exchange.sendResponseHeaders(status, bytes.length);
             try (OutputStream os = exchange.getResponseBody()) {
                 os.write(bytes);
+            }
+        }
+    }
+
+    /**
+     * Lets at most maxConcurrentRequests requests into the delegate at the same time. Every request beyond
+     * that gets a 503 right away. Without this cap each request gets its own virtual thread, and a flood of
+     * requests (each buffering a body of up to maxUploadBytes) could exhaust memory.
+     */
+    /**
+     * A HEAD response never has a body (RFC 9110), and the JDK server logs a warning and throws
+     * when one is written anyway.
+     */
+    static boolean isHeadRequest(HttpExchange exchange) {
+        return "HEAD".equalsIgnoreCase(exchange.getRequestMethod());
+    }
+
+    static final class ConcurrencyLimitHandler implements HttpHandler {
+
+        private final Semaphore permits;
+        private final HttpHandler delegate;
+
+        ConcurrencyLimitHandler(int maxConcurrentRequests, HttpHandler delegate) {
+            this.permits = new Semaphore(maxConcurrentRequests);
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!permits.tryAcquire()) {
+                rejectAsOverloaded(exchange);
+                return;
+            }
+            try {
+                delegate.handle(exchange);
+            } finally {
+                permits.release();
+            }
+        }
+
+        private static void rejectAsOverloaded(HttpExchange exchange) throws IOException {
+            try (exchange) {
+                byte[] bytes = "Service unavailable. Too many requests right now, please try again."
+                        .getBytes(StandardCharsets.UTF_8);
+                exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
+                exchange.getResponseHeaders().set(DefaultResponseHeaders.X_CONTENT_TYPE_OPTIONS, "nosniff");
+                if (isHeadRequest(exchange)) {
+                    exchange.sendResponseHeaders(503, -1);
+                    return;
+                }
+                exchange.sendResponseHeaders(503, bytes.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(bytes);
+                }
             }
         }
     }
@@ -411,6 +523,18 @@ public class NinjaHttpServer {
             return new Request.Headers(map);
         }
 
+        /**
+         * The length argument for HttpExchange.sendResponseHeaders: the exact size for bodies that are
+         * already known as bytes, 0 (chunked) for streamed bodies, and -1 (no body) for an empty byte body.
+         * Note that the JDK uses 0 for "chunked", so an empty body must be -1.
+         */
+        public static long responseLengthFor(Result.OutputStreamRenderer renderer) {
+            if (renderer instanceof Result.BytesRenderer bytesRenderer) {
+                return bytesRenderer.bytes().length == 0 ? -1 : bytesRenderer.bytes().length;
+            }
+            return 0;
+        }
+
         public static void addHeaders(Headers responseHeaders, Map<String, List<String>> headers) {
             for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
                 String headerName = entry.getKey();
@@ -450,7 +574,8 @@ public class NinjaHttpServer {
                             -1,
                             Optional.empty(),
                             Secure.ofBoolean(false),
-                            HttpOnly.ofBoolean(false)
+                            HttpOnly.ofBoolean(false),
+                            Optional.empty()
                     ));
                 }
             }
@@ -458,6 +583,7 @@ public class NinjaHttpServer {
         }
 
         public static String toSetCookieHeader(NinjaCookie ninjaCookie) {
+            ninjaCookie.requireValidForResponse();
             StringBuilder sb = new StringBuilder();
             sb.append(ninjaCookie.name()).append("=").append(ninjaCookie.value() == null ? "" : ninjaCookie.value());
             ninjaCookie.path().ifPresent(p -> sb.append("; Path=").append(p));
@@ -471,6 +597,7 @@ public class NinjaHttpServer {
             if (ninjaCookie.httpOnly().toBoolean()) {
                 sb.append("; HttpOnly");
             }
+            ninjaCookie.sameSite().ifPresent(s -> sb.append("; SameSite=").append(s.name()));
             return sb.toString();
         }
 
@@ -510,8 +637,7 @@ public class NinjaHttpServer {
         /**
          * Parses query parameters plus body parameters/files (when urlencoded
          * or multipart). Enforces: - maxUploadBytes (overall body read) -
-         * maxInMemoryBytes (per multipart text field; spills beyond to temp
-         * file)
+         * maxInMemoryBytes (per multipart text field, which is kept in memory)
          */
         public static ParsedBody parseBodyAndParameters(
                 HttpExchange exchange,
@@ -729,6 +855,8 @@ public class NinjaHttpServer {
 
         private static final class Multipart {
 
+            private static final int MAX_BOUNDARY_LENGTH = 70;
+
             static MultipartParseResult parse(
                     InputStream rawIn,
                     String boundary,
@@ -736,16 +864,18 @@ public class NinjaHttpServer {
                     long maxInMemoryBytes
             ) throws IOException {
 
-                BufferedInputStream in = new BufferedInputStream(rawIn, 128 * 1024);
+                // RFC 2046 limits boundaries to 70 characters. Enforcing it keeps the boundary search
+                // cheap: its worst case grows with the boundary length.
+                if (boundary.length() > MAX_BOUNDARY_LENGTH) {
+                    throw new IOException("multipart boundary longer than " + MAX_BOUNDARY_LENGTH + " characters");
+                }
 
                 byte[] boundaryStart = ("--" + boundary).getBytes(StandardCharsets.ISO_8859_1);
-                byte[] boundaryDelim = ("\r\n--" + boundary).getBytes(StandardCharsets.ISO_8859_1);
+                MultipartInput in = new MultipartInput(rawIn);
 
                 // consume preamble / first boundary
-                if (!consumeExact(in, boundaryStart)) {
-                    if (!scanTo(in, boundaryStart, boundaryDelim)) {
-                        return new MultipartParseResult();
-                    }
+                if (!in.copyUntil(boundaryStart, OutputStream.nullOutputStream())) {
+                    return new MultipartParseResult();
                 }
 
                 boolean done = consumeBoundaryTrailer(in);
@@ -761,7 +891,7 @@ public class NinjaHttpServer {
                     String contentType = headers.get("Content-Type");
 
                     if (cd == null || cd.name == null) {
-                        BoundaryHit hit = drainBodyToBoundary(in, boundaryDelim, boundaryStart, OutputStream.nullOutputStream());
+                        BoundaryHit hit = drainBodyToBoundary(in, boundaryStart, OutputStream.nullOutputStream());
                         if (hit == BoundaryHit.FINAL) {
                             return res;
                         }
@@ -774,7 +904,7 @@ public class NinjaHttpServer {
                         tempFilesToDelete.add(tmp);
 
                         try (OutputStream os = Files.newOutputStream(tmp)) {
-                            BoundaryHit hit = drainBodyToBoundary(in, boundaryDelim, boundaryStart, os);
+                            BoundaryHit hit = drainBodyToBoundary(in, boundaryStart, os);
                             long size = Files.size(tmp);
 
                             MultipartFile mf = new MultipartFile(cd.name, cd.filename, contentType, size, tmp);
@@ -785,13 +915,13 @@ public class NinjaHttpServer {
                             }
                         }
                     } else {
-                        // field part: in-memory up to maxInMemoryBytes, then spill
+                        // field part: kept in memory, because it becomes a String parameter anyway
                         Charset cs = charsetFromContentType(contentType).orElse(StandardCharsets.UTF_8);
 
-                        SpillBuffer sb = new SpillBuffer(maxInMemoryBytes, tempFilesToDelete);
-                        BoundaryHit hit = drainBodyToBoundary(in, boundaryDelim, boundaryStart, sb);
+                        LimitedByteArrayOutputStream fieldBytes = new LimitedByteArrayOutputStream(maxInMemoryBytes);
+                        BoundaryHit hit = drainBodyToBoundary(in, boundaryStart, fieldBytes);
 
-                        byte[] raw = sb.readAllBytesAndClose();
+                        byte[] raw = fieldBytes.toByteArray();
                         raw = stripSingleTrailingCrlf(raw);
 
                         String val = new String(raw, cs);
@@ -811,66 +941,30 @@ public class NinjaHttpServer {
             /**
              * Binary-safe drain until boundary delimiter.
              */
-            private static BoundaryHit drainBodyToBoundary(BufferedInputStream in,
-                    byte[] boundaryDelim,
+            private static BoundaryHit drainBodyToBoundary(MultipartInput in,
                     byte[] boundaryStart,
                     OutputStream out) throws IOException {
-                int maxNeedle = Math.max(boundaryDelim.length, boundaryStart.length);
-                byte[] window = new byte[maxNeedle];
-                int wLen = 0;
-
-                while (true) {
-                    int b = in.read();
-                    if (b == -1) {
-                        throw new EOFException("Unexpected EOF in multipart body");
-                    }
-
-                    if (wLen < window.length) {
-                        window[wLen++] = (byte) b;
-                    } else {
-                        out.write(window[0]);
-                        System.arraycopy(window, 1, window, 0, window.length - 1);
-                        window[window.length - 1] = (byte) b;
-                    }
-
-                    if (endsWith(window, wLen, boundaryDelim)) {
-                        int keep = wLen - boundaryDelim.length;
-                        if (keep > 0) {
-                            out.write(window, 0, keep);
-                        }
-                        wLen = 0;
-                        boolean finalBoundary = consumeBoundaryTrailer(in);
-                        return finalBoundary ? BoundaryHit.FINAL : BoundaryHit.NEXT;
-                    }
-
-                    // boundary at immediate start (empty body)
-                    if (endsWith(window, wLen, boundaryStart)) {
-                        int keep = wLen - boundaryStart.length;
-                        if (keep > 0) {
-                            out.write(window, 0, keep);
-                        }
-                        wLen = 0;
-                        boolean finalBoundary = consumeBoundaryTrailer(in);
-                        return finalBoundary ? BoundaryHit.FINAL : BoundaryHit.NEXT;
-                    }
+                if (!in.copyUntil(boundaryStart, out)) {
+                    throw new EOFException("Unexpected EOF in multipart body");
                 }
+                boolean finalBoundary = consumeBoundaryTrailer(in);
+                return finalBoundary ? BoundaryHit.FINAL : BoundaryHit.NEXT;
             }
 
             /**
              * After "--boundary" consume either "--" (final) or CRLF (next).
              */
-            private static boolean consumeBoundaryTrailer(BufferedInputStream in) throws IOException {
-                in.mark(2);
+            private static boolean consumeBoundaryTrailer(MultipartInput in) throws IOException {
                 int a = in.read();
+
+                // tolerate LF-only
+                if (a == '\n') {
+                    return false;
+                }
+
                 int b = in.read();
                 if (a == '-' && b == '-') {
-                    // final; optionally followed by CRLF
-                    in.mark(2);
-                    int c = in.read();
-                    int d = in.read();
-                    if (!(c == '\r' && d == '\n')) {
-                        in.reset();
-                    }
+                    // final; anything after it (optional CRLF, epilogue) is ignored
                     return true;
                 }
 
@@ -878,15 +972,10 @@ public class NinjaHttpServer {
                     return false;
                 }
 
-                // tolerate LF-only
-                if (a == '\n') {
-                    return false;
-                }
-
                 throw new IOException("Malformed multipart boundary trailer: expected CRLF or --");
             }
 
-            private static Map<String, String> readPartHeaders(BufferedInputStream in) throws IOException {
+            private static Map<String, String> readPartHeaders(MultipartInput in) throws IOException {
                 Map<String, String> headers = new LinkedHashMap<>();
                 while (true) {
                     String line = readHeaderLine(in);
@@ -906,7 +995,7 @@ public class NinjaHttpServer {
                 }
             }
 
-            private static String readHeaderLine(BufferedInputStream in) throws IOException {
+            private static String readHeaderLine(MultipartInput in) throws IOException {
                 ByteArrayOutputStream bos = new ByteArrayOutputStream(128);
                 int prev = -1;
                 while (true) {
@@ -924,60 +1013,6 @@ public class NinjaHttpServer {
                     bos.write(c);
                     prev = c;
                 }
-            }
-
-            private static boolean consumeExact(BufferedInputStream in, byte[] seq) throws IOException {
-                in.mark(seq.length);
-                for (byte b : seq) {
-                    int r = in.read();
-                    if (r != (b & 0xff)) {
-                        in.reset();
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            private static boolean scanTo(BufferedInputStream in, byte[]... needles) throws IOException {
-                int max = 0;
-                for (byte[] n : needles) {
-                    max = Math.max(max, n.length);
-                }
-                byte[] window = new byte[max];
-                int wLen = 0;
-
-                while (true) {
-                    int b = in.read();
-                    if (b == -1) {
-                        return false;
-                    }
-
-                    if (wLen < window.length) {
-                        window[wLen++] = (byte) b;
-                    } else {
-                        System.arraycopy(window, 1, window, 0, window.length - 1);
-                        window[window.length - 1] = (byte) b;
-                    }
-
-                    for (byte[] n : needles) {
-                        if (endsWith(window, wLen, n)) {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            private static boolean endsWith(byte[] window, int wLen, byte[] needle) {
-                if (wLen < needle.length) {
-                    return false;
-                }
-                int off = wLen - needle.length;
-                for (int i = 0; i < needle.length; i++) {
-                    if (window[off + i] != needle[i]) {
-                        return false;
-                    }
-                }
-                return true;
             }
 
             // suggestion #2: strip exactly one trailing newline from field value
@@ -1014,77 +1049,139 @@ public class NinjaHttpServer {
             }
 
             /**
-             * OutputStream that buffers up to maxInMemory bytes in memory, then
-             * spills to a temp file.
+             * Collects a text field in memory and rejects it with 413 once it grows beyond maxBytes.
+             * Text fields end up as String parameters in memory anyway, so writing big ones to a temp
+             * file first would not save any memory.
              */
-            private static final class SpillBuffer extends OutputStream {
+            private static final class LimitedByteArrayOutputStream extends OutputStream {
 
-                private final long maxInMemory;
-                private final List<Path> tempFilesToDelete;
+                private final long maxBytes;
+                private final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 
-                private ByteArrayOutputStream mem;
-                private OutputStream fileOut;
-                private Path tempFile;
-                private long size;
-
-                SpillBuffer(long maxInMemory, List<Path> tempFilesToDelete) {
-                    this.maxInMemory = Math.max(0, maxInMemory);
-                    this.tempFilesToDelete = tempFilesToDelete;
-                    this.mem = new ByteArrayOutputStream((int) Math.min(8192, Math.max(0, maxInMemory)));
-                    this.size = 0;
+                LimitedByteArrayOutputStream(long maxBytes) {
+                    this.maxBytes = maxBytes;
                 }
 
                 @Override
                 public void write(int b) throws IOException {
-                    ensureCapacityFor(1);
-                    currentOut().write(b);
-                    size++;
+                    ensureRoomFor(1);
+                    bytes.write(b);
                 }
 
                 @Override
                 public void write(byte[] b, int off, int len) throws IOException {
-                    if (len <= 0) {
-                        return;
-                    }
-                    ensureCapacityFor(len);
-                    currentOut().write(b, off, len);
-                    size += len;
+                    ensureRoomFor(len);
+                    bytes.write(b, off, len);
                 }
 
-                private OutputStream currentOut() {
-                    return (fileOut != null) ? fileOut : mem;
+                byte[] toByteArray() {
+                    return bytes.toByteArray();
                 }
 
-                private void ensureCapacityFor(int incoming) throws IOException {
-                    if (fileOut != null) {
-                        return;
+                private void ensureRoomFor(int incoming) throws PayloadTooLargeException {
+                    if ((long) bytes.size() + incoming > maxBytes) {
+                        throw new PayloadTooLargeException("Multipart text field exceeded maxInMemoryBytes=" + maxBytes);
                     }
-                    if (size + incoming <= maxInMemory) {
-                        return;
-                    }
+                }
+            }
 
-                    // spill
-                    tempFile = Files.createTempFile("ninjax-field-", ".tmp");
-                    tempFilesToDelete.add(tempFile);
+            /**
+             * Buffered reader over the multipart body. It works on chunks instead of single bytes,
+             * so scanning for a boundary costs one array search per chunk rather than a method call
+             * and an array copy per byte.
+             *
+             * The buffer holds unread bytes in buf[pos..end). Bytes after a found boundary stay in
+             * the buffer, so the next part's headers are read from the same buffer.
+             */
+            private static final class MultipartInput {
 
-                    fileOut = new BufferedOutputStream(Files.newOutputStream(tempFile), 64 * 1024);
-                    mem.writeTo(fileOut);
-                    mem = null;
+                private static final int BUFFER_SIZE = 64 * 1024;
+
+                private final InputStream in;
+                // copyUntil keeps up to needle.length + 1 unread bytes when refilling. Boundaries are
+                // at most 72 bytes ("--" + 70), so there is always room left to read more.
+                private final byte[] buf = new byte[BUFFER_SIZE];
+                private int pos;
+                private int end;
+
+                MultipartInput(InputStream in) {
+                    this.in = in;
                 }
 
-                byte[] readAllBytesAndClose() throws IOException {
-                    close();
-                    if (tempFile != null) {
-                        return Files.readAllBytes(tempFile);
+                /**
+                 * Returns the next byte (0-255) or -1 at end of stream.
+                 */
+                int read() throws IOException {
+                    if (pos == end && !fill()) {
+                        return -1;
                     }
-                    return mem == null ? new byte[0] : mem.toByteArray();
+                    return buf[pos++] & 0xff;
                 }
 
-                @Override
-                public void close() throws IOException {
-                    if (fileOut != null) {
-                        fileOut.close();
+                /**
+                 * Copies bytes to out until needle is found and consumes the needle. A CRLF directly
+                 * in front of the needle belongs to the delimiter and is not copied. Returns false at
+                 * end of stream before the needle was found.
+                 */
+                boolean copyUntil(byte[] needle, OutputStream out) throws IOException {
+                    while (true) {
+                        int idx = indexOf(needle, pos, end);
+                        if (idx >= 0) {
+                            // only bytes from pos on belong to this body, and the CRLF in front of a
+                            // needle is never copied early (see below), so it is always at or after pos
+                            int dataEnd = idx;
+                            if (idx - pos >= 2 && buf[idx - 2] == '\r' && buf[idx - 1] == '\n') {
+                                dataEnd = idx - 2;
+                            }
+                            out.write(buf, pos, dataEnd - pos);
+                            pos = idx + needle.length;
+                            return true;
+                        }
+
+                        // No match yet. The last needle.length - 1 bytes could be the start of a needle
+                        // that continues in the next read, and the 2 bytes before that could be its CRLF.
+                        // Everything in front of those bytes is plain data and is copied in one go.
+                        int safeEnd = end - (needle.length + 1);
+                        if (safeEnd > pos) {
+                            out.write(buf, pos, safeEnd - pos);
+                            pos = safeEnd;
+                        }
+
+                        if (!fill()) {
+                            return false;
+                        }
                     }
+                }
+
+                private int indexOf(byte[] needle, int from, int to) {
+                    byte first = needle[0];
+                    for (int i = from; i <= to - needle.length; i++) {
+                        if (buf[i] == first && Arrays.equals(buf, i, i + needle.length, needle, 0, needle.length)) {
+                            return i;
+                        }
+                    }
+                    return -1;
+                }
+
+                /**
+                 * Moves the unread bytes to the front of the buffer and reads more after them.
+                 * Returns false at end of stream.
+                 */
+                private boolean fill() throws IOException {
+                    if (pos > 0) {
+                        System.arraycopy(buf, pos, buf, 0, end - pos);
+                        end -= pos;
+                        pos = 0;
+                    }
+                    int r;
+                    do {
+                        r = in.read(buf, end, buf.length - end);
+                    } while (r == 0);
+                    if (r < 0) {
+                        return false;
+                    }
+                    end += r;
+                    return true;
                 }
             }
         }
