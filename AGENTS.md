@@ -142,7 +142,7 @@ void descriptiveMethodName() {
 - **JSON:** Jackson 3.2.2 (`tools.jackson.*`)
 - **Database:** H2 2.5.250, JDBI 3.54.0, HikariCP 7.1.0, Flyway 13.7.0
 - **Authentication:** JJWT 0.13.0
-- **Logging:** SLF4J 2.0.19 + Logback 1.6.3
+- **Logging:** java.util.logging (the demo routes SLF4J 2.0.19 to it via `slf4j-jdk14`)
 - **Utilities:** Google Guava 33.7.1
 
 ### Module Structure

@@ -128,6 +128,21 @@ You'll see the NinjaX demo project ready to work on.
 
 In Netbeans that feature is called ["compile on save"](https://netbeans.apache.org/tutorial/main/kb/docs/java/javase-intro/).
 
+### Choosing the server
+
+NinjaX runs on the HttpServer built into the JDK (`NinjaHttpServer` in `ninjax-core`) or on Jetty
+(`NinjaJetty` in `ninjax-jetty`). The demo in this repository (`ninjax-demo-todo`) supports both and picks one
+with the property `ninja.server` (`jdk` is the default):
+
+```bash
+cd ninjax-demo-todo
+./mvnw exec:java                       # JDK HttpServer on http://localhost:8081
+./mvnw exec:java -Dninja.server=jetty  # Jetty on http://localhost:8081
+```
+
+The switch is a few lines in `TodoApplication`. In your own application simply create the server you want:
+`new NinjaHttpServer(router, ninjaProperties)` or `new NinjaJetty(router, ninjaProperties)`.
+
 ## Basic concepts
 
 ### A Hello World Example
@@ -176,8 +191,8 @@ In the demo project (with database and one domain) this looks like the following
     ├── main
     │   ├── java
     │   │   ├── conf
-    │   │   │   └── application.conf                                 # Default location for NinjaX configuration
-    │   │   ├── logback.xml                                          # Logging configuration
+    │   │   │   ├── application.conf                                 # Default location for NinjaX configuration
+    │   │   │   └── logging.properties                               # Logging configuration (java.util.logging)
     │   │   ├── migrations                                           # Flyway database migrations
     │   │   │   └── default
     │   │   │       └── V1__Create_tasks_table.sql
@@ -535,20 +550,25 @@ public class Application {
 ```
 
 ### Logging
-NinjaX uses SLF4J and Logback. You can configure logging via `logback.xml`.
+NinjaX logs via java.util.logging. Call `NinjaJavaLogging.initialize()` at startup to load `conf/logging.properties`.
+Libraries that log via SLF4J (Jetty, HikariCP, Flyway, JDBI) can be routed to java.util.logging with the
+`org.slf4j:slf4j-jdk14` dependency. Then one file configures all logging, no matter which server you use.
+This is what the demo does.
 
-```xml
-<configuration>
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-    </encoder>
-  </appender>
-  <root level="INFO">
-    <appender-ref ref="STDOUT" />
-  </root>
-</configuration>
+```properties
+handlers=java.util.logging.ConsoleHandler
+
+java.util.logging.ConsoleHandler.level=ALL
+java.util.logging.ConsoleHandler.formatter=java.util.logging.SimpleFormatter
+
+java.util.logging.SimpleFormatter.format=%1$tF %1$tT %4$s %2$s %5$s%6$s%n
+
+.level=INFO
+org.r10r.ninjax.level=FINE
 ```
+
+If you prefer Logback, replace `slf4j-jdk14` with `logback-classic` (configured via `logback.xml`) and bridge
+java.util.logging to it with `jul-to-slf4j`.
 
 ### Custom routing
 Routing is defined explicitly in code using the `Router` class.

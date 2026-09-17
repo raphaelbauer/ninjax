@@ -38,15 +38,15 @@ mvn deploy -Prelease
 
 ### Running the Demo Application
 ```bash
-# Build and run the todo demo (JDK HttpServer)
+# Build and run the todo demo
 cd ninjax-demo-todo
 mvn clean package
-mvn exec:java
-
-# The same demo on Jetty lives in ninjax-jetty-demo-todo
+mvn exec:java                       # runs on the JDK HttpServer (default)
+mvn exec:java -Dninja.server=jetty  # runs on Jetty
 ```
 
 The demo runs on http://localhost:8081 by default.
+The server is picked by the property `ninja.server` (`jdk` or `jetty`) in `TodoApplication`.
 
 ### Module-Specific Testing
 ```bash
@@ -78,8 +78,8 @@ This is a multi-module Maven project with clear separation of concerns:
 - **ninjax-test-utils** - Test utilities (`TestRequest`, `TestRequestBuilder`, `ResultAssertions`, `HttpTestClient`)
 
 ### Demo
-- **ninjax-demo-todo** - Working todo list application on the JDK server
-- **ninjax-jetty-demo-todo** - The same application on Jetty
+- **ninjax-demo-todo** - Working todo list application demonstrating framework usage.
+  Runs on the JDK HttpServer or on Jetty (`-Dninja.server=jdk|jetty`); its integration test covers both servers.
 
 ## Core Architecture Principles
 
@@ -303,7 +303,7 @@ Mirror production package structure in `src/test/java`.
 - **JSON**: Jackson 3.2.2 (`tools.jackson.*` packages; java.time and Optional support built in)
 - **Database**: JDBI 3.54.0, HikariCP 7.1.0, Flyway 13.7.0, H2 2.5.250
 - **Sessions**: own minimal HS256 JWT implementation in `org.r10r.ninjax.core.jwt` (`Jwt.sign` / `Jwt.verify`, no JJWT)
-- **Logging**: java.util.logging in the framework; the demos route SLF4J (Jetty, HikariCP, Flyway, JDBI) via slf4j-jdk14 (JDK demo) or Logback (Jetty demo)
+- **Logging**: java.util.logging in the framework; the demo routes SLF4J 2.0.19 (Jetty, HikariCP, Flyway, JDBI) to it via `slf4j-jdk14`
 - **Utilities**: Google Guava 33.7.1
 - **Testing**: JUnit 6.1.3, Google Truth 1.4.5; Testcontainers 2.0.5 and Mockito 5.23.0 are managed in the root pom (Mockito is only used by older demo tests, prefer manual test doubles)
 

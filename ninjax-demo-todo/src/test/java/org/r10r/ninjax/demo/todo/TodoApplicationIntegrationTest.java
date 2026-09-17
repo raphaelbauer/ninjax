@@ -7,7 +7,8 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.r10r.ninjax.test.HttpTestClient;
 
 import java.io.IOException;
@@ -18,67 +19,75 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import static org.junit.jupiter.api.AssertionsKt.fail;
 
 /**
  * Integration tests for the TodoApplication. Tests the full application stack
  * with real HTTP requests.
+ *
+ * The application is started twice: once on the JDK HttpServer ("jdk") and once
+ * on Jetty ("jetty"). Every test runs against both servers.
  */
 class TodoApplicationIntegrationTest {
 
-    private static int TEST_PORT;
-    private static Thread serverThread;
-    private static TodoApplication application;
+    private static final Map<String, Integer> PORT_BY_SERVER = new HashMap<>();
 
-    private HttpTestClient client;
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new JsonMapper();
 
     @BeforeAll
-    static void startApplication() throws Exception {
-        // given
-        // Set test port via system property
-        TEST_PORT = findAvailablePort(1000);
-        System.setProperty("ninja.port", String.valueOf(TEST_PORT));
+    static void startApplications() throws Exception {
+        startApplication("jdk");
+        startApplication("jetty");
+    }
 
-        String dbConnectString = "jdbc:h2:./target/test-db-" + UUID.randomUUID();
-        System.setProperty("application.datasource.default.url", dbConnectString);
+    private static void startApplication(String server) throws Exception {
+        // TodoApplication reads its configuration from system properties when it starts.
+        // Each server gets its own port and its own database.
+        int port = findAvailablePort(1000);
+        System.setProperty("ninja.server", server);
+        System.setProperty("ninja.port", String.valueOf(port));
+        System.setProperty("application.datasource.default.url", "jdbc:h2:./target/test-db-" + UUID.randomUUID());
 
-        // Start application in background thread
-        serverThread = new Thread(() -> {
-            application = new TodoApplication();
-        });
+        // The server blocks the thread that starts it, so start it in a background thread
+        Thread serverThread = new Thread(TodoApplication::new);
         serverThread.setDaemon(true);
         serverThread.start();
 
-        waitForServer("http://localhost:" + TEST_PORT);
+        // Wait before starting the next server, so it does not see these system properties
+        waitForServer("http://localhost:" + port);
+        PORT_BY_SERVER.put(server, port);
     }
 
     @BeforeEach
-    void setUp() throws IOException {
-        // given
-        client = HttpTestClient.localhost(TEST_PORT);
-        objectMapper = new JsonMapper();
-
-        // Clear all tasks before each test
-        HttpTestClient.HttpTestResponse response = client.get("/tasks.json");
-        if (response.statusCode() == 200) {
-            JsonNode tasks = objectMapper.readTree(response.body());
-            for (JsonNode task : tasks) {
-                long id = task.get("id").asLong();
-                try {
-                    client.post("/tasks/delete", Map.of("id", String.valueOf(id)));
-                } catch (Exception e) {
-                    // Ignore errors during cleanup
+    void clearAllTasks() throws IOException {
+        for (String server : PORT_BY_SERVER.keySet()) {
+            HttpTestClient client = clientFor(server);
+            HttpTestClient.HttpTestResponse response = client.get("/tasks.json");
+            if (response.statusCode() == 200) {
+                JsonNode tasks = objectMapper.readTree(response.body());
+                for (JsonNode task : tasks) {
+                    long id = task.get("id").asLong();
+                    try {
+                        client.post("/tasks/delete", Map.of("id", String.valueOf(id)));
+                    } catch (Exception e) {
+                        // Ignore errors during cleanup
+                    }
                 }
             }
         }
     }
 
-    @Test
-    void fullWorkflow_createReadUpdateDelete() throws IOException {
+    private static HttpTestClient clientFor(String server) {
+        return HttpTestClient.localhost(PORT_BY_SERVER.get(server));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"jdk", "jetty"})
+    void fullWorkflow_createReadUpdateDelete(String server) throws IOException {
         // given
+        HttpTestClient client = clientFor(server);
         // Database is empty
 
         // when - Create a task
@@ -123,9 +132,11 @@ class TodoApplicationIntegrationTest {
         assertThat(tasksAfterDelete.size()).isEqualTo(0);
     }
 
-    @Test
-    void showTasks_returnsHtmlPage() throws IOException {
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"jdk", "jetty"})
+    void showTasks_returnsHtmlPage(String server) throws IOException {
         // given
+        HttpTestClient client = clientFor(server);
         client.post("/tasks", Map.of("title", "Test Task"));
 
         // when
@@ -137,9 +148,11 @@ class TodoApplicationIntegrationTest {
         assertThat(response.body()).contains("html");
     }
 
-    @Test
-    void addTask_createsTaskAndRedirects() throws IOException {
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"jdk", "jetty"})
+    void addTask_createsTaskAndRedirects(String server) throws IOException {
         // given
+        HttpTestClient client = clientFor(server);
         // Database is empty
 
         // when
@@ -156,9 +169,11 @@ class TodoApplicationIntegrationTest {
         assertThat(tasks.get(0).get("title").asString()).isEqualTo("New Task");
     }
 
-    @Test
-    void getTasksJson_returnsJsonArray() throws IOException {
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"jdk", "jetty"})
+    void getTasksJson_returnsJsonArray(String server) throws IOException {
         // given
+        HttpTestClient client = clientFor(server);
         client.post("/tasks", Map.of("title", "Task 1"));
         client.post("/tasks", Map.of("title", "Task 2"));
         client.post("/tasks", Map.of("title", "Task 3"));
@@ -177,9 +192,11 @@ class TodoApplicationIntegrationTest {
         assertThat(tasks.get(2).get("title").asString()).isEqualTo("Task 1");
     }
 
-    @Test
-    void toggleTask_changesCompletionStatus() throws IOException {
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"jdk", "jetty"})
+    void toggleTask_changesCompletionStatus(String server) throws IOException {
         // given
+        HttpTestClient client = clientFor(server);
         client.post("/tasks", Map.of("title", "Task to toggle"));
 
         HttpTestClient.HttpTestResponse getResponse = client.get("/tasks.json");
@@ -200,9 +217,11 @@ class TodoApplicationIntegrationTest {
         assertThat(afterCompleted).isEqualTo(!initialCompleted);
     }
 
-    @Test
-    void deleteTask_removesTask() throws IOException {
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"jdk", "jetty"})
+    void deleteTask_removesTask(String server) throws IOException {
         // given
+        HttpTestClient client = clientFor(server);
         client.post("/tasks", Map.of("title", "Task to delete"));
         client.post("/tasks", Map.of("title", "Task to keep"));
 
@@ -226,9 +245,11 @@ class TodoApplicationIntegrationTest {
         assertThat(tasksAfterDelete.get(0).get("title").asString()).isEqualTo("Task to keep");
     }
 
-    @Test
-    void multipleTasksWorkflow() throws IOException {
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"jdk", "jetty"})
+    void multipleTasksWorkflow(String server) throws IOException {
         // given
+        HttpTestClient client = clientFor(server);
         // Create multiple tasks
         client.post("/tasks", Map.of("title", "Task 1"));
         client.post("/tasks", Map.of("title", "Task 2"));

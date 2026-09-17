@@ -11,7 +11,7 @@ The main project guide is `/CLAUDE.md` at the repo root. This file collects prac
 ## Upgrading dependencies
 - All versions live in the root `pom.xml` (`<properties>` + `dependencyManagement`).
   A few plugin/tooling versions sit in module poms: `ninjax-maven-plugin` (maven-plugin-api/core/annotations,
-  maven-plugin-plugin) and both demo poms (`exec-maven-plugin`).
+  maven-plugin-plugin) and the demo pom (`exec-maven-plugin`).
 - Look up the latest stable versions straight from Maven Central metadata, e.g.
   `curl -s https://repo.maven.apache.org/maven2/org/jdbi/jdbi3-core/maven-metadata.xml`.
   Filter out alpha/beta/RC/M versions. Maven 4 is not GA yet, so stay on Maven 3.9.x (the wrapper pins it).
@@ -61,3 +61,15 @@ The main project guide is `/CLAUDE.md` at the repo root. This file collects prac
   i.e. once per JVM when the first server is created. Setting them later has no effect (also in tests that share a JVM).
   The JDK default for `maxReqTime`/`maxRspTime` is "no limit". Tests that depend on these settings run in a child JVM
   (see `SlowClientTimeoutCheck` started by `NinjaHttpServerLimitsTest`).
+
+## Demo application
+- There is a single demo module, `ninjax-demo-todo`. `TodoApplication` picks the server with the property
+  `ninja.server` (`jdk` = `NinjaHttpServer`, default; `jetty` = `NinjaJetty`), e.g. `mvn exec:java -Dninja.server=jetty`.
+  With `ninjax:run` (forks a JVM) the property must reach the forked JVM: `-Dninja.jvmArgs=-Dninja.server=jetty`.
+- Both server constructors block until the server stops, so tests start the app in a daemon thread and poll the port.
+- `TodoApplicationIntegrationTest` starts the app once per server (own port and H2 database each) and runs every
+  test against both via `@ParameterizedTest`. Start one server, wait until it answers, then set the system
+  properties for the next one, because `NinjaProperties` reads system properties when the app starts.
+- Logging: `slf4j-jdk14` routes SLF4J (Jetty, HikariCP, Flyway, JDBI) to java.util.logging, and
+  `NinjaJavaLogging.initialize()` loads `conf/logging.properties`. One config for both servers, no Logback.
+  Never add `jul-to-slf4j` next to `slf4j-jdk14`, as that creates a logging loop.

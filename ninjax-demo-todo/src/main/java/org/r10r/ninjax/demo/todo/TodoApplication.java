@@ -12,6 +12,7 @@ import org.r10r.ninjax.db.jdbi.NinjaJdbiImpl;
 import org.r10r.ninjax.db.hikari.NinjaDbHikariProvider;
 import org.r10r.ninjax.db.flyway.NinjaFlywayMigrator;
 import org.r10r.ninjax.db.jdbc.NinjaDatasourcePropertiesExtractor;
+import org.r10r.ninjax.jetty.NinjaJetty;
 import org.r10r.ninjax.json.Json;
 
 public class TodoApplication {
@@ -41,11 +42,18 @@ public class TodoApplication {
         router.POST("/tasks/toggle").with(todoController::toggleTaskCompletion);
         router.GET("/tasks.json").with(todoController::getTasksJson);
 
-        // NinjaJetty startup
+        // Server startup. Pick the server with the property ninja.server (default: jdk).
+        // Both servers block here until they are stopped.
+        var server = ninjaProperties.get("ninja.server").orElse("jdk");
         try {
-            new NinjaHttpServer(router, ninjaProperties);
+            switch (server) {
+                case "jdk" -> new NinjaHttpServer(router, ninjaProperties);
+                case "jetty" -> new NinjaJetty(router, ninjaProperties);
+                default -> throw new IllegalArgumentException(
+                        "Unknown ninja.server '" + server + "'. Use 'jdk' or 'jetty'.");
+            }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to start NinjaJetty", e);
+            throw new RuntimeException("Failed to start server '" + server + "'", e);
         }
     }
     
