@@ -28,4 +28,36 @@ The main project guide is `/CLAUDE.md` at the repo root. This file collects prac
 - **Flyway 13** logs "H2 2.5.x is newer than the version Flyway has been verified with". It is harmless and the migrations work.
 - **Maven plugin**: inject `MavenProject`/`MavenSession` with `@Parameter(defaultValue = "${project}", readonly = true)`,
   not the deprecated `@Component`.
+- **JWT**: there is no JWT library. `ninjax-core/.../core/jwt/Jwt` has `sign(claims, key)` and `verify(token, key)`
+  (HS256 only, strict JSON parser in `JwtJson`). Date claims (`nbf`, `iat`, `exp`) are handled in
+  `NinjaSessionConverter`. Keep the wire format stable (`JwtTest.OLD_IMPLEMENTATION_TOKEN`) or user sessions break.
 - `junit:junit:4.x` shows up on the test classpath only transitively via Google Truth. That is expected.
+
+## Building and testing
+- The IDE's Java language server (VS Code / Eclipse JDT) compiles into the same `target/classes` as Maven. After
+  switching branches, Maven's incremental build can then run stale or broken class files ("Unresolved compilation
+  problem" at runtime). Use `./mvnw clean test` after switching branches, or build in a git worktree outside the
+  IDE workspace.
+- `git stash` is shared between all worktrees of the repository. Prefer a temporary patch (`git diff > file`) or
+  WIP commit when checking that a test fails without a fix.
+- Tests that start a real server (`NinjaHttpServer`, `NinjaJetty`) run it in a daemon thread on a free port, because
+  both constructors block until the server stops. To check that a HEAD response has no body, read the response with a
+  raw `Socket`: `java.net.http.HttpClient` hides it.
+- **java.net.http.HttpClient** silently retries a GET once when the server closes the connection without a response.
+  Use POST in tests that expect such a failure.
+
+## Code notes
+- `Request` is a final class with a hand-written builder, not a record: its public API uses `getX()` getters
+  (`getLocale()`, `getFile()`, ...), which a record would turn into `x()` accessors. Null checks live in the constructor only.
+- Uploaded files come from a single `FileItemsGetter`; `getFile(name)` is simply the first element of `getFiles(name)`.
+
+## HTTP server notes
+- **HEAD**: the JDK `HttpServer` logs a warning and throws on body writes if a HEAD response is sent with a content
+  length >= 0, so use `sendResponseHeaders(status, -1)`. Jetty silently drops HEAD body bytes itself.
+  Both servers skip the `OutputStreamRenderer` for HEAD.
+- Form bodies are parsed for POST/PUT/PATCH on the JDK server (Jetty: POST/PUT). DELETE bodies are not parsed into
+  parameters, but stay readable via the request input stream.
+- **JDK HttpServer** (`com.sun.net.httpserver`) reads its `sun.net.httpserver.*` settings in a static initializer,
+  i.e. once per JVM when the first server is created. Setting them later has no effect (also in tests that share a JVM).
+  The JDK default for `maxReqTime`/`maxRspTime` is "no limit". Tests that depend on these settings run in a child JVM
+  (see `SlowClientTimeoutCheck` started by `NinjaHttpServerLimitsTest`).

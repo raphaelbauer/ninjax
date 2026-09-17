@@ -30,7 +30,7 @@ public class TestRequestBuilder {
     private final Map<String, String[]> parameters = new LinkedHashMap<>();
     private final Map<String, List<String>> headers = new LinkedHashMap<>();
     private String body = "";
-    private Locale language = Locale.ENGLISH;
+    private Locale locale = Locale.ENGLISH;
     private Optional<org.r10r.ninjax.core.NinjaSession> ninjaSession = Optional.empty();
     private List<org.r10r.ninjax.core.NinjaCookie> ninjaCookies = new ArrayList<>();
 
@@ -146,13 +146,13 @@ public class TestRequestBuilder {
     }
 
     /**
-     * Set the language.
+     * Set the locale.
      *
-     * @param language Language
+     * @param locale Locale
      * @return This builder
      */
-    public TestRequestBuilder language(Locale language) {
-        this.language = Objects.requireNonNull(language, "language");
+    public TestRequestBuilder locale(Locale locale) {
+        this.locale = Objects.requireNonNull(locale, "locale");
         return this;
     }
 
@@ -195,7 +195,7 @@ public class TestRequestBuilder {
         // Extract path parameters using utility
         var pathParams = PathParameterExtractor.extractPathParameters(
                 route.pathRegex(),
-                route.parameters,
+                route.parameterNames,
                 requestPath
         );
 
@@ -204,24 +204,18 @@ public class TestRequestBuilder {
                 () -> new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8));
 
         // File handling (not used in basic tests)
-        Request.FileItemGetter fileItemGetter = fieldName -> Optional.empty();
         Request.FileItemsGetter fileItemsGetter = fieldName -> List.of();
-
-        // Create payload from parameters
-        var payload = new Request.Payload(Collections.unmodifiableMap(parameters));
 
         return Request.builder()
                 .requestPath(requestPath)
                 .pathParameters(pathParams)
                 .inputStreamGetter(inputStreamGetter)
-                .fileItemGetter(fileItemGetter)
                 .fileItemsGetter(fileItemsGetter)
                 .ninjaCookies(List.copyOf(ninjaCookies))
-                .payload(payload)
                 .headers(new org.r10r.ninjax.core.Request.Headers())
                 .parameters(new org.r10r.ninjax.core.Request.Parameters(parameters))
                 .ninjaSession(ninjaSession)
-                .language(language)
+                .locale(locale)
                 .build();
     }
 }

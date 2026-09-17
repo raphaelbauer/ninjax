@@ -3,12 +3,15 @@ package org.r10r.ninjax.core;
 import java.io.InputStream;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 public final class Request {
 
@@ -16,22 +19,16 @@ public final class Request {
 
     private final String requestPath;
     private final InputStreamGetter inputStreamGetter;
-    private final FileItemGetter fileItemGetter;
     private final FileItemsGetter fileItemsGetter;
     private final List<NinjaCookie> ninjaCookies;
-    private final Payload payload;
     private final Headers headers;
     private final Parameters parameters;
     private final Optional<NinjaSession> ninjaSession;
-    private final Locale language;
+    private final Locale locale;
     private final Map<String, String> pathParameters;
 
     public interface InputStreamGetter {
         InputStream get();
-    }
-
-    public interface FileItemGetter {
-        Optional<FileItem> getFileItem(String fieldName);
     }
 
     public interface FileItemsGetter {
@@ -39,36 +36,36 @@ public final class Request {
     }
 
     /**
-     * Constructor enforcing defensive copies.
+     * Constructor enforcing non-null values and defensive copies.
      */
     public Request(
             String requestPath,
             InputStreamGetter inputStreamGetter,
-            FileItemGetter fileItemGetter,
             FileItemsGetter fileItemsGetter,
             List<NinjaCookie> ninjaCookies,
-            Payload payload,
             Headers headers,
             Parameters parameters,
             Optional<NinjaSession> ninjaSession,
-            Locale language,
+            Locale locale,
             Map<String, String> pathParameters
     ) {
         this.requestPath = Objects.requireNonNull(requestPath, "requestPath must not be null");
         this.inputStreamGetter = Objects.requireNonNull(inputStreamGetter, "inputStreamGetter must not be null");
-        this.fileItemGetter = Objects.requireNonNull(fileItemGetter, "fileItemGetter must not be null");
         this.fileItemsGetter = Objects.requireNonNull(fileItemsGetter, "fileItemsGetter must not be null");
         this.ninjaCookies = List.copyOf(Objects.requireNonNull(ninjaCookies, "ninjaCookies must not be null"));
-        this.payload = payload; // allowed to be null (as in original)
         this.headers = Objects.requireNonNull(headers, "headers must not be null");
         this.parameters = Objects.requireNonNull(parameters, "parameters must not be null");
         this.ninjaSession = Objects.requireNonNull(ninjaSession, "ninjaSession must not be null");
-        this.language = Objects.requireNonNull(language, "language must not be null");
+        this.locale = Objects.requireNonNull(locale, "locale must not be null");
         this.pathParameters = Map.copyOf(Objects.requireNonNull(pathParameters, "pathParameters must not be null"));
     }
 
     // ---- getters (get... style) ----
 
+    /**
+     * The raw request path as sent by the client, still percent-encoded (e.g. "/files/my%20file.txt").
+     * Routes are matched against this raw path. Use {@link #getPathParameter(String)} for decoded values.
+     */
     public String getRequestPath() {
         return requestPath;
     }
@@ -77,20 +74,12 @@ public final class Request {
         return inputStreamGetter;
     }
 
-    public FileItemGetter getFileItemGetter() {
-        return fileItemGetter;
-    }
-
     public FileItemsGetter getFileItemsGetter() {
         return fileItemsGetter;
     }
 
     public List<NinjaCookie> getNinjaCookies() {
         return ninjaCookies;
-    }
-
-    public Payload getPayload() {
-        return payload;
     }
 
     public Headers getHeaders() {
@@ -105,12 +94,8 @@ public final class Request {
         return ninjaSession;
     }
 
-    public Locale getLanguage() {
-        return language;
-    }
-
     public Locale getLocale() {
-        return language;
+        return locale;
     }
 
     public Map<String, String> getPathParameters() {
@@ -118,22 +103,40 @@ public final class Request {
     }
 
     /**
-     * Content of this raw path parameter.
+     * Content of this path parameter, percent-decoded exactly once.
      *
-     * All urlencoded Strings will be decoded. For instance "my%20name" will
-     * become "my name".
+     * For instance "my%20name" becomes "my name". A "+" stays a "+" (only query strings
+     * and forms use "+" for spaces). Returns empty if the parameter does not exist or
+     * is not validly encoded (e.g. "100%").
      */
     public Optional<String> getPathParameter(String pathParameterName) {
         return Optional.ofNullable(pathParameters.get(pathParameterName))
-                .map(p -> URLDecoder.decode(p, StandardCharsets.UTF_8));
+                .flatMap(Request::decodePath);
+    }
+
+    /**
+     * Percent-decodes a raw (still encoded) URL path or path segment.
+     *
+     * @return the decoded path, or empty if the encoding is invalid
+     */
+    static Optional<String> decodePath(String rawPath) {
+        try {
+            // URLDecoder implements form decoding, which turns "+" into a space. Protect it first.
+            return Optional.of(URLDecoder.decode(rawPath.replace("+", "%2B"), StandardCharsets.UTF_8));
+        } catch (IllegalArgumentException invalidEncoding) {
+            return Optional.empty();
+        }
     }
 
     public List<FileItem> getFiles(String fieldName) {
         return fileItemsGetter.getFileItems(fieldName);
     }
 
+    /**
+     * The first file uploaded for this field name (if any).
+     */
     public Optional<FileItem> getFile(String fieldName) {
-        return fileItemGetter.getFileItem(fieldName);
+        return getFiles(fieldName).stream().findFirst();
     }
 
     // ---- Builder ----
@@ -146,14 +149,12 @@ public final class Request {
         return new Builder()
                 .requestPath(this.requestPath)
                 .inputStreamGetter(this.inputStreamGetter)
-                .fileItemGetter(this.fileItemGetter)
                 .fileItemsGetter(this.fileItemsGetter)
                 .ninjaCookies(this.ninjaCookies)
-                .payload(this.payload)
                 .headers(this.headers)
                 .parameters(this.parameters)
                 .ninjaSession(this.ninjaSession)
-                .language(this.language)
+                .locale(this.locale)
                 .pathParameters(this.pathParameters);
     }
 
@@ -161,14 +162,12 @@ public final class Request {
 
         private String requestPath;
         private InputStreamGetter inputStreamGetter;
-        private FileItemGetter fileItemGetter;
         private FileItemsGetter fileItemsGetter;
         private List<NinjaCookie> ninjaCookies = List.of();
-        private Payload payload;
         private Headers headers;
         private Parameters parameters;
         private Optional<NinjaSession> ninjaSession = Optional.empty();
-        private Locale language = Locale.getDefault();
+        private Locale locale = Locale.getDefault();
         private Map<String, String> pathParameters = Map.of();
 
         private Builder() {
@@ -184,11 +183,6 @@ public final class Request {
             return this;
         }
 
-        public Builder fileItemGetter(FileItemGetter fileItemGetter) {
-            this.fileItemGetter = fileItemGetter;
-            return this;
-        }
-
         public Builder fileItemsGetter(FileItemsGetter fileItemsGetter) {
             this.fileItemsGetter = fileItemsGetter;
             return this;
@@ -196,11 +190,6 @@ public final class Request {
 
         public Builder ninjaCookies(List<NinjaCookie> ninjaCookies) {
             this.ninjaCookies = ninjaCookies;
-            return this;
-        }
-
-        public Builder payload(Payload payload) {
-            this.payload = payload;
             return this;
         }
 
@@ -219,8 +208,8 @@ public final class Request {
             return this;
         }
 
-        public Builder language(Locale language) {
-            this.language = language;
+        public Builder locale(Locale locale) {
+            this.locale = locale;
             return this;
         }
 
@@ -230,59 +219,21 @@ public final class Request {
         }
 
         public Request build() {
-            Objects.requireNonNull(requestPath, "requestPath must not be null");
-            Objects.requireNonNull(inputStreamGetter, "inputStreamGetter must not be null");
-            Objects.requireNonNull(fileItemGetter, "fileItemGetter must not be null");
-            Objects.requireNonNull(fileItemsGetter, "fileItemsGetter must not be null");
-            Objects.requireNonNull(ninjaCookies, "ninjaCookies must not be null");
-            Objects.requireNonNull(headers, "headers must not be null");
-            Objects.requireNonNull(parameters, "parameters must not be null");
-            Objects.requireNonNull(ninjaSession, "ninjaSession must not be null");
-            Objects.requireNonNull(language, "language must not be null");
-            Objects.requireNonNull(pathParameters, "pathParameters must not be null");
-
             return new Request(
                     requestPath,
                     inputStreamGetter,
-                    fileItemGetter,
                     fileItemsGetter,
                     ninjaCookies,
-                    payload,
                     headers,
                     parameters,
                     ninjaSession,
-                    language,
+                    locale,
                     pathParameters
             );
         }
     }
 
     // ---- Nested value types ----
-
-    public static final class Payload {
-
-        private final Map<String, Object> delegate;
-
-        public Payload(Map<String, Object> delegate) {
-            this.delegate = Map.copyOf(Objects.requireNonNull(delegate, "delegate must not be null"));
-        }
-
-        public <U> Optional<U> get(String key, Class<U> clazz) {
-            Object object = delegate.get(key);
-            return clazz.isInstance(object)
-                    ? Optional.of(clazz.cast(object))
-                    : Optional.empty();
-        }
-
-        public Optional<String> getString(String key) {
-            Object object = delegate.get(key);
-            return object instanceof String s ? Optional.of(s) : Optional.empty();
-        }
-
-        public Map<String, Object> getDelegate() {
-            return delegate;
-        }
-    }
 
     public static final class Parameters {
 
@@ -311,25 +262,34 @@ public final class Request {
         }
     }
 
+    /**
+     * HTTP header names are case-insensitive (RFC 9110), so all lookups ignore case.
+     * This matters because servers pass names differently: Jetty keeps them as sent by the
+     * client ("Content-Type"), the JDK HttpServer normalizes them ("Content-type").
+     */
     public static final class Headers {
 
         private final Map<String, List<String>> headers;
 
         public Headers() {
-            this.headers = Map.of();
+            this(Map.of());
         }
 
         public Headers(Map<String, List<String>> headers) {
-            this.headers = Map.copyOf(Objects.requireNonNull(headers, "headers must not be null"));
+            Objects.requireNonNull(headers, "headers must not be null");
+            Map<String, List<String>> caseInsensitiveMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+            headers.forEach((name, values) -> caseInsensitiveMap.merge(name, List.copyOf(values),
+                    (existing, additional) -> Stream.concat(existing.stream(), additional.stream()).toList()));
+            this.headers = Collections.unmodifiableMap(caseInsensitiveMap);
         }
 
-        public Optional<String> get(String headerName) {
-            var list = headers.get(headerName);
+        public Optional<String> get(String headerNameCaseInsensitive) {
+            var list = headers.get(headerNameCaseInsensitive);
             return (list == null || list.isEmpty()) ? Optional.empty() : Optional.of(list.get(0));
         }
 
-        public List<String> getAll(String headerName) {
-            return headers.getOrDefault(headerName, List.of());
+        public List<String> getAll(String headerNameCaseInsensitive) {
+            return headers.getOrDefault(headerNameCaseInsensitive, List.of());
         }
 
         public Map<String, List<String>> getHeaders() {

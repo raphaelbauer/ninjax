@@ -3,13 +3,13 @@ package org.r10r.ninjax.core;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import org.r10r.ninjax.core.jwt.Jwts;
+import org.r10r.ninjax.core.jwt.Jwt;
+import org.r10r.ninjax.core.jwt.JwtException;
 import org.r10r.ninjax.core.properties.NinjaProperties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,12 +20,16 @@ public class NinjaSessionConverter {
 
     public static final String NINJA_SESSION_COOKIE_NAME = "NINJA_SESSION";
     private static final String NINJA_SESSION_PATH = "/";
+    private static final int BROWSER_SESSION_COOKIE_MAX_AGE = -1;
+    private static final String SESSION_COOKIE_SAME_SITE_KEY = "application.session.cookie.same_site";
     
     
     private final Optional<Long> sessionExpiryTimeInSeconds;
     private final boolean sessionCookieSecure;
+    private final SameSite sessionCookieSameSite;
     
-    private final SecretKey secretKeyForSessionEncryption;
+    // The session is signed (HMAC), not encrypted: clients can read its content, but can't change it.
+    private final SecretKey secretKeyForSessionSigning;
     
     
     public NinjaSessionConverter(NinjaProperties ninjaProperties) {
@@ -37,7 +41,7 @@ public class NinjaSessionConverter {
         byte[] decodedKey = Base64.getDecoder().decode(encodedSecret);
 
         // HS256 requires a key of at least 256 bits (32 bytes). A shorter key (e.g. the
-        // 'changeme' demo default) would still "work" with this custom Jwts implementation but
+        // 'changeme' demo default) would still "work" with our Jwt implementation but
         // produces weak, forgeable tokens. Fail fast at startup instead of silently accepting it.
         int MINIMUM_SECRET_LENGTH_IN_BYTES = 32;
         if (decodedKey.length < MINIMUM_SECRET_LENGTH_IN_BYTES) {
@@ -46,32 +50,46 @@ public class NinjaSessionConverter {
                     NinjaConstants.NINJA_APPLICATION_SECRET_KEY, MINIMUM_SECRET_LENGTH_IN_BYTES, decodedKey.length));
         }
 
-        this.secretKeyForSessionEncryption = new SecretKeySpec(decodedKey, 0, decodedKey.length, "HmacSHA256");
+        this.secretKeyForSessionSigning = new SecretKeySpec(decodedKey, 0, decodedKey.length, "HmacSHA256");
 
         this.sessionExpiryTimeInSeconds = ninjaProperties.get("application.session.expire_time_in_seconds").map(v -> Long.valueOf(v));
         this.sessionCookieSecure = ninjaProperties.get("application.session.cookie.secure")
                 .map(v -> Boolean.parseBoolean(v))
                 .orElse(true); // Default to true (secure) if not specified
+        this.sessionCookieSameSite = extractSessionCookieSameSite(ninjaProperties, sessionCookieSecure);
+    }
+
+    private static SameSite extractSessionCookieSameSite(NinjaProperties ninjaProperties, boolean sessionCookieSecure) {
+        // Lax keeps the session on normal top-level navigation, but not on cross-site POSTs (CSRF protection).
+        SameSite sameSite = ninjaProperties.get(SESSION_COOKIE_SAME_SITE_KEY)
+                .map(v -> SameSite.ofString(v).orElseThrow(() -> new RuntimeException(String.format(
+                        "Invalid value '%s' for '%s' in 'conf/application.conf'. Allowed values are Strict, Lax or None.",
+                        v, SESSION_COOKIE_SAME_SITE_KEY))))
+                .orElse(SameSite.Lax);
+
+        // Browsers reject cookies with SameSite=None that are not Secure. The session would silently not work.
+        if (sameSite == SameSite.None && !sessionCookieSecure) {
+            throw new RuntimeException(String.format(
+                    "'%s=None' requires 'application.session.cookie.secure=true' in 'conf/application.conf'. Browsers reject SameSite=None cookies without the Secure flag.",
+                    SESSION_COOKIE_SAME_SITE_KEY));
+        }
+
+        return sameSite;
     }
 
     public Optional<NinjaSession> extractSessionFromCookie(NinjaCookie ninjaSessionCookie) {
 
-        var now = System.currentTimeMillis();
-
         try {
-            var claims = Jwts.parser()
-                    .verifyWith(secretKeyForSessionEncryption)
-                    .build()
-                    .parseSignedClaims(ninjaSessionCookie.value())
-                    .getPayload();
+            Map<String, Object> claims = Jwt.verify(ninjaSessionCookie.value(), secretKeyForSessionSigning);
+            Instant now = Instant.now();
 
-            if (claims.getNotBefore() != null /* Not our Api. We have to do a null check :( */
-                    && now < claims.getNotBefore().getTime()) {
+            Optional<Instant> notBefore = numericDateClaim(claims, "nbf");
+            if (notBefore.isPresent() && now.isBefore(notBefore.get())) {
                 return Optional.empty();
             }
 
-            if (claims.getExpiration() != null /* Not our Api. We have to do a null check :( */
-                    && now > claims.getExpiration().getTime()) {
+            Optional<Instant> expiration = numericDateClaim(claims, "exp");
+            if (expiration.isPresent() && now.isAfter(expiration.get())) {
                 return Optional.empty();
             }
 
@@ -89,6 +107,19 @@ public class NinjaSessionConverter {
 
     }
 
+    /**
+     * JWT dates ("nbf", "exp") are whole seconds since the epoch (RFC 7519, 2).
+     * Anything else (strings, fractions) is rejected instead of guessing what was meant.
+     */
+    private static Optional<Instant> numericDateClaim(Map<String, Object> claims, String name) {
+        return switch (claims.get(name)) {
+            case null -> Optional.empty();
+            case Integer seconds -> Optional.of(Instant.ofEpochSecond(seconds));
+            case Long seconds -> Optional.of(Instant.ofEpochSecond(seconds));
+            default -> throw new JwtException("Claim '" + name + "' must be an integer number of seconds");
+        };
+    }
+
     public NinjaCookie createCookieToRemoveNinjaSession() {
         int REMOVE_SESSION_MAX_AGE = 0;
         var cookie = new NinjaCookie(
@@ -98,7 +129,8 @@ public class NinjaSessionConverter {
                 REMOVE_SESSION_MAX_AGE,
                 Optional.of(NINJA_SESSION_PATH),
                 sessionCookieSecure ? Secure.Yes : Secure.No,
-                HttpOnly.Yes);
+                HttpOnly.Yes,
+                Optional.of(sessionCookieSameSite));
 
         return cookie;
     }
@@ -118,21 +150,19 @@ public class NinjaSessionConverter {
             expiryInstant = Optional.of(now.plusSeconds(sessionExpiryTimeInSeconds.get()));
         }
 
-        // build jwt
-        var nowDate = Date.from(now);
-        var jwsBuilder = Jwts.builder()
-                .notBefore(nowDate)
-                .issuedAt(nowDate);
+        // build jwt. Dates are stored as seconds since the epoch (JWT standard).
+        Map<String, Object> claims = new HashMap<>(ninjaSession.keyValueStore());
+        claims.put("nbf", now.getEpochSecond());
+        claims.put("iat", now.getEpochSecond());
+        expiryInstant.ifPresent(i -> claims.put("exp", i.getEpochSecond()));
 
-        expiryInstant.ifPresent(i -> jwsBuilder.expiration(Date.from(i)));
+        String jws = Jwt.sign(claims, secretKeyForSessionSigning);
 
-        String jws = jwsBuilder
-                .claims(ninjaSession.keyValueStore())
-                .signWith(secretKeyForSessionEncryption)
-                .compact();
-
-        var maxAge = expiryInstant.map(i -> (int) Duration.between(now, i).getSeconds())
-                .orElse(0); // 0 is a session cookie
+        // Max-Age=0 tells the browser to delete the cookie right away, so a cookie without expiry
+        // must use -1 (no Max-Age attribute at all). The browser then keeps it until it is closed.
+        // An expiry that already passed becomes 0, so the stale cookie gets deleted.
+        var maxAge = expiryInstant.map(i -> (int) Math.clamp(Duration.between(now, i).getSeconds(), 0, Integer.MAX_VALUE))
+                .orElse(BROWSER_SESSION_COOKIE_MAX_AGE);
 
         //build cookie from jwt
         var cookie = new NinjaCookie(
@@ -142,7 +172,8 @@ public class NinjaSessionConverter {
                 maxAge,
                 Optional.of(NINJA_SESSION_PATH),
                 sessionCookieSecure ? Secure.Yes : Secure.No,
-                HttpOnly.Yes);
+                HttpOnly.Yes,
+                Optional.of(sessionCookieSameSite));
 
         return cookie;
     }
